@@ -1,0 +1,5 @@
+WVDConnections
+| where State == "Connected"
+| summarize arg_max(TimeGenerated, *) by UserName
+| extend HostPool = tostring(split(_ResourceId, "/")[array_length(split(_ResourceId, "/")) - 1])
+| project UserName, HostPool
