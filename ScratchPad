@@ -1,1 +1,11 @@
-Table.AddColumn(# "Route", each if Text.Contains([org], "Symantec") then "WSS Proxy" else if Text.Contains([org], "Blue Coat") then "WSS Proxy" else if Text.Contains([org], "Azure Cloud") then "abrdn Azure" else if Text.Contains([org], "Cognizant") then "Cognizant" else if Text.Contains([org], "Google Cloud") then "Google Cloud" else "abrdn DC")
+// Add a new column named "Route" based on conditions applied to the "org" column
+Table.AddColumn(
+    #"PreviousStep",  // Replace "PreviousStep" with the actual name of your last step
+    "Route", 
+    each if Text.Contains([org], "Symantec") then "WSS Proxy" 
+    else if Text.Contains([org], "Blue Coat") then "WSS Proxy" 
+    else if Text.Contains([org], "Azure Cloud") then "abrdn Azure" 
+    else if Text.Contains([org], "Cognizant") then "Cognizant" 
+    else if Text.Contains([org], "Google Cloud") then "Google Cloud" 
+    else "abrdn DC"
+)
