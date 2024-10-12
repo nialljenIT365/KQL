@@ -1,9 +1,22 @@
 let
-    GenerateRange = (start as number, finish as number) as list =>
-    let
-        // Generate a list of numbers from start to finish
-        numberList = if finish >= start then List.Numbers(start, finish - start + 1) else {}
-    in
-        numberList
+    IPToNumber = (
+
+    ip as text
+    
+    ) => let
+ 
+    currentIP = ip,
+    ListOfOctets = Text.Split(currentIP, "."),
+    ListOfIndexItems = {0..3},
+
+    IPNumber = List.Accumulate(
+        ListOfIndexItems, 0, (state, current) => state +  
+        Number.FromText(ListOfOctets{current}) * 
+        Number.Power(256, 3 - current)
+    )
 in
-    GenerateRange
+    IPNumber
+
+
+in
+    IPToNumber
