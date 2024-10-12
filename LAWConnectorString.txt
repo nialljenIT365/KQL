@@ -1,0 +1,9 @@
+https://ade.loganalytics.io/subscriptions/<SubId>/resourcegroups/<RGName>/providers/microsoft.operationalinsights/workspaces/<LAW Name>
+
+<Law Name>
+
+
+<Query>
+
+
+
