@@ -1,0 +1,37 @@
+WVDConnections
+| where TimeGenerated >= ago(30d)
+| where State == "Connected"
+or State == "Completed"
+    | extend Protocol = iff(UdpUse in ("0", "<>"), "TCP", "UDP")
+    | extend ClientType = iff(
+                          ClientType == "com.microsoft.rdc.windows.msrdc.x64",
+                          "Windows RD Client x64 (MSI)",
+                          iff(
+    ClientType == "com.igel.rdc.linux",
+    "IGEL",
+    iff(
+    ClientType == "com.microsoft.rdc.windows.store",
+    "Windows RD Client Store App",
+    iff(
+    ClientType == "com.microsoft.rdc.html",
+    "Web Browser (HTML5)",
+    iff(
+    ClientType == "com.microsoft.rdc.macos",
+    "MAC OS",
+    iff(
+    ClientType == "com.microsoft.rdc.windows.msrdc.arm64",
+    "Windows RD Client ARM 64 (MSI)",
+    iff(
+    ClientType == "com.microsoft.rdc.ios",
+    "iOS",
+    iff(
+    ClientType == "com.microsoft.rdc.windows.msrdc.msix.x64", 
+    "Windows RD Client x64 (MSIX)",
+    iff(ClientType == "com.microsoft.rdc.windows.wa.msrdc.msix.arm64", "Windows App x64 (MSIX)", "Other")
+)
+)
+)
+)
+)
+)
+)
