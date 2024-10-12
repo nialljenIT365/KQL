@@ -1,21 +1,22 @@
 let
-    NumberToIp4 = (ip4AsNumber as number) => 
-    let
-        theList = List.Generate(
-            ()=> 
-            [ counter = 3, theIPNumber = ip4AsNumber, theOctet = {}] 
-            , each [counter] >= 0 
-            , each [counter = [counter] - 1 
-                , theIPNumber = [theIPNumber] - Int64.From(Number.RoundDown(Value.Divide([theIPNumber] , Number.Power(256, [counter])))) * Number.Power(256, [counter])
-                , theOctet = List.Combine({[theOctet], {Number.ToText(Int64.From(Number.RoundDown(Value.Divide([theIPNumber] , Number.Power(256, [counter])))))}})            ]
-            
+    IPToNumber = (
 
-        ),
-    theLastOctet = Number.ToText(List.Last(theList,1)[theIPNumber]),
-    theOctetsAsTexts = Text.Combine(List.Combine({List.Last(theList,1)[theOctet],{theLastOctet}}),".")
+    ip as text
     
+    ) => let
+ 
+    currentIP = ip,
+    ListOfOctets = Text.Split(currentIP, "."),
+    ListOfIndexItems = {0..3},
 
-    in
-        theOctetsAsTexts
+    IPNumber = List.Accumulate(
+        ListOfIndexItems, 0, (state, current) => state +  
+        Number.FromText(ListOfOctets{current}) * 
+        Number.Power(256, 3 - current)
+    )
 in
-    NumberToIp4
+    IPNumber
+
+
+in
+    IPToNumber
