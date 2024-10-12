@@ -1,17 +1,21 @@
-WVDConnections
-| where TimeGenerated >= ago(30d)
-| where State in ("Connected", "Completed")
-| extend Protocol = iff(UdpUse in ("0", "<>"), "TCP", "UDP")
-| extend ClientType = iff(
-                          ClientType == "com.microsoft.rdc.windows.msrdc.x64", "Windows RD Client x64 (MSI)",
-                          iff(ClientType == "com.igel.rdc.linux", "IGEL",
-                          iff(ClientType == "com.microsoft.rdc.windows.store", "Windows RD Client Store App",
-                          iff(ClientType == "com.microsoft.rdc.html", "Web Browser (HTML5)",
-                          iff(ClientType == "com.microsoft.rdc.macos", "MAC OS",
-                          iff(ClientType == "com.microsoft.rdc.windows.msrdc.arm64", "Windows RD Client ARM 64 (MSI)",
-                          iff(ClientType == "com.microsoft.rdc.ios", "iOS",
-                          iff(ClientType == "com.microsoft.rdc.windows.msrdc.msix.x64", "Windows RD Client x64 (MSIX)",
-                          iff(ClientType == "com.microsoft.rdc.windows.wa.msrdc.msix.arm64", "Windows App x64 (MSIX)", "Other")))))))))
-| extend Date = format_datetime(TimeGenerated, 'yyyy-MM-dd')  // Adds Date column
-| extend Time = format_datetime(TimeGenerated, 'HH:mm')       // Adds Time column
-| extend TimeKey = replace(":", "", Time)  // Removes ":" from Time and creates TimeKey
+let
+    NumberToIp4 = (ip4AsNumber as number) => 
+    let
+        theList = List.Generate(
+            ()=> 
+            [ counter = 3, theIPNumber = ip4AsNumber, theOctet = {}] 
+            , each [counter] >= 0 
+            , each [counter = [counter] - 1 
+                , theIPNumber = [theIPNumber] - Int64.From(Number.RoundDown(Value.Divide([theIPNumber] , Number.Power(256, [counter])))) * Number.Power(256, [counter])
+                , theOctet = List.Combine({[theOctet], {Number.ToText(Int64.From(Number.RoundDown(Value.Divide([theIPNumber] , Number.Power(256, [counter])))))}})            ]
+            
+
+        ),
+    theLastOctet = Number.ToText(List.Last(theList,1)[theIPNumber]),
+    theOctetsAsTexts = Text.Combine(List.Combine({List.Last(theList,1)[theOctet],{theLastOctet}}),".")
+    
+
+    in
+        theOctetsAsTexts
+in
+    NumberToIp4
