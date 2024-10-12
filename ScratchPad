@@ -1,17 +1,3 @@
-// Add a new column named "Route" based on conditions applied to the "org" column
-Table.AddColumn(
-    #"PreviousStep",  // Replace "PreviousStep" with the actual name of your last step
-    "Route", 
-    each if Text.Contains([org], "Symantec") then "WSS Proxy" 
-    else if Text.Contains([org], "Blue Coat") then "WSS Proxy" 
-    else if Text.Contains([org], "Azure Cloud") then "abrdn Azure" 
-    else if Text.Contains([org], "Cognizant") then "Cognizant" 
-    else if Text.Contains([org], "Google Cloud") then "Google Cloud" 
-    else "abrdn DC"
-)
-
-
-
 let
     // Define a list of IP ranges (replace or add more IPs as necessary)
     ipRanges = {
@@ -48,6 +34,16 @@ let
     #"Invoked Custom Function1" = Table.AddColumn(#"Expanded IPRangeHandler", "FirstUsableIP-Numeric", each convIP4toNumber([FirstUsableIP])),
     #"Invoked Custom Function2" = Table.AddColumn(#"Invoked Custom Function1", "LastUsableIP-Numeric", each convIP4toNumber([LastUsableIP])),
     #"Invoked Custom Function3" = Table.AddColumn(#"Invoked Custom Function2", "fn_GetIPAddressDetails", each fn_GetIPAddressDetails([FirstUsableIP])),
-    #"Expanded fn_GetIPAddressDetails" = Table.ExpandTableColumn(#"Invoked Custom Function3", "fn_GetIPAddressDetails", {"city", "country", "countryCode", "isp", "lat", "lon", "org", "regionName", "timezone"}, {"city", "country", "countryCode", "isp", "lat", "lon", "org", "regionName", "timezone"})
+    #"Expanded fn_GetIPAddressDetails" = Table.ExpandTableColumn(#"Invoked Custom Function3", "fn_GetIPAddressDetails", {"city", "country", "countryCode", "isp", "lat", "lon", "org", "regionName", "timezone"}, {"city", "country", "countryCode", "isp", "lat", "lon", "org", "regionName", "timezone"}),
+
+    // Add a new "Route" column based on conditions applied to the "org" column
+    #"Added Route Column" = Table.AddColumn(#"Expanded fn_GetIPAddressDetails", "Route", 
+        each if Text.Contains([org], "Symantec") then "WSS Proxy" 
+        else if Text.Contains([org], "Blue Coat") then "WSS Proxy" 
+        else if Text.Contains([org], "Azure Cloud") then "abrdn Azure" 
+        else if Text.Contains([org], "Cognizant") then "Cognizant" 
+        else if Text.Contains([org], "Google Cloud") then "Google Cloud" 
+        else "abrdn DC"
+    )
 in
-    #"Expanded fn_GetIPAddressDetails"
+    #"Added Route Column"
