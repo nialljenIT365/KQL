@@ -1,0 +1,3 @@
+WVDConnections
+| extend NormalizedUserName = trim(@"\s", tolower(UserName))
+| distinct NormalizedUserName
