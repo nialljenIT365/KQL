@@ -21,9 +21,9 @@ let
     // Remove duplicates from the list to ensure unique values
     uniqueIPRanges = List.Distinct(ipRanges),
 
-    // Ensure the list has 59 rows by padding with null values if necessary
+    // Create a table from the list of unique IP ranges
     ipRangeTable = Table.FromList(
-        List.PadEnd(uniqueIPRanges, 59, null),  // If the list has fewer than 59 rows, it will be padded with null
+        uniqueIPRanges,  // Use the unique list of IP ranges
         Splitter.SplitByNothing(),
         {"IP Range"}, // Column name
         null,
