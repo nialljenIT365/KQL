@@ -1,16 +1,3 @@
-let
-    // Create a list with 59 null values
-    Source = Table.FromList(
-        List.Repeat({null}, 59), // Create 59 rows
-        Splitter.SplitByNothing(), 
-        {"IP Range"}, // Column name
-        null, 
-        ExtraValues.Error
-    )
-in
-    Source
-
-
 148.64.5.0/24
 148.64.9.0/24
 148.64.24.0/24
