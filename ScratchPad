@@ -1,11 +1,19 @@
 let
-    IPToNumber = (
+    IPRangeHandler = (
 
     ip as text
     
     ) => let
- 
-    currentIP = ip,
+    
+    // Check if the input contains a CIDR notation ("/")
+    containsCIDR = Text.Contains(ip, "/"),
+    
+    // Split the input if CIDR exists, or treat the whole input as an IP
+    parts = if containsCIDR then Text.Split(ip, "/") else {ip, "32"},
+    currentIP = parts{0},
+    subnetMask = Number.FromText(parts{1}),
+    
+    // Convert IP to a number using your previous function
     ListOfOctets = Text.Split(currentIP, "."),
     ListOfIndexItems = {0..3},
 
@@ -13,10 +21,34 @@ let
         ListOfIndexItems, 0, (state, current) => state +  
         Number.FromText(ListOfOctets{current}) * 
         Number.Power(256, 3 - current)
-    )
-in
-    IPNumber
+    ),
+    
+    // Calculate the network range from the subnet mask
+    hostBits = 32 - subnetMask,
+    numberOfHosts = Number.Power(2, hostBits) - 1,
+    
+    // First IP number is just the IP number
+    firstIPNumber = IPNumber,
+    
+    // Last IP number (based on number of hosts)
+    lastIPNumber = IPNumber + numberOfHosts,
+    
+    // Function to convert a number back to an IP address
+    NumberToIP = (number as number) as text => let
+        octet1 = Number.IntegerDivide(number, 16777216),
+        remainder1 = Number.Mod(number, 16777216),
+        octet2 = Number.IntegerDivide(remainder1, 65536),
+        remainder2 = Number.Mod(remainder1, 65536),
+        octet3 = Number.IntegerDivide(remainder2, 256),
+        octet4 = Number.Mod(remainder2, 256)
+    in Text.From(octet1) & "." & Text.From(octet2) & "." & Text.From(octet3) & "." & Text.From(octet4),
 
+    // Calculate First Usable IP and Last Usable IP
+    firstUsableIP = if containsCIDR then NumberToIP(firstIPNumber + 1) else currentIP,
+    lastUsableIP = if containsCIDR then NumberToIP(lastIPNumber - 1) else currentIP
 
 in
-    IPToNumber
+    [FirstUsableIP = firstUsableIP, LastUsableIP = lastUsableIP]
+
+in
+    IPRangeHandler
