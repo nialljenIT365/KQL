@@ -1,2 +1,5 @@
 WVDConnections
+| where TimeGenerated >= ago(30d)
+| order by TimeGenerated desc
+| extend UserName = trim(@"\s", tolower(UserName))
 | distinct UserName
