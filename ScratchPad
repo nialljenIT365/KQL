@@ -1,25 +1,12 @@
 let
-    IPToNumber = (
-        ip as text
-    ) => let
-        // Error handling: if IP is blank or contains invalid characters like "<>", return "0.0.0.0"
-        currentIP = if Text.Contains(ip, "<") or Text.Contains(ip, ">") or Text.Length(ip) = 0 then "0.0.0.0" else ip,
-
-        // Split the IP into octets
-        ListOfOctets = Text.Split(currentIP, "."),
-
-        // Pad the list with zeros if fewer than 4 octets are provided
-        PaddedOctets = List.FirstN(List.Combine({ListOfOctets, {"0", "0", "0", "0"}}), 4),
-
-        ListOfIndexItems = {0..3},
-
-        // Calculate the numeric value of the IP address
-        IPNumber = List.Accumulate(
-            ListOfIndexItems, 0, (state, current) => state +  
-            Number.FromText(PaddedOctets{current}) * 
-            Number.Power(256, 3 - current)
-        )
-    in
-        IPNumber
+    // Step 1: Load data from Azure Data Explorer
+    Source = AzureDataExplorer.Contents("https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg", "nmw-app-law-fwjv4wn75m4qg", "WVDConnections#(lf)| where TimeGenerated >= ago(30d)#(lf)| where State == ""Connected""#(lf)| where ClientSideIPAddress != ""<>""#(lf)| distinct ClientSideIPAddress", [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]),
+    #"Extract First 2 Octets for Reference Purposes" = Table.AddColumn(Source, "Text Before Delimiter", each Text.BeforeDelimiter([ClientSideIPAddress], ".", {1, RelativePosition.FromEnd}), type text),
+    #"Renamed Columns" = Table.RenameColumns(#"Extract First 2 Octets for Reference Purposes",{{"Text Before Delimiter", "1st2Octets"}}),
+    #"Extract First 3 Octets for Reference Purposes" = Table.AddColumn(#"Renamed Columns", "Text Before Delimiter", each Text.BeforeDelimiter([ClientSideIPAddress], ".", {0, RelativePosition.FromEnd}), type text),
+    #"Renamed Columns1" = Table.RenameColumns(#"Extract First 3 Octets for Reference Purposes",{{"Text Before Delimiter", "1st3Octets"}}),
+    #"4-fn_ConvertIP4toNumeric on ClientSideIP Address" = Table.AddColumn(#"Renamed Columns1", "ClientSideIPAddress (numeric)", each #"4-fn_ConvertIP4toNumeric"([ClientSideIPAddress])),
+    #"4-fn_ConvertIP4toNumeric on 1st2Octets" = Table.AddColumn(#"4-fn_ConvertIP4toNumeric on ClientSideIP Address", "1st2Octets (numeric)", each #"4-fn_ConvertIP4toNumeric"([1st2Octets])),
+    #"4-fn_ConvertIP4toNumeric on 1st3Octets" = Table.AddColumn(#"4-fn_ConvertIP4toNumeric on 1st2Octets", "1st3Octets (numeric)", each #"4-fn_ConvertIP4toNumeric"([1st3Octets]))
 in
-    IPToNumber
+    #"4-fn_ConvertIP4toNumeric on 1st3Octets"
