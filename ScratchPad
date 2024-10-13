@@ -1,1 +1,21 @@
-| extend UserName = trim(@"\s", tolower(UserName))
+let
+    IPToNumber = (
+        ip as text
+    ) => let
+        // Error handling: if IP is blank or contains invalid characters like "<>", return "0.0.0.0"
+        currentIP = if Text.Contains(ip, "<") or Text.Contains(ip, ">") or Text.Length(ip) = 0 then "0.0.0.0" else ip,
+
+        // Split the IP into octets
+        ListOfOctets = Text.Split(currentIP, "."),
+        ListOfIndexItems = {0..3},
+
+        // Calculate the numeric value of the IP address
+        IPNumber = List.Accumulate(
+            ListOfIndexItems, 0, (state, current) => state +  
+            Number.FromText(ListOfOctets{current}) * 
+            Number.Power(256, 3 - current)
+        )
+    in
+        IPNumber
+in
+    IPToNumber
