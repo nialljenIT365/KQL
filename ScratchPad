@@ -7,12 +7,16 @@ let
 
         // Split the IP into octets
         ListOfOctets = Text.Split(currentIP, "."),
+
+        // Pad the list with zeros if fewer than 4 octets are provided
+        PaddedOctets = List.FirstN(List.Combine({ListOfOctets, {"0", "0", "0", "0"}}), 4),
+
         ListOfIndexItems = {0..3},
 
         // Calculate the numeric value of the IP address
         IPNumber = List.Accumulate(
             ListOfIndexItems, 0, (state, current) => state +  
-            Number.FromText(ListOfOctets{current}) * 
+            Number.FromText(PaddedOctets{current}) * 
             Number.Power(256, 3 - current)
         )
     in
