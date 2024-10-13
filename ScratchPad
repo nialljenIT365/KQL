@@ -1,12 +1,83 @@
 let
     // Step 1: Load data from Azure Data Explorer
-    Source = AzureDataExplorer.Contents("https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg", "nmw-app-law-fwjv4wn75m4qg", "WVDConnections#(lf)| where TimeGenerated >= ago(30d)#(lf)| where State == ""Connected""#(lf)| where ClientSideIPAddress != ""<>""#(lf)| distinct ClientSideIPAddress", [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]),
-    #"Extract First 2 Octets for Reference Purposes" = Table.AddColumn(Source, "Text Before Delimiter", each Text.BeforeDelimiter([ClientSideIPAddress], ".", {1, RelativePosition.FromEnd}), type text),
-    #"Renamed Columns" = Table.RenameColumns(#"Extract First 2 Octets for Reference Purposes",{{"Text Before Delimiter", "1st2Octets"}}),
-    #"Extract First 3 Octets for Reference Purposes" = Table.AddColumn(#"Renamed Columns", "Text Before Delimiter", each Text.BeforeDelimiter([ClientSideIPAddress], ".", {0, RelativePosition.FromEnd}), type text),
-    #"Renamed Columns1" = Table.RenameColumns(#"Extract First 3 Octets for Reference Purposes",{{"Text Before Delimiter", "1st3Octets"}}),
-    #"4-fn_ConvertIP4toNumeric on ClientSideIP Address" = Table.AddColumn(#"Renamed Columns1", "ClientSideIPAddress (numeric)", each #"4-fn_ConvertIP4toNumeric"([ClientSideIPAddress])),
-    #"4-fn_ConvertIP4toNumeric on 1st2Octets" = Table.AddColumn(#"4-fn_ConvertIP4toNumeric on ClientSideIP Address", "1st2Octets (numeric)", each #"4-fn_ConvertIP4toNumeric"([1st2Octets])),
-    #"4-fn_ConvertIP4toNumeric on 1st3Octets" = Table.AddColumn(#"4-fn_ConvertIP4toNumeric on 1st2Octets", "1st3Octets (numeric)", each #"4-fn_ConvertIP4toNumeric"([1st3Octets]))
+    Source = AzureDataExplorer.Contents(
+        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg", 
+        "nmw-app-law-fwjv4wn75m4qg", 
+        "WVDConnections#(lf)| where TimeGenerated >= ago(30d)#(lf)| where State == ""Connected""#(lf)| where ClientSideIPAddress != ""<>""#(lf)| distinct ClientSideIPAddress", 
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    ),
+
+    // Step 2: Extract the first 2 octets from the ClientSideIPAddress
+    #"Extract First 2 Octets for Reference Purposes" = Table.AddColumn(
+        Source, 
+        "1st2Octets", 
+        each Text.BeforeDelimiter([ClientSideIPAddress], ".", {1, RelativePosition.FromEnd}), 
+        type text
+    ),
+
+    // Step 3: Extract the first 3 octets from the ClientSideIPAddress
+    #"Extract First 3 Octets for Reference Purposes" = Table.AddColumn(
+        #"Extract First 2 Octets for Reference Purposes", 
+        "1st3Octets", 
+        each Text.BeforeDelimiter([ClientSideIPAddress], ".", {0, RelativePosition.FromEnd}), 
+        type text
+    ),
+
+    // Step 4: Convert the ClientSideIPAddress to its numeric format
+    #"Convert ClientSideIPAddress to Numeric" = Table.AddColumn(
+        #"Extract First 3 Octets for Reference Purposes", 
+        "ClientSideIPAddress (numeric)", 
+        each #"4-fn_ConvertIP4toNumeric"([ClientSideIPAddress])
+    ),
+
+    // Step 5: Convert the 1st2Octets to its numeric format
+    #"Convert 1st2Octets to Numeric" = Table.AddColumn(
+        #"Convert ClientSideIPAddress to Numeric", 
+        "1st2Octets (numeric)", 
+        each #"4-fn_ConvertIP4toNumeric"([1st2Octets])
+    ),
+
+    // Step 6: Convert the 1st3Octets to its numeric format
+    #"Convert 1st3Octets to Numeric" = Table.AddColumn(
+        #"Convert 1st2Octets to Numeric", 
+        "1st3Octets (numeric)", 
+        each #"4-fn_ConvertIP4toNumeric"([1st3Octets])
+    ),
+
+    // Step 7: Add a conditional check for "Route" based on IP octets
+    #"Added Conditional Column" = Table.AddColumn(
+        #"Convert 1st3Octets to Numeric", 
+        "Route", 
+        each 
+            if List.Contains({
+                "148.64.5", "148.64.9", "148.64.24", "148.64.27", "148.64.28", "148.64.29", 
+                "103.246.37", "103.246.38", "148.64.15", "148.64.16", "148.64.18", "148.64.21", 
+                "148.64.3", "148.64.31", "168.149.128", "168.149.133", "168.149.142", "168.149.143", 
+                "168.149.144", "168.149.145", "168.149.146", "168.149.150", "168.149.151", 
+                "168.149.152", "168.149.153", "168.149.157", "168.149.160", "168.149.164", 
+                "168.149.178", "168.149.179", "170.176.240", "170.176.241", "199.116.168", 
+                "199.116.170", "199.116.171", "199.116.173", "199.19.248", "199.19.253", 
+                "199.247.32", "199.247.33", "199.247.42", "199.247.43", "199.247.44", 
+                "199.247.45", "35.192.241"
+            }, [1st3Octets]) then "WSS Proxy"
+
+            // Abrdn Azure
+            else if List.Contains({
+                "52.169.10", "52.166.243", "172.200.133", "52.176.212", "40.119.193", "13.75.88"
+            }, [1st3Octets]) then "abrdn Azure"
+
+            // Abrdn DC
+            else if List.Contains({
+                "64.69.175", "185.38.106", "213.86.51", "157.120.242", "38.98.247"
+            }, [1st3Octets]) then "abrdn DC"
+
+            // Cognizant
+            else if List.Contains({
+                "203.99.207", "203.99.206"
+            }, [1st3Octets]) then "Cognizant"
+
+            // Default to "Other" if no match
+            else "Other"
+    )
 in
-    #"4-fn_ConvertIP4toNumeric on 1st3Octets"
+    #"Added Conditional Column"
