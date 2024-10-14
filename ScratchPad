@@ -2,9 +2,9 @@ let ipPrefix = "10.";  // Set this to the desired IP prefix
 Heartbeat
 | where TimeGenerated >= ago(30d)
 | summarize arg_max(TimeGenerated, *) by Computer
-| extend FirstIPCandidate = tostring(split(ComputerPrivateIPs, ",")[0])
-| extend SecondIPCandidate = tostring(split(ComputerPrivateIPs, ",")[1])
-| extend IsFirstIPStartsWithPrefix = FirstIPCandidate has ipPrefix
+| extend FirstIPCandidate = tostring(split(tolower(ComputerPrivateIPs), ",")[0])
+| extend SecondIPCandidate = tostring(split(tolower(ComputerPrivateIPs), ",")[1])
+| extend IsFirstIPStartsWithPrefix = FirstIPCandidate has tolower(ipPrefix)
 | extend PrivateIPAddressCandidate = iff(IsFirstIPStartsWithPrefix, FirstIPCandidate, SecondIPCandidate)
 | extend PrivateIPAddress = replace(@'["\[\]]', '', PrivateIPAddressCandidate)
 | project TimeGenerated, Computer, ComputerPrivateIPs, PrivateIPAddress
