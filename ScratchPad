@@ -1,26 +1,14 @@
 let
     // WVDCOnnections KQL
-    Source = AzureDataExplorer.Contents(
-        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg", 
-        "nmw-app-law-fwjv4wn75m4qg", 
-        "let ipPrefix = \"10.\";  // Set this to the desired IP prefix
-        Heartbeat
-        | where TimeGenerated >= ago(30d)
-        | summarize arg_max(TimeGenerated, *) by Computer
-        | extend FirstIPCandidate = tostring(split(tolower(tostring(ComputerPrivateIPs)), \",\")[0])
-        | extend SecondIPCandidate = tostring(split(tolower(tostring(ComputerPrivateIPs)), \",\")[1])
-        | extend IsFirstIPStartsWithPrefix = FirstIPCandidate has tolower(ipPrefix)
-        | extend PrivateIPAddressCandidate = iff(IsFirstIPStartsWithPrefix, FirstIPCandidate, SecondIPCandidate)
-        | extend PrivateIPAddress = replace(@'[\"\\[\\]]', '', PrivateIPAddressCandidate)
-        | project Computer, tostring(ComputerPrivateIPs), PrivateIPAddress
-        | distinct Computer, ComputerPrivateIPs, PrivateIPAddress", 
-        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
-    ),
-    
-    // Convert Computer column to lowercase for case-insensitive comparison
-    LowerCaseComputers = Table.TransformColumns(Source, {{"Computer", Text.Lower, type text}}),
-    
-    // Remove duplicates based on case-insensitive Computer column
-    #"Removed Duplicates" = Table.Distinct(LowerCaseComputers, {"Computer"})
+    Source = AzureDataExplorer.Contents("https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg", "nmw-app-law-fwjv4wn75m4qg", "let ipPrefix = ""10."";  // Set this to the desired IP prefix#(lf)Heartbeat#(lf)| where TimeGenerated >= ago(30d)#(lf)| summarize arg_max(TimeGenerated, *) by Computer#(lf)| extend FirstIPCandidate = tostring(split(tolower(tostring(ComputerPrivateIPs)), "","")[0])#(lf)| extend SecondIPCandidate = tostring(split(tolower(tostring(ComputerPrivateIPs)), "","")[1])#(lf)| extend IsFirstIPStartsWithPrefix = FirstIPCandidate has tolower(ipPrefix)#(lf)| extend PrivateIPAddressCandidate = iff(IsFirstIPStartsWithPrefix, FirstIPCandidate, SecondIPCandidate)#(lf)| extend PrivateIPAddress = replace(@'[""\[\]]', '', PrivateIPAddressCandidate)#(lf)| project Computer, tostring(ComputerPrivateIPs), PrivateIPAddress#(lf)| distinct Computer, ComputerPrivateIPs, PrivateIPAddress", [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]),
+    #"Uppercased Text" = Table.TransformColumns(Source,{{"Computer", Text.Upper, type text}}),
+    #"Removed Duplicates" = Table.Distinct(#"Uppercased Text", {"Computer"}),
+    #"Inserted Text After Delimiter" = Table.AddColumn(#"Removed Duplicates", "Text After Delimiter", each Text.AfterDelimiter([Computer], "."), type text),
+    #"Lowercased Text" = Table.TransformColumns(#"Inserted Text After Delimiter",{{"Text After Delimiter", Text.Lower, type text}}),
+    #"Extracted Text Before Delimiter" = Table.TransformColumns(#"Lowercased Text", {{"Computer", each Text.BeforeDelimiter(_, "."), type text}}),
+    #"Reordered Columns" = Table.ReorderColumns(#"Extracted Text Before Delimiter",{"Computer", "Text After Delimiter", "ComputerPrivateIPs", "PrivateIPAddress"}),
+    #"Merged Columns" = Table.CombineColumns(#"Reordered Columns",{"Computer", "Text After Delimiter"},Combiner.CombineTextByDelimiter(".", QuoteStyle.None),"Merged"),
+    #"Renamed Columns" = Table.RenameColumns(#"Merged Columns",{{"Merged", "SessionHostName"}}),
+    #"Extracted Text Before Delimiter1" = Table.TransformColumns(#"Renamed Columns", {{"SessionHostName", each Text.BeforeDelimiter(_, ".", {0, RelativePosition.FromEnd}), type text}})
 in
-    #"Removed Duplicates"
+    #"Extracted Text Before Delimiter1"
