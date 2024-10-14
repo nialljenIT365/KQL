@@ -1,6 +1,30 @@
 let
-    Source = AzureDataExplorer.Contents("https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg", "nmw-app-law-fwjv4wn75m4qg", "WVDConnections#(lf)| where TimeGenerated >= ago(30d)#(lf)| where State in (""Connected"")#(lf)| extend Protocol = iff(UdpUse in (""0"", ""<>""), ""TCP"", ""UDP"")#(lf)| extend ClientType = iff(#(lf)                          ClientType == ""com.microsoft.rdc.windows.msrdc.x64"", ""Windows RD Client x64 (MSI)"",#(lf)                          iff(ClientType == ""com.igel.rdc.linux"", ""IGEL"",#(lf)                          iff(ClientType == ""com.microsoft.rdc.windows.store"", ""Windows RD Client Store App"",#(lf)                          iff(ClientType == ""com.microsoft.rdc.html"", ""Web Browser (HTML5)"",#(lf)                          iff(ClientType == ""com.microsoft.rdc.macos"", ""MAC OS"",#(lf)                          iff(ClientType == ""com.microsoft.rdc.windows.msrdc.arm64"", ""Windows RD Client ARM 64 (MSI)"",#(lf)                          iff(ClientType == ""com.microsoft.rdc.ios"", ""iOS"",#(lf)                          iff(ClientType == ""com.microsoft.rdc.windows.msrdc.msix.x64"", ""Windows RD Client x64 (MSIX)"",#(lf)                          iff(ClientType == ""com.microsoft.rdc.windows.wa.msrdc.msix.arm64"", ""Windows App x64 (MSIX)"", ""Other"")))))))))#(lf)| extend Date = format_datetime(TimeGenerated, 'yyyy-MM-dd')  // Adds Date column#(lf)| extend Time = format_datetime(TimeGenerated, 'HH:mm')       // Adds Time column#(lf)| extend TimeKey = replace("":"", """", Time)", [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]),
-    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Date", type date}}),
-    #"4-fn_ConvertIP4toNumeric" = Table.AddColumn(#"Changed Type", "ClientSideIPAddress-Numeric", each #"4-fn_ConvertIP4toNumeric"([ClientSideIPAddress]))
+    // Start with a base date and time (e.g., midnight of a specific day)
+    BaseTime = #time(0, 0, 0), // Midnight
+    
+    // Generate a list of time values for a 24-hour period in 1-minute increments
+    TimeList = List.Generate(
+        () => BaseTime,
+        each _ < #time(23, 59, 0), // Ensure we cover up to 23:58
+        each _ + #duration(0, 0, 1, 0) // Increment by 1 minute
+    ),
+
+    // Explicitly add an entry for 23:59 to cover all minutes in the 24-hour window
+    #"Explicitly Add Final Minute of Day" = List.Combine({TimeList, {#time(23, 59, 0)}}),
+
+    // Convert the updated list of time values to a table
+    #"Converted to Table" = Table.FromList(#"Explicitly Add Final Minute of Day", Splitter.SplitByNothing(), {"Time"}, null, ExtraValues.Error),
+    
+    // Change the column type to Time
+    #"Changed Type" = Table.TransformColumnTypes(#"Converted to Table",{{"Time", type time}}),
+    
+    // Add a column for the time as text without colons, formatted as a four-digit number
+    #"Added Timekey" = Table.AddColumn(#"Changed Type", "Timekey", each let
+        TimeValue = [Time],
+        Hour = Time.Hour(TimeValue),
+        Minute = Time.Minute(TimeValue),
+        FormattedTime = Text.PadStart(Text.From(Hour), 2, "0") & Text.PadStart(Text.From(Minute), 2, "0")
+    in
+        FormattedTime)
 in
-    #"4-fn_ConvertIP4toNumeric"
+    #"Added Timekey" // Output the final table
