@@ -1,29 +1,29 @@
-let AnalyticsQuery =
-let Source = Json.Document(Web.Contents("https://api.loganalytics.io/v1/workspaces/ce4e1e84-3765-4cfe-ac40-5de8d7633df4/query", 
-[Query=[#"query"="WVDErrors
-",#"x-ms-app"="OmsAnalyticsPBI",#"timespan"="P7D",#"prefer"="ai.response-thinning=true"],Timeout=#duration(0,0,4,0)])),
-TypeMap = #table(
-{ "AnalyticsTypes", "Type" }, 
-{ 
-{ "string",   Text.Type },
-{ "int",      Int32.Type },
-{ "long",     Int64.Type },
-{ "real",     Double.Type },
-{ "timespan", Duration.Type },
-{ "datetime", DateTimeZone.Type },
-{ "bool",     Logical.Type },
-{ "guid",     Text.Type },
-{ "dynamic",  Text.Type }
-}),
-DataTable = Source[tables]{0},
-Columns = Table.FromRecords(DataTable[columns]),
-ColumnsWithType = Table.Join(Columns, {"type"}, TypeMap , {"AnalyticsTypes"}),
-Rows = Table.FromRows(DataTable[rows], Columns[name]), 
-Table = Table.TransformColumnTypes(Rows, Table.ToList(ColumnsWithType, (c) => { c{0}, c{3}}))
+let
+    Source = #"11-AVD ALL Errors (WVDErrors)",
+    RemovedColumns = Table.RemoveColumns(
+        Source,
+        {
+            "TenantId", 
+            "TimeGenerated", 
+            "UserName", 
+            "ActivityType", 
+            "Source", 
+            "CodeSymbolic", 
+            "Message", 
+            "ServiceError", 
+            "Operation", 
+            "SourceSystem", 
+            "Type", 
+            "_ResourceId", 
+            "Date", 
+            "Time", 
+            "TimeKey"
+        }
+    ),
+    GroupedRows = Table.Group(
+        RemovedColumns, 
+        {"CorrelationId"}, 
+        {{"Codes", each Text.Combine(List.Sort([Code]), ", ")}}
+    )
 in
-Table,
-    #"Removed Columns" = Table.RemoveColumns(AnalyticsQuery,{"TenantId", "UserName", "ActivityType", "ServiceError", "SourceSystem", "Type", "_ResourceId", "Source", "CodeSymbolic", "Message", "Operation"}),
-    #"Changed Type" = Table.TransformColumnTypes(#"Removed Columns",{{"Code", type text}}),
-    #"Grouped Rows" = Table.Group(#"Changed Type", {"CorrelationId"}, {{"Codes", each Text.Combine(List.Sort([Code]),", ")}})
-in
-    #"Grouped Rows"
+    GroupedRows
