@@ -1,6 +1,23 @@
 let
     // WVDCOnnections KQL
-    Source = AzureDataExplorer.Contents("https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg", "nmw-app-law-fwjv4wn75m4qg", "let ipPrefix = ""10."";  // Set this to the desired IP prefix#(lf)Heartbeat#(lf)| where TimeGenerated >= ago(30d)#(lf)| summarize arg_max(TimeGenerated, *) by Computer#(lf)| extend FirstIPCandidate = tostring(split(tolower(tostring(ComputerPrivateIPs)), "","")[0])#(lf)| extend SecondIPCandidate = tostring(split(tolower(tostring(ComputerPrivateIPs)), "","")[1])#(lf)| extend IsFirstIPStartsWithPrefix = FirstIPCandidate has tolower(ipPrefix)#(lf)| extend PrivateIPAddressCandidate = iff(IsFirstIPStartsWithPrefix, FirstIPCandidate, SecondIPCandidate)#(lf)| extend PrivateIPAddress = replace(@'[""\[\]]', '', PrivateIPAddressCandidate)#(lf)| project Computer, tostring(ComputerPrivateIPs), PrivateIPAddress#(lf)| distinct Computer, ComputerPrivateIPs, PrivateIPAddress", [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]),
-    #"Removed Duplicates" = Table.Distinct(Source, {"Computer"})
+    Source = AzureDataExplorer.Contents(
+        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg", 
+        "nmw-app-law-fwjv4wn75m4qg", 
+        "let ipPrefix = \"10.\";  // Set this to the desired IP prefix
+        Heartbeat
+        | where TimeGenerated >= ago(30d)
+        | summarize arg_max(TimeGenerated, *) by Computer
+        | extend FirstIPCandidate = tostring(split(tolower(tostring(ComputerPrivateIPs)), \",\")[0])
+        | extend SecondIPCandidate = tostring(split(tolower(tostring(ComputerPrivateIPs)), \",\")[1])
+        | extend IsFirstIPStartsWithPrefix = FirstIPCandidate has tolower(ipPrefix)
+        | extend PrivateIPAddressCandidate = iff(IsFirstIPStartsWithPrefix, FirstIPCandidate, SecondIPCandidate)
+        | extend PrivateIPAddress = replace(@'[\"\\[\\]]', '', PrivateIPAddressCandidate)
+        | project Computer, tostring(ComputerPrivateIPs), PrivateIPAddress
+        | distinct Computer, ComputerPrivateIPs, PrivateIPAddress", 
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    ),
+    
+    // Remove duplicates with case-insensitive comparison for the "Computer" column
+    #"Removed Duplicates" = Table.Distinct(Source, {"Computer"}, Comparer.OrdinalIgnoreCase)
 in
     #"Removed Duplicates"
