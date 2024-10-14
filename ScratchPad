@@ -1,12 +1,41 @@
-let ipPrefix = "10.";
-Heartbeat
-| where TimeGenerated >= ago(30d)
-| summarize arg_max(TimeGenerated, *) by Computer
-| extend FirstIPCandidate = tostring(split(tolower(tostring(ComputerPrivateIPs)), ",")[0])
-| extend SecondIPCandidate = tostring(split(tolower(tostring(ComputerPrivateIPs)), ",")[1])
-| extend IsFirstIPStartsWithPrefix = FirstIPCandidate has tolower(ipPrefix)
-| extend PrivateIPAddressCandidate = iff(IsFirstIPStartsWithPrefix, FirstIPCandidate, SecondIPCandidate)
-| extend PrivateIPAddress = replace(@'["\[\]]', '', PrivateIPAddressCandidate)
-| project-rename SessionHostName = Computer
-| project SessionHostName, tostring(ComputerPrivateIPs), PrivateIPAddress
-| distinct SessionHostName, ComputerPrivateIPs, PrivateIPAddress
+let AnalyticsQuery =
+let Source = Json.Document(Web.Contents("https://api.loganalytics.io/v1/workspaces/ce4e1e84-3765-4cfe-ac40-5de8d7633df4/query", 
+[Query=[#"query"="WVDConnectionNetworkData
+| join kind=inner (    
+    WVDErrors
+    )
+    on CorrelationId
+    | where Type1 == ""WVDErrors""
+| project
+    TimeGenerated,
+    CorrelationId,
+    EstRoundTripTimeInMs,
+    EstAvailableBandwidthKBps,
+    UserName,
+    Source,
+    Code,
+    CodeSymbolic,
+    Message,
+    Operation
+",#"x-ms-app"="OmsAnalyticsPBI",#"timespan"="P7D",#"prefer"="ai.response-thinning=true"],Timeout=#duration(0,0,4,0)])),
+TypeMap = #table(
+{ "AnalyticsTypes", "Type" }, 
+{ 
+{ "string",   Text.Type },
+{ "int",      Int32.Type },
+{ "long",     Int64.Type },
+{ "real",     Double.Type },
+{ "timespan", Duration.Type },
+{ "datetime", DateTimeZone.Type },
+{ "bool",     Logical.Type },
+{ "guid",     Text.Type },
+{ "dynamic",  Text.Type }
+}),
+DataTable = Source[tables]{0},
+Columns = Table.FromRecords(DataTable[columns]),
+ColumnsWithType = Table.Join(Columns, {"type"}, TypeMap , {"AnalyticsTypes"}),
+Rows = Table.FromRows(DataTable[rows], Columns[name]), 
+Table = Table.TransformColumnTypes(Rows, Table.ToList(ColumnsWithType, (c) => { c{0}, c{3}}))
+in
+Table
+in AnalyticsQuery
