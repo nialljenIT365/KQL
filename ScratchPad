@@ -8,3 +8,4 @@ Heartbeat
 | extend PrivateIPAddressCandidate = iff(IsFirstIPStartsWithPrefix, FirstIPCandidate, SecondIPCandidate)
 | extend PrivateIPAddress = replace(@'["\[\]]', '', PrivateIPAddressCandidate)
 | project TimeGenerated, Computer, ComputerPrivateIPs, PrivateIPAddress
+| distinct Computer, TimeGenerated, ComputerPrivateIPs, PrivateIPAddress
