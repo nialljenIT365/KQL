@@ -9,3 +9,7 @@ Heartbeat
 | extend PrivateIPAddress = replace(@'["\[\]]', '', PrivateIPAddressCandidate)
 | project TimeGenerated, Computer, ComputerPrivateIPs, PrivateIPAddress
 | distinct Computer, TimeGenerated, ComputerPrivateIPs, PrivateIPAddress
+
+
+Distinct group key 'ComputerPrivateIPs' is of a 'dynamic' type. Please use an explicit cast as grouping by a 'dynamic' type is not supported.
+Request id: 46254108-b89d-48b0-8131-8c6758885299
