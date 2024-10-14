@@ -1,29 +1,9 @@
-let
-    Source = #"11-AVD ALL Errors (WVDErrors)",
-    RemovedColumns = Table.RemoveColumns(
-        Source,
-        {
-            "TenantId", 
-            "TimeGenerated", 
-            "UserName", 
-            "ActivityType", 
-            "Source", 
-            "CodeSymbolic", 
-            "Message", 
-            "ServiceError", 
-            "Operation", 
-            "SourceSystem", 
-            "Type", 
-            "_ResourceId", 
-            "Date", 
-            "Time", 
-            "TimeKey"
-        }
-    ),
-    GroupedRows = Table.Group(
-        RemovedColumns, 
-        {"CorrelationId"}, 
-        {{"Codes", each Text.Combine(List.Sort([Code]), ", ")}}
-    )
-in
-    GroupedRows
+Heartbeat
+| where TimeGenerated >= ago(30d)
+| summarize arg_max(TimeGenerated, *) by Computer
+| extend FirstIPCandidate = tostring(split(ComputerPrivateIPs, ",")[0])
+| extend SecondIPCandidate = tostring(split(ComputerPrivateIPs, ",")[1])
+| extend IsFirstIPStartsWith10 = FirstIPCandidate has "10."
+| extend TenDotRange = iff(IsFirstIPStartsWith10, FirstIPCandidate, SecondIPCandidate)
+| extend TenDotRange = replace(@'["\[\]]', '', TenDotRange)
+| project TimeGenerated, Computer, ComputerPrivateIPs, TenDotRange
