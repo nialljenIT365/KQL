@@ -2,14 +2,10 @@ let ipPrefix = "10.";  // Set this to the desired IP prefix
 Heartbeat
 | where TimeGenerated >= ago(30d)
 | summarize arg_max(TimeGenerated, *) by Computer
-| extend FirstIPCandidate = tostring(split(tolower(ComputerPrivateIPs), ",")[0])
-| extend SecondIPCandidate = tostring(split(tolower(ComputerPrivateIPs), ",")[1])
+| extend FirstIPCandidate = tostring(split(tolower(tostring(ComputerPrivateIPs)), ",")[0])
+| extend SecondIPCandidate = tostring(split(tolower(tostring(ComputerPrivateIPs)), ",")[1])
 | extend IsFirstIPStartsWithPrefix = FirstIPCandidate has tolower(ipPrefix)
 | extend PrivateIPAddressCandidate = iff(IsFirstIPStartsWithPrefix, FirstIPCandidate, SecondIPCandidate)
 | extend PrivateIPAddress = replace(@'["\[\]]', '', PrivateIPAddressCandidate)
-| project TimeGenerated, Computer, ComputerPrivateIPs, PrivateIPAddress
+| project TimeGenerated, Computer, tostring(ComputerPrivateIPs), PrivateIPAddress
 | distinct Computer, TimeGenerated, ComputerPrivateIPs, PrivateIPAddress
-
-
-Distinct group key 'ComputerPrivateIPs' is of a 'dynamic' type. Please use an explicit cast as grouping by a 'dynamic' type is not supported.
-Request id: 46254108-b89d-48b0-8131-8c6758885299
