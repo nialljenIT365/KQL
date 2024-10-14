@@ -1,30 +1,19 @@
-let
-    // Start with a base date and time (e.g., midnight of a specific day)
-    BaseTime = #time(0, 0, 0), // Midnight
-    
-    // Generate a list of time values for a 24-hour period in 1-minute increments
-    TimeList = List.Generate(
-        () => BaseTime,
-        each _ < #time(23, 59, 0), // Ensure we cover up to 23:58
-        each _ + #duration(0, 0, 1, 0) // Increment by 1 minute
-    ),
-
-    // Explicitly add an entry for 23:59 to cover all minutes in the 24-hour window
-    #"Explicitly Add Final Minute of Day" = List.Combine({TimeList, {#time(23, 59, 0)}}),
-
-    // Convert the updated list of time values to a table
-    #"Converted to Table" = Table.FromList(#"Explicitly Add Final Minute of Day", Splitter.SplitByNothing(), {"Time"}, null, ExtraValues.Error),
-    
-    // Change the column type to Time
-    #"Changed Type" = Table.TransformColumnTypes(#"Converted to Table",{{"Time", type time}}),
-    
-    // Add a column for the time as text without colons, formatted as a four-digit number
-    #"Added Timekey" = Table.AddColumn(#"Changed Type", "Timekey", each let
-        TimeValue = [Time],
-        Hour = Time.Hour(TimeValue),
-        Minute = Time.Minute(TimeValue),
-        FormattedTime = Text.PadStart(Text.From(Hour), 2, "0") & Text.PadStart(Text.From(Minute), 2, "0")
-    in
-        FormattedTime)
-in
-    #"Added Timekey" // Output the final table
+let binSize = 1m; 
+let timeRangeStart = now(-30d);
+let timeRangeEnd = now();
+let filterSubstring = "ALL"; 
+Perf
+| where TimeGenerated between (timeRangeStart..timeRangeEnd)
+| where ObjectName == "Processor Information" and CounterName == "% Processor Time"
+| where filterSubstring == "ALL" or tostring(Computer) contains filterSubstring
+| summarize 
+    AVG_CPU_Utilization_per = round(avg(CounterValue), 2),
+    MAX_CPU_Utilization_per = round(max(CounterValue), 2),
+    MIN_CPU_Utilization_per = round(min(CounterValue), 2),
+    MED_CPU_Utilization_per = round(percentile(CounterValue, 50), 2),
+    ItemsPerTimeBin_int = count() 
+  by BinnedTime = bin(TimeGenerated, binSize), Computer, Date = format_datetime(TimeGenerated, 'yyyy-MM-dd')
+| extend Time = format_datetime(BinnedTime, 'HH:mm:ss')
+| extend TimeKey = replace(":", "", Time)
+| where MAX_CPU_Utilization_per >= 70 
+| project Date, Time, Computer, AVG_CPU_Utilization_per, MED_CPU_Utilization_per, MAX_CPU_Utilization_per, MIN_CPU_Utilization_per, ItemsPerTimeBin_int
