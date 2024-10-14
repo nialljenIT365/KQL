@@ -1,9 +1,10 @@
+let ipPrefix = "10.";  // Set this to the desired IP prefix
 Heartbeat
 | where TimeGenerated >= ago(30d)
 | summarize arg_max(TimeGenerated, *) by Computer
 | extend FirstIPCandidate = tostring(split(ComputerPrivateIPs, ",")[0])
 | extend SecondIPCandidate = tostring(split(ComputerPrivateIPs, ",")[1])
-| extend IsFirstIPStartsWith10 = FirstIPCandidate has "10."
-| extend TenDotRange = iff(IsFirstIPStartsWith10, FirstIPCandidate, SecondIPCandidate)
-| extend TenDotRange = replace(@'["\[\]]', '', TenDotRange)
-| project TimeGenerated, Computer, ComputerPrivateIPs, TenDotRange
+| extend IsFirstIPStartsWithPrefix = FirstIPCandidate has ipPrefix
+| extend PrivateIPAddressCandidate = iff(IsFirstIPStartsWithPrefix, FirstIPCandidate, SecondIPCandidate)
+| extend PrivateIPAddress = replace(@'["\[\]]', '', PrivateIPAddressCandidate)
+| project TimeGenerated, Computer, ComputerPrivateIPs, PrivateIPAddress
