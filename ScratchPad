@@ -17,7 +17,10 @@ let
         [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
     ),
     
-    // Remove duplicates with case-insensitive comparison for the "Computer" column
-    #"Removed Duplicates" = Table.Distinct(Source, {"Computer"}, Comparer.OrdinalIgnoreCase)
+    // Convert Computer column to lowercase for case-insensitive comparison
+    LowerCaseComputers = Table.TransformColumns(Source, {{"Computer", Text.Lower, type text}}),
+    
+    // Remove duplicates based on case-insensitive Computer column
+    #"Removed Duplicates" = Table.Distinct(LowerCaseComputers, {"Computer"})
 in
     #"Removed Duplicates"
