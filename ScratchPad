@@ -17,3 +17,7 @@ Perf
 | extend TimeKey = replace(":", "", Time)
 | where MAX_CPU_Utilization_per >= 70
 | project TimeGenerated, Date, Time, TimeKey, Computer, AVG_CPU_Utilization_per, MED_CPU_Utilization_per, MAX_CPU_Utilization_per, MIN_CPU_Utilization_per, ItemsPerTimeBin_int
+
+
+'project' operator: Failed to resolve scalar expression named 'TimeGenerated'
+Request id: 14157322-11fc-4847-a9d6-a4f658f43e3e
