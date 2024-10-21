@@ -4,12 +4,13 @@ let
     
     // Generate a list of time values for a 24-hour period in 1-millisecond increments
     TimeList = List.Generate(
-        () => BaseTime,
-        each _ <= #time(23, 59, 59), // Include all seconds of the day
-        each _ + #duration(0, 0, 0, 0.001) // Increment by 1 millisecond
+        () => 0, // Start at 0 milliseconds
+        each _ < 86400000, // 24 hours * 60 minutes * 60 seconds * 1000 milliseconds = 86400000 milliseconds
+        each _ + 1, // Increment by 1 millisecond
+        each #time(0, 0, 0) + #duration(0, 0, 0, _ / 1000) // Convert milliseconds to fractional seconds
     ),
-
-    // Convert the updated list of time values to a table
+    
+    // Convert the list of time values to a table
     #"Converted to Table" = Table.FromList(TimeList, Splitter.SplitByNothing(), {"Time"}, null, ExtraValues.Error),
     
     // Change the column type to Time
@@ -21,7 +22,7 @@ let
         Hour = Time.Hour(TimeValue),
         Minute = Time.Minute(TimeValue),
         Second = Time.Second(TimeValue),
-        Millisecond = Time.Millisecond(TimeValue),
+        Millisecond = Number.RoundDown((Duration.TotalMilliseconds(TimeValue - #time(Hour, Minute, Second))) * 1000),
         FormattedTime = 
             Text.PadStart(Text.From(Hour), 2, "0") & 
             Text.PadStart(Text.From(Minute), 2, "0") & 
