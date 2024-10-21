@@ -1,31 +1,5 @@
 let
-    // Start with a base time (midnight)
-    BaseTime = #time(0, 0, 0), // Midnight
-    
-    // Generate a list of time values for a 24-hour period in 1-second increments
-    TimeList = List.Generate(
-        () => BaseTime,
-        each _ <= #time(23, 59, 59), // Include all seconds of the day
-        each _ + #duration(0, 0, 0, 1) // Increment by 1 second
-    ),
-
-    // Convert the updated list of time values to a table
-    #"Converted to Table" = Table.FromList(TimeList, Splitter.SplitByNothing(), {"Time"}, null, ExtraValues.Error),
-    
-    // Change the column type to Time
-    #"Changed Type" = Table.TransformColumnTypes(#"Converted to Table",{{"Time", type time}}),
-    
-    // Add a column for the time as text without colons, formatted as a six-digit number (HHmmss)
-    #"Added Timekey" = Table.AddColumn(#"Changed Type", "Timekey", each let
-        TimeValue = [Time],
-        Hour = Time.Hour(TimeValue),
-        Minute = Time.Minute(TimeValue),
-        Second = Time.Second(TimeValue),
-        FormattedTime = 
-            Text.PadStart(Text.From(Hour), 2, "0") & 
-            Text.PadStart(Text.From(Minute), 2, "0") & 
-            Text.PadStart(Text.From(Second), 2, "0")
-    in
-        FormattedTime)
+    // WVDCOnnections KQL
+    Source = AzureDataExplorer.Contents("https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg", "nmw-app-law-fwjv4wn75m4qg", "WVDConnections#(lf)| where TimeGenerated >= ago(30d)#(lf)| extend UserName = trim(@""\s"", tolower(UserName))#(lf)| distinct UserName", [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null])
 in
-    #"Added Timekey"
+    Source
