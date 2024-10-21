@@ -9,3 +9,65 @@ let
     #"Changed Type1" = Table.TransformColumnTypes(#"Added Custom2",{{"TimeGen1st", type datetimezone}})
 in
     #"Changed Type1"
+
+Working
+
+let
+    // Source query from Azure Data Explorer
+    Source = AzureDataExplorer.Contents(
+        LAWClusterURLAVD, 
+        LAWNameAVD, 
+        "WVDErrors" &
+        "#(lf)| where TimeGenerated >= ago(30d)" &
+        "#(lf)| extend Date = format_datetime(TimeGenerated, 'yyyy-MM-dd')" &  // Adds Date column
+        "#(lf)| extend Time = format_datetime(TimeGenerated, 'HH:mm')" &       // Adds Time column
+        "#(lf)| extend TimeKey = replace("":"", """", Time)",                  // Removes colons from Time
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    ),
+
+    // Change the 'Code' column type to text
+    #"Changed Type" = Table.TransformColumnTypes(Source, {{"Code", type text}}),
+
+    // Group rows by 'CorrelationId' and concatenate into a new column
+    #"Grouped Rows" = Table.Group(
+        #"Changed Type", 
+        {"CorrelationId"}, 
+        {{"CorrelationConcat", each _, 
+        type table [
+            TenantId=nullable text, 
+            TimeGenerated=nullable datetimezone, 
+            CorrelationId=nullable text, 
+            UserName=nullable text, 
+            ActivityType=nullable text, 
+            Source=nullable text, 
+            Code=nullable text, 
+            CodeSymbolic=nullable text, 
+            Message=nullable text, 
+            ServiceError=nullable logical, 
+            Operation=nullable text, 
+            SourceSystem=nullable text, 
+            Type=nullable text, 
+            _ResourceId=nullable text, 
+            Date=nullable text, 
+            Time=nullable text, 
+            TimeKey=nullable text
+        ]}
+    }),
+
+    // Add a custom column for 'CodeList'
+    #"Added Custom" = Table.AddColumn(#"Grouped Rows", "CodeList", each Table.Column([CorrelationConcat], "Code")),
+
+    // Combine the 'CodeList' values into a single string
+    #"Extracted Values" = Table.TransformColumns(#"Added Custom", {"CodeList", each Text.Combine(List.Transform(_, Text.From), ","), type text}),
+
+    // Add a custom column for 'TimeGenList'
+    #"Added Custom1" = Table.AddColumn(#"Extracted Values", "TimeGenList", each Table.Column([CorrelationConcat], "TimeGenerated")),
+
+    // Add a custom column to extract the first 'TimeGenerated' value
+    #"Added Custom2" = Table.AddColumn(#"Added Custom1", "TimeGen1st", each List.First([TimeGenList], 1)),
+
+    // Change the type of 'TimeGen1st' to datetimezone
+    #"Changed Type1" = Table.TransformColumnTypes(#"Added Custom2", {{"TimeGen1st", type datetimezone}})
+in
+    #"Changed Type1"
+
