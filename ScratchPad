@@ -1,5 +1,31 @@
-WVDErrors
-| where TimeGenerated >= ago(30d)
-| extend Date = format_datetime(TimeGenerated, 'yyyy-MM-dd')  // Adds Date column
-| extend Time = format_datetime(TimeGenerated, 'HH:mm:ss')    // Adds Time column
-| extend TimeKey = replace(":", "", Time)
+let
+    // Start with a base time (midnight)
+    BaseTime = #time(0, 0, 0), // Midnight
+    
+    // Generate a list of time values for a 24-hour period in 1-second increments
+    TimeList = List.Generate(
+        () => BaseTime,
+        each _ <= #time(23, 59, 59), // Include all seconds of the day
+        each _ + #duration(0, 0, 0, 1) // Increment by 1 second
+    ),
+
+    // Convert the updated list of time values to a table
+    #"Converted to Table" = Table.FromList(TimeList, Splitter.SplitByNothing(), {"Time"}, null, ExtraValues.Error),
+    
+    // Change the column type to Time
+    #"Changed Type" = Table.TransformColumnTypes(#"Converted to Table",{{"Time", type time}}),
+    
+    // Add a column for the time as text without colons, formatted as a six-digit number (HHmmss)
+    #"Added Timekey" = Table.AddColumn(#"Changed Type", "Timekey", each let
+        TimeValue = [Time],
+        Hour = Time.Hour(TimeValue),
+        Minute = Time.Minute(TimeValue),
+        Second = Time.Second(TimeValue),
+        FormattedTime = 
+            Text.PadStart(Text.From(Hour), 2, "0") & 
+            Text.PadStart(Text.From(Minute), 2, "0") & 
+            Text.PadStart(Text.From(Second), 2, "0")
+    in
+        FormattedTime)
+in
+    #"Added Timekey"
