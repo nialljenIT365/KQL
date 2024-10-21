@@ -1,8 +1,8 @@
 let
     // Step 1: Load data from Azure Data Explorer
     Source = AzureDataExplorer.Contents(
-        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg", 
-        "nmw-app-law-fwjv4wn75m4qg", 
+        LAWClusterURLAVD, 
+        LAWNameAVD, 
         "WVDConnections#(lf)| where TimeGenerated >= ago(30d)#(lf)| where State == ""Connected""#(lf)| where ClientSideIPAddress != ""<>""#(lf)| distinct ClientSideIPAddress", 
         [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
     ),
