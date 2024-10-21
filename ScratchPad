@@ -209,3 +209,11 @@ let
     )
 in
     #"4-fn_ConvertIP4toNumeric"
+
+Bad request: failed to query Draft resource name: nmw-app-law-fwjv4wn75m4qg, resource id: ce4e1e84-3765-4cfe-ac40-5de8d7633df4; (inner error: {"code":"Bad Request","message":"{\"error\":{\"message\":\"The request had some invalid properties\",\"code\":\"BadArgumentError\",\"correlationId\":\"10829610-ba28-4568-9196-31ed7b559661\",\"innererror\":{\"code\":\"SemanticError\",\"message\":\"A semantic error occurred.\",\"innererror\":{\"code\":\"SEM0040\",\"message\":\"replace: failed to cast argument 1 to scalar constant\"}}}}"})
+Details:
+    Error=failed to query Draft resource name: nmw-app-law-fwjv4wn75m4qg, resource id: ce4e1e84-3765-4cfe-ac40-5de8d7633df4; (inner error: {"code":"Bad Request","message":"{\"error\":{\"message\":\"The request had some invalid properties\",\"code\":\"BadArgumentError\",\"correlationId\":\"10829610-ba28-4568-9196-31ed7b559661\",\"innererror\":{\"code\":\"SemanticError\",\"message\":\"A semantic error occurred.\",\"innererror\":{\"code\":\"SEM0040\",\"message\":\"replace: failed to cast argument 1 to scalar constant\"}}}}"})
+    Code=FailedToQueryDraft
+    Type=adxproxy.Exceptions.FailedToQueryDraft
+    x-ms-activity-id=0fbf6899-fc62-4f3e-b93d-6d0617a9fa02
+    x-ms-client-request-id=KPBI;06d9a4ea-383a-43ce-b92c-8eb81b3451f0
