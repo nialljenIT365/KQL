@@ -43,3 +43,9 @@ let
     )
 in
     #"4-fn_ConvertIP4toNumeric"
+
+Bad request: failed to query Draft resource name: nmw-app-law-fwjv4wn75m4qg, resource id: ce4e1e84-3765-4cfe-ac40-5de8d7633df4; (inner error: {"code":"Bad Request","message":"{\"error\":{\"message\":\"The request had some invalid properties\",\"code\":\"BadArgumentError\",\"correlationId\":\"3c91bc27-bab6-46f0-a0cc-e69ac2bcfa26\",\"innererror\":{\"code\":\"SyntaxError\",\"message\":\"A recognition error occurred in the query.\",\"innererror\":{\"code\":\"SYN0002\",\"message\":\"Query could not be parsed at ')' on line [5,651]\",\"line\":5,\"pos\":651,\"token\":\")\"}}}}"})
+Details:
+    Error=failed to query Draft resource name: nmw-app-law-fwjv4wn75m4qg, resource id: ce4e1e84-3765-4cfe-ac40-5de8d7633df4; (inner error: {"code":"Bad Request","message":"{\"error\":{\"message\":\"The request had some invalid properties\",\"code\":\"BadArgumentError\",\"correlationId\":\"3c91bc27-bab6-46f0-a0cc-e69ac2bcfa26\",\"innererror\":{\"code\":\"SyntaxError\",\"message\":\"A recognition error occurred in the query.\",\"innererror\":{\"code\":\"SYN0002\",\"message\":\"Query could not be parsed at ')' on line [5,651]\",\"line\":5,\"pos\":651,\"token\":\")\"}}}}"})
+    Code=FailedToQueryDraft
+
