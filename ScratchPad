@@ -1,5 +1,22 @@
 let
-    // WVDCOnnections KQL
-    Source = AzureDataExplorer.Contents(LAWClusterURLAVD, LAWNameAVD, "WVDConnections#(lf)| where TimeGenerated >= ago(30d)#(lf)| extend UserName = trim(@""\s"", tolower(UserName))#(lf)| distinct UserName", [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null])
+    Source = (query as text) => let
+
+        // Construct the API URL using the provided query (IP address or domain) and API key in the query parameters
+        url = "https://pro.ip-api.com/json/" & query & "?key=pkG2Qk0LJmSsF2l&fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,query",
+
+        // Fetch the JSON response from the API
+        jsonResponse = Json.Document(Web.Contents(url)),
+
+        // Convert the JSON response to a table format
+        #"Converted to Table" = Record.ToTable(jsonResponse),
+
+        // Transpose the table to show field names as headers
+        #"Transposed Table" = Table.Transpose(#"Converted to Table"),
+
+        // Promote the first row to headers
+        #"Promoted Headers" = Table.PromoteHeaders(#"Transposed Table")
+
+    in
+        #"Promoted Headers"
 in
     Source
