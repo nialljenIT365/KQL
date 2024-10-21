@@ -264,3 +264,42 @@ Details:
     x-ms-activity-id=056b4f8f-7b7a-435e-bbf1-7239d9a8802a
     x-ms-client-request-id=KPBI;998b020c-a774-4724-b22a-19e4d79161b8;b88c394d-4e7e-4281-b0e7-21d279ad30e1;bef502c3-27db-4a6e-85b6-980e79582c9d
 
+let
+    // Source query from Azure Data Explorer
+    Source = AzureDataExplorer.Contents(
+        LAWClusterURLAVD, 
+        LAWNameAVD, 
+        "WVDConnections" &
+        "#(lf)| where TimeGenerated >= ago(30d)" &
+        "#(lf)| where State in (""Connected"")" &
+        "#(lf)| extend Protocol = iff(UdpUse in (""0"", ""<>""), ""TCP"", ""UDP"")" &
+        "#(lf)| extend ClientType = " &
+        "iff(ClientType == ""com.microsoft.rdc.windows.msrdc.x64"", ""Win RD x64 (MSI)"", " &
+        "iff(ClientType == ""com.igel.rdc.linux"", ""IGEL"", " &
+        "iff(ClientType == ""com.microsoft.rdc.windows.store"", ""Win RD Store"", " &
+        "iff(ClientType == ""com.microsoft.rdc.html"", ""Web Browser (HTML5)"", " &
+        "iff(ClientType == ""com.microsoft.rdc.macos"", ""MAC OS"", " &
+        "iff(ClientType == ""com.microsoft.rdc.windows.msrdc.arm64"", ""Win RD ARM 64 (MSI)"", " &
+        "iff(ClientType == ""com.microsoft.rdc.ios"", ""iOS"", " &
+        "iff(ClientType == ""com.microsoft.rdc.windows.msrdc.msix.x64"", ""Win RD x64 (MSIX)"", " &
+        "iff(ClientType == ""com.microsoft.rdc.windows.wa.msrdc.msix.arm64"", ""Win App x64 (MSIX)"", " &
+        """Other"")))))))))" &
+        "#(lf)| extend Date = format_datetime(TimeGenerated, 'yyyy-MM-dd')" &
+        "#(lf)| extend Time = format_datetime(TimeGenerated, 'HHmmssfff')" &  // Format time without colons and period
+        "#(lf)| extend TimeKey = tostring(Time)",  // Cast the formatted time directly to a string
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    ),
+
+    // Change the Date column type to date
+    #"Changed Type" = Table.TransformColumnTypes(Source, {{"Date", type date}}),
+
+    // Add a new column converting ClientSideIPAddress to numeric format
+    #"4-fn_ConvertIP4toNumeric" = Table.AddColumn(
+        #"Changed Type", 
+        "ClientSideIPAddress-Numeric", 
+        each #"4-fn_ConvertIP4toNumeric"([ClientSideIPAddress])
+    )
+in
+    #"4-fn_ConvertIP4toNumeric"
+
+
