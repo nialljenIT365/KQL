@@ -22,3 +22,11 @@ let
 in
     #"Changed Type"
 
+Bad request: failed to query Draft resource name: nmw-app-law-fwjv4wn75m4qg, resource id: ce4e1e84-3765-4cfe-ac40-5de8d7633df4; (inner error: {"code":"Bad Request","message":"{\"error\":{\"message\":\"The request had some invalid properties\",\"code\":\"BadArgumentError\",\"correlationId\":\"2b7c5646-7854-4324-9182-d8c86c49949f\",\"innererror\":{\"code\":\"SemanticError\",\"message\":\"A semantic error occurred.\",\"innererror\":{\"code\":\"SEM0001\",\"message\":\"Search syntax is not allowed in this context\"}}}}"})
+Details:
+    Error=failed to query Draft resource name: nmw-app-law-fwjv4wn75m4qg, resource id: ce4e1e84-3765-4cfe-ac40-5de8d7633df4; (inner error: {"code":"Bad Request","message":"{\"error\":{\"message\":\"The request had some invalid properties\",\"code\":\"BadArgumentError\",\"correlationId\":\"2b7c5646-7854-4324-9182-d8c86c49949f\",\"innererror\":{\"code\":\"SemanticError\",\"message\":\"A semantic error occurred.\",\"innererror\":{\"code\":\"SEM0001\",\"message\":\"Search syntax is not allowed in this context\"}}}}"})
+    Code=FailedToQueryDraft
+    Type=adxproxy.Exceptions.FailedToQueryDraft
+    x-ms-activity-id=a18790d8-c366-47bb-bca1-1e4d40f449f8
+
+
