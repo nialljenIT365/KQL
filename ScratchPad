@@ -1,5 +1,20 @@
 let
-    // WVDCOnnections KQL
-    Source = AzureDataExplorer.Contents("https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg", "nmw-app-law-fwjv4wn75m4qg", "WVDConnections#(lf)| where TimeGenerated >= ago(30d)#(lf)| extend UserName = trim(@""\s"", tolower(UserName))#(lf)| distinct UserName", [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null])
+    // Define the data source - Azure Data Explorer for the Log Analytics workspace
+    Source = AzureDataExplorer.Contents(
+        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg",  // Connection string to the workspace
+        "nmw-app-law-fwjv4wn75m4qg",  // Workspace ID
+        @"
+            WVDConnections
+            | where TimeGenerated >= ago(30d)  // Filter records from the last 30 days
+            | extend UserName = trim(@""\s"", tolower(UserName))  // Normalize UserName (trim whitespace and convert to lowercase)
+            | distinct UserName  // Get distinct UserName values
+        ", 
+        [
+            MaxRows = null, 
+            MaxSize = null, 
+            NoTruncate = null, 
+            AdditionalSetStatements = null
+        ]
+    )
 in
     Source
