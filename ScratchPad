@@ -1,17 +1,4 @@
-WVDConnections
-| where TimeGenerated >= ago(30d)
-| where State in ("Connected")
-| extend Protocol = iff(UdpUse in ("0", "<>"), "TCP", "UDP")
-| extend ClientType = iff(
-    ClientType == "com.microsoft.rdc.windows.msrdc.x64", "Win RD x64 (MSI)",
-    iff(ClientType == "com.igel.rdc.linux", "IGEL",
-    iff(ClientType == "com.microsoft.rdc.windows.store", "Win RD Store",
-    iff(ClientType == "com.microsoft.rdc.html", "Web Browser (HTML5)",
-    iff(ClientType == "com.microsoft.rdc.macos", "MAC OS",
-    iff(ClientType == "com.microsoft.rdc.windows.msrdc.arm64", "Win RD ARM 64 (MSI)",
-    iff(ClientType == "com.microsoft.rdc.ios", "iOS",
-    iff(ClientType == "com.microsoft.rdc.windows.msrdc.msix.x64", "Win RD x64 (MSIX)",
-    iff(ClientType == "com.microsoft.rdc.windows.wa.msrdc.msix.arm64", "Win App x64 (MSIX)", "Other")))))))))
-| extend Date = format_datetime(TimeGenerated, 'yyyy-MM-dd')  // Adds Date column
-| extend Time = format_datetime(TimeGenerated, 'HH:mm')       // Adds Time column
-| extend TimeKey = replace(":", "", Time)
+let
+    Source = AzureDataExplorer.Contents(LAWClusterURLAVD, LAWNameAVD, "let binSize = 30s;#(lf)let timeRangeStart = now(-30d);#(lf)let timeRangeEnd = now();#(lf)let filterSubstring = ""ALL"";#(lf)Perf#(lf)| where TimeGenerated between (timeRangeStart..timeRangeEnd)#(lf)| where ObjectName == ""Processor Information"" and CounterName == ""% Processor Time""#(lf)| where filterSubstring == ""ALL"" or tostring(Computer) contains filterSubstring#(lf)| summarize #(lf)    AVG_CPU_Utilization_per = round(avg(CounterValue), 2),#(lf)    MAX_CPU_Utilization_per = round(max(CounterValue), 2),#(lf)    MIN_CPU_Utilization_per = round(min(CounterValue), 2),#(lf)    MED_CPU_Utilization_per = round(percentile(CounterValue, 50), 2),#(lf)    ItemsPerTimeBin_int = count(),#(lf)    TimeGenerated = min(TimeGenerated)  // Retaining the original TimeGenerated value#(lf)  by BinnedTime = bin(TimeGenerated, binSize), Computer, Date = format_datetime(TimeGenerated, 'yyyy-MM-dd')#(lf)| extend Time = format_datetime(BinnedTime, 'HH:mm:ss')#(lf)| extend TimeKey = replace("":"", """", Time)#(lf)| where MAX_CPU_Utilization_per >= 70#(lf)| project TimeGenerated, Date, Time, TimeKey, Computer, AVG_CPU_Utilization_per, MED_CPU_Utilization_per, MAX_CPU_Utilization_per, MIN_CPU_Utilization_per, ItemsPerTimeBin_int", [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null])
+in
+    Source
