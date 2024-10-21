@@ -2,11 +2,11 @@ let
     // Start with a base time (midnight)
     BaseTime = #time(0, 0, 0), // Midnight
     
-    // Generate a list of time values for a 24-hour period in 1-second increments
+    // Generate a list of time values for a 24-hour period in 1-millisecond increments
     TimeList = List.Generate(
         () => BaseTime,
         each _ <= #time(23, 59, 59), // Include all seconds of the day
-        each _ + #duration(0, 0, 0, 1) // Increment by 1 second
+        each _ + #duration(0, 0, 0, 0.001) // Increment by 1 millisecond
     ),
 
     // Convert the updated list of time values to a table
@@ -15,16 +15,18 @@ let
     // Change the column type to Time
     #"Changed Type" = Table.TransformColumnTypes(#"Converted to Table",{{"Time", type time}}),
     
-    // Add a column for the time as text without colons, formatted as a six-digit number (HHmmss)
+    // Add a column for the time as text without colons, formatted as a nine-digit number (HHmmssfff)
     #"Added Timekey" = Table.AddColumn(#"Changed Type", "Timekey", each let
         TimeValue = [Time],
         Hour = Time.Hour(TimeValue),
         Minute = Time.Minute(TimeValue),
         Second = Time.Second(TimeValue),
+        Millisecond = Time.Millisecond(TimeValue),
         FormattedTime = 
             Text.PadStart(Text.From(Hour), 2, "0") & 
             Text.PadStart(Text.From(Minute), 2, "0") & 
-            Text.PadStart(Text.From(Second), 2, "0")
+            Text.PadStart(Text.From(Second), 2, "0") &
+            Text.PadStart(Text.From(Millisecond), 3, "0")
     in
         FormattedTime)
 in
