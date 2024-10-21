@@ -3,3 +3,22 @@ let
     #"Changed Type" = Table.TransformColumnTypes(Source,{{"Code", type text}})
 in
     #"Changed Type"
+
+let
+    // Source query from Azure Data Explorer
+    Source = AzureDataExplorer.Contents(
+        LAWClusterURLAVD, 
+        LAWNameAVD, 
+        "WVDErrors" &
+        "#(lf)| where TimeGenerated >= ago(30d)" &
+        "#(lf)| extend Date = format_datetime(TimeGenerated, 'yyyy-MM-dd')" &  // Adds Date column
+        "#(lf)| extend Time = format_datetime(TimeGenerated, 'HH:mm:ss')" &    // Adds Time column
+        "#(lf)| extend TimeKey = replace('':'', '', Time)",                    // Removes colons from Time
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    ),
+
+    // Change the 'Code' column type to text
+    #"Changed Type" = Table.TransformColumnTypes(Source, {{"Code", type text}})
+in
+    #"Changed Type"
+
