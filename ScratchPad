@@ -311,3 +311,7 @@ Token: datetime(22/10/2024T09:35:38)
 Line: 3
 Position: 26
 Request id: 1434c4ae-3f48-4913-aa10-ea56e8313187
+
+
+WVDConnectionNetworkData
+| where TimeGenerated == datetime(2024-10-22T09:35:38.000)
