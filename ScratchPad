@@ -57,3 +57,120 @@ let
 in
     Source
 
+
+
+
+
+
+
+
+
+
+
+let
+    // Source query from Azure Data Explorer
+    Source = AzureDataExplorer.Contents(
+        LAWClusterURLAVD, 
+        LAWNameAVD, 
+        "WVDFeeds" &
+        "#(lf)| where TimeGenerated >= ago(30d)" &
+        "#(lf)| where not(isempty(UserName)) and UserName != ""<>""" &  // Check for empty or "<>"
+        "#(lf)| extend UserName = trim(@""\\s"", tolower(UserName))" &
+        "#(lf)| extend ClientType = " &
+        "iff(ClientType == ""com.microsoft.rdc.windows.msrdc.x64"", ""Win RD x64 (MSI)"", " &
+        "iff(ClientType == ""com.igel.rdc.linux"", ""IGEL"", " &
+        "iff(ClientType == ""com.microsoft.rdc.windows.store"", ""Win RD Store"", " &
+        "iff(ClientType == ""com.microsoft.rdc.html"", ""Web Browser (HTML5)"", " &
+        "iff(ClientType == ""com.microsoft.rdc.macos"", ""MAC OS"", " &
+        "iff(ClientType == ""com.microsoft.rdc.windows.msrdc.arm64"", ""Win RD ARM 64 (MSI)"", " &
+        "iff(ClientType == ""web.app.windows"", ""Windows Web App (Preview)"", " &
+        "iff(ClientType == ""com.microsoft.rdc.ios"", ""iOS"", " &
+        "iff(ClientType == ""com.microsoft.rdc.windows.msrdc.msix.x64"", ""Win RD x64 (MSIX)"", " &
+        "iff(ClientType == ""com.microsoft.rdc.windows.wa.msrdc.msix.arm64"", ""Win App x64 (MSIX)"", " &
+        """Other"")))))))))" &
+        "#(lf)| extend WorkSpaceName = tostring(split(_ResourceId, ""/"")[-1])" &
+        "#(lf)| extend WorkSpaceName = trim("" "", tolower(WorkSpaceName))" &       // Trim spaces and convert to lowercase
+        "#(lf)| extend Date = format_datetime(TimeGenerated, 'yyyy-MM-dd')" &
+        "#(lf)| extend Date = format_datetime(TimeGenerated, 'yyyy-MM-dd')" &
+        "#(lf)| extend Time = format_datetime(TimeGenerated, 'HH:mm:ss')" &
+        "#(lf)| extend Timekey = format_datetime(TimeGenerated, 'HHmm')" &  // Format time without colons and period
+        "#(lf)| extend TimekeyFull = format_datetime(TimeGenerated, 'HHmmssfff')",  // Cast the formatted time directly to a string
+
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    ),
+
+    // Change the Date column type to date
+    #"Changed Type" = Table.TransformColumnTypes(Source, {{"Date", type date}}),
+    #"Filtered Rows" = Table.SelectRows(#"Changed Type", each true)
+in
+    #"Filtered Rows"
+
+
+
+
+
+
+let
+    Source = #"AVD Connections (WVDConnections)",
+    #"Removed Columns" = Table.RemoveColumns(Source,{"TenantId", "CorrelationId", "UserName", "State", "ClientOS", "ClientVersion", "ClientType", "ClientIPAddress", "ClientSideIPAddress", "PredecessorConnectionId", "ConnectionType", "ResourceAlias", "SessionHostPoolType", "SessionHostAzureVmId", "SessionHostOSVersion", "SessionHostOSDescription", "SessionHostAgentVersion", "SessionHostSxSStackVersion", "SessionHostSessionId", "AadTenantId", "GatewayRegion", "UdpUse", "SessionHostJoinType", "IsClientPrivateLink", "IsSessionHostPrivateLink", "TransportType", "SourceSystem", "Type", "_ResourceId", "Protocol", "Date", "Time", "Timekey", "TimekeyFull", "TimeGenerated"}),
+    #"Replaced Value" = Table.ReplaceValue(#"Removed Columns","≤","",Replacer.ReplaceText,{"SessionHostIPAddress"}),
+    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value","≥","",Replacer.ReplaceText,{"SessionHostIPAddress"}),
+    #"Filtered Rows" = Table.SelectRows(#"Replaced Value1", each ([SessionHostIPAddress] <> "<>")),
+    #"Reordered Columns" = Table.ReorderColumns(#"Filtered Rows",{"HostPoolName", "SessionHostName", "SessionHostIPAddress"}),
+    #"Inserted Text Before Delimiter" = Table.AddColumn(#"Reordered Columns", "Text Before Delimiter", each Text.BeforeDelimiter([SessionHostIPAddress], ".", {0, RelativePosition.FromEnd}), type text),
+    #"Renamed Columns" = Table.RenameColumns(#"Inserted Text Before Delimiter",{{"Text Before Delimiter", "1st3Octets"}}),
+    #"Inserted Text Before Delimiter1" = Table.AddColumn(#"Renamed Columns", "Text Before Delimiter", each Text.BeforeDelimiter([SessionHostIPAddress], ".", {1, RelativePosition.FromEnd}), type text),
+    #"Renamed Columns1" = Table.RenameColumns(#"Inserted Text Before Delimiter1",{{"Text Before Delimiter", "1st2Octets"}}),
+    #"Filtered Rows1" = Table.SelectRows(#"Renamed Columns1", each true),
+    #"Removed Duplicates" = Table.Distinct(#"Filtered Rows1", {"1st3Octets"}),
+    #"Removed Columns1" = Table.RemoveColumns(#"Removed Duplicates",{"SessionHostName"}),
+    #"Renamed Columns2" = Table.RenameColumns(#"Removed Columns1",{{"SessionHostIPAddress", "HostPoolIPAddress"}}),
+    #"Removed Duplicates1" = Table.Distinct(#"Renamed Columns2", {"1st2Octets"})
+in
+    #"Removed Duplicates1"
+
+can you modify the above to use the soure from the query below? (just use the source keep all other steps from query above)
+
+let
+    // Source query from Azure Data Explorer
+    Source = AzureDataExplorer.Contents(
+        LAWClusterURLAVD, 
+        LAWNameAVD, 
+        "WVDConnections" &
+        "#(lf)| where TimeGenerated >= ago(30d)" &
+        //"#(lf)| where State in (""Connected"")" &
+        "#(lf)| where not(isempty(UserName)) and UserName != ""<>""" &  // Check for empty or "<>"
+        "#(lf)| extend UserName = trim(@""\\s"", tolower(UserName))" &
+        "#(lf)| extend Protocol = iff(UdpUse in (""0"", ""<>""), ""TCP"", ""UDP"")" &
+        "#(lf)| extend ClientType = " &
+        "iff(ClientType == ""com.microsoft.rdc.windows.msrdc.x64"", ""Win RD x64 (MSI)"", " &
+        "iff(ClientType == ""com.igel.rdc.linux"", ""IGEL"", " &
+        "iff(ClientType == ""com.microsoft.rdc.windows.store"", ""Win RD Store"", " &
+        "iff(ClientType == ""com.microsoft.rdc.html"", ""Web Browser (HTML5)"", " &
+        "iff(ClientType == ""com.microsoft.rdc.macos"", ""MAC OS"", " &
+        "iff(ClientType == ""com.microsoft.rdc.macos.beta"", ""MAC OS (Beta)"", " &
+        "iff(ClientType == ""com.microsoft.rdc.osx.beta"", ""MAC OSx (Beta)"", " &
+        "iff(ClientType == ""cpc.web.beta"", ""Windows Web App (Preview)"", " &
+        "iff(ClientType == ""com.microsoft.rdc.windows.msrdc.arm64"", ""Win RD ARM 64 (MSI)"", " &
+        "iff(ClientType == ""com.microsoft.rdc.windows.wa.msrdc.msix.arm64"", ""Win RD ARM 64 (MSI)"", " &
+        "iff(ClientType == ""com.microsoft.rdc.ios"", ""iOS"", " &
+        "iff(ClientType == ""com.microsoft.rdc.androidx.beta"", ""Android OS (Beta)"", " &
+        "iff(ClientType == ""com.microsoft.rdc.androidx"", ""Android OS"", " &
+        "iff(ClientType == ""com.microsoft.rdc.windows.msrdc.msix.x64"", ""Win RD x64 (MSIX)"", " &
+        "iff(ClientType == ""com.microsoft.rdc.windows.wa.msrdc.msix.x64"", ""Win App x64 (MSIX)"", " &
+        """Other"")))))))))))))))" &
+        "#(lf)| extend HostPoolName = tostring(split(_ResourceId, ""/"")[-1])" &
+        "#(lf)| extend HostPoolName = trim("" "", tolower(HostPoolName))" &       // Trim spaces and convert to lowercase
+        "#(lf)| extend Date = format_datetime(TimeGenerated, 'yyyy-MM-dd')" &
+        "#(lf)| extend Date = format_datetime(TimeGenerated, 'yyyy-MM-dd')" &
+        "#(lf)| extend Time = format_datetime(TimeGenerated, 'HH:mm:ss')" &
+        "#(lf)| extend Timekey = format_datetime(TimeGenerated, 'HHmm')" &  // Format time without colons and period
+        "#(lf)| extend TimekeyFull = format_datetime(TimeGenerated, 'HHmmssfff')",  // Cast the formatted time directly to a string
+
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    ),
+
+    // Change the Date column type to date
+    #"Changed Type" = Table.TransformColumnTypes(Source, {{"Date", type date}})
+in
+    #"Changed Type"
