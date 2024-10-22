@@ -243,3 +243,5 @@ let
 in
     Source
 
+Expression.SyntaxError: Token Literal expected.
+
