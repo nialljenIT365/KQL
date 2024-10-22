@@ -7,10 +7,10 @@ let
         "#(lf)| join kind=leftouter (" &
         "#(lf)    WVDConnections" &
         "#(lf)    | where TimeGenerated >= ago(30d)" &  // Filter data from the last 30 days
-        "#(lf)    | where State in (\"Connected\")" &  // Filter for 'Connected' state without unnecessary backslashes
-        "#(lf)    | where not(isempty(UserName)) and UserName != \"<>\"" &  // Exclude empty or '<>' UserName
-        "#(lf)    | extend UserName = trim(@\"\\s\", tolower(UserName))" &  // Trim and lowercase UserName
-        "#(lf)    | extend Protocol = iff(UdpUse in (\"0\", \"<>\"), \"TCP\", \"UDP\")" &  // Determine protocol
+        "#(lf)    | where State in (""Connected"")" &
+        "#(lf)    | where not(isempty(UserName)) and UserName != ""<>""" &  // Check for empty or "<>"
+        "#(lf)    | extend UserName = trim(@""\\s"", tolower(UserName))" &
+        "#(lf)    | extend Protocol = iff(UdpUse in (""0"", ""<>""), ""TCP"", ""UDP"")" &
         "#(lf)    | extend ClientType = " &
         "iff(ClientType == \"com.microsoft.rdc.windows.msrdc.x64\", \"Win RD x64 (MSI)\", " &
         "iff(ClientType == \"com.igel.rdc.linux\", \"IGEL\", " &
@@ -27,10 +27,10 @@ let
         "iff(ClientType == \"com.microsoft.rdc.androidx\", \"Android OS\", " &
         "iff(ClientType == \"com.microsoft.rdc.windows.msrdc.msix.x64\", \"Win RD x64 (MSIX)\", " &
         "iff(ClientType == \"com.microsoft.rdc.windows.wa.msrdc.msix.x64\", \"Win App x64 (MSIX)\", " &
-        "\"Other\")))))))))))))))" &
+        """Other"")))))))))))))))" &
         "#(lf)) on CorrelationId" &  // Join on CorrelationId
-        "#(lf)| extend HostPoolName = tostring(split(_ResourceId, \"/\")[-1])" &  // Extract value after the last "/"
-        "#(lf)| extend HostPoolName = trim(\" \", tolower(HostPoolName))" &       // Trim spaces and convert to lowercase
+        "#(lf)| extend HostPoolName = tostring(split(_ResourceId, ""/"")[-1])" &
+        "#(lf)| extend HostPoolName = trim("" "", tolower(HostPoolName))" &       // Trim spaces and convert to lowercase
         "#(lf)| extend Date = format_datetime(TimeGenerated, 'yyyy-MM-dd')" &     // Extract Date
         "#(lf)| extend Time = format_datetime(TimeGenerated, 'HH:mm:ss')" &       // Extract Time
         "#(lf)| extend Timekey = format_datetime(TimeGenerated, 'HHmm')" &        // Format time without colons
