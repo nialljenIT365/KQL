@@ -4,42 +4,45 @@ let
         LAWClusterURLAVD, 
         LAWNameAVD, 
         "WVDConnectionNetworkData" &
-        "#(lf)| join kind=leftouter (" &
-        "#(lf)    WVDConnections" &
-        "#(lf)    | where TimeGenerated >= ago(30d)" &  // Filter data from the last 30 days
-        "#(lf)    | where State in (""Connected"")" &
-        "#(lf)    | where not(isempty(UserName)) and UserName != ""<>""" &  // Check for empty or "<>"
-        "#(lf)    | extend UserName = trim(@""\\s"", tolower(UserName))" &
-        "#(lf)    | extend Protocol = iff(UdpUse in (""0"", ""<>""), ""TCP"", ""UDP"")" &
-        "#(lf)    | extend ClientType = " &
-        "iff(ClientType == ""com.microsoft.rdc.windows.msrdc.x64"", ""Win RD x64 (MSI)"", " &
-        "iff(ClientType == ""com.igel.rdc.linux"", ""IGEL"", " &
-        "iff(ClientType == ""com.microsoft.rdc.windows.store"", ""Win RD Store"", " &
-        "iff(ClientType == ""com.microsoft.rdc.html"", ""Web Browser (HTML5)"", " &
-        "iff(ClientType == ""com.microsoft.rdc.macos"", ""MAC OS"", " &
-        "iff(ClientType == ""com.microsoft.rdc.macos.beta"", ""MAC OS (Beta)"", " &
-        "iff(ClientType == ""com.microsoft.rdc.osx.beta"", ""MAC OSx (Beta)"", " &
-        "iff(ClientType == ""cpc.web.beta"", ""Windows Web App (Preview)"", " &
-        "iff(ClientType == ""com.microsoft.rdc.windows.msrdc.arm64"", ""Win RD ARM 64 (MSI)"", " &
-        "iff(ClientType == ""com.microsoft.rdc.windows.wa.msrdc.msix.arm64"", ""Win RD ARM 64 (MSI)"", " &
-        "iff(ClientType == ""com.microsoft.rdc.ios"", ""iOS"", " &
-        "iff(ClientType == ""com.microsoft.rdc.androidx.beta"", ""Android OS (Beta)"", " &
-        "iff(ClientType == ""com.microsoft.rdc.androidx"", ""Android OS"", " &
-        "iff(ClientType == ""com.microsoft.rdc.windows.msrdc.msix.x64"", ""Win RD x64 (MSIX)"", " &
-        "iff(ClientType == ""com.microsoft.rdc.windows.wa.msrdc.msix.x64"", ""Win App x64 (MSIX)"", " &
-        """Other"")))))))))))))))" &
-        "#(lf)) on CorrelationId" &  // Join on CorrelationId
-        "#(lf)| extend HostPoolName = tostring(split(_ResourceId, ""/"")[-1])" &
-        "#(lf)| extend HostPoolName = trim("" "", tolower(HostPoolName))" &       // Trim spaces and convert to lowercase
-        "#(lf)| extend Date = format_datetime(TimeGenerated, 'yyyy-MM-dd')" &     // Extract Date
-        "#(lf)| extend Time = format_datetime(TimeGenerated, 'HH:mm:ss')" &       // Extract Time
-        "#(lf)| extend Timekey = format_datetime(TimeGenerated, 'HHmm')" &        // Format time without colons
-        "#(lf)| extend TimekeyFull = format_datetime(TimeGenerated, 'HHmmssfff')",  // Full Time with milliseconds
-
+        "#(lf)| where TimeGenerated >= ago(30d)" &
+        "#(lf)| extend HostPoolName = tostring(split(_ResourceId, '/')[-1])" &  // Extract value after the last "/"
+        "#(lf)| extend HostPoolName = trim(' ', tolower(HostPoolName))" &  // Trim spaces and convert to lowercase
+        "#(lf)| extend Date = format_datetime(TimeGenerated, 'yyyy-MM-dd')" &  // Adds Date column
+        "#(lf)| extend Time = format_datetime(TimeGenerated, 'HH:mm:ss')" &    // Adds Time column
+        "#(lf)| extend Timekey = format_datetime(TimeGenerated, 'HHmm')" &    // Adds Timekey column
+        "#(lf)| extend TimekeyFull = format_datetime(TimeGenerated, 'HHmmssfff')",  // Adds TimekeyFull column             
         [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
     ),
-
-    // Change the Date column type to date
-    #"Changed Type" = Table.TransformColumnTypes(Source, {{"Date", type date}})
+    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Date", type date}})
 in
     #"Changed Type"
+
+The above works fine but when I attempt the below I get an error
+
+let
+    // Source query from Azure Data Explorer
+    Source = AzureDataExplorer.Contents(
+        LAWClusterURLAVD, 
+        LAWNameAVD, 
+        "WVDConnectionNetworkData" &
+        "#(lf)| where TimeGenerated >= ago(30d)" &
+        "#(lf)| extend HostPoolName = tostring(split(_ResourceId, '/')[-1])" &  // Extract value after the last "/"
+        "#(lf)| extend HostPoolName = trim(' ', tolower(HostPoolName))" &  // Trim spaces and convert to lowercase
+        "#(lf)| extend Date = format_datetime(TimeGenerated, 'yyyy-MM-dd')" &  // Adds Date column
+        "#(lf)| extend Time = format_datetime(TimeGenerated, 'HH:mm:ss')" &    // Adds Time column
+        "#(lf)| extend Timekey = format_datetime(TimeGenerated, 'HHmm')" &    // Adds Timekey column
+        "#(lf)| extend TimekeyFull = format_datetime(TimeGenerated, 'HHmmssfff')",  // Adds TimekeyFull column             
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    ),
+    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Date", type date}, {"Time", type time}})
+in
+    #"Changed Type"
+
+Attemting to change to type time causes following issues
+Bad request: failed to query Draft resource name: nmw-app-law-fwjv4wn75m4qg, resource id: ce4e1e84-3765-4cfe-ac40-5de8d7633df4; (inner error: {"code":"Bad Request","message":"{\"error\":{\"message\":\"The request had some invalid properties\",\"code\":\"BadArgumentError\",\"correlationId\":\"e8d87635-667b-4e0c-a9d7-136159a1c2de\",\"innererror\":{\"code\":\"SyntaxError\",\"message\":\"A recognition error occurred in the query.\",\"innererror\":{\"code\":\"SYN0002\",\"message\":\"Query could not be parsed at 'time([\\\"Time\\\"])' on line [10,59]\",\"line\":10,\"pos\":59,\"token\":\"time([\\\"Time\\\"])\"}}}}"})
+Details:
+    Error=failed to query Draft resource name: nmw-app-law-fwjv4wn75m4qg, resource id: ce4e1e84-3765-4cfe-ac40-5de8d7633df4; (inner error: {"code":"Bad Request","message":"{\"error\":{\"message\":\"The request had some invalid properties\",\"code\":\"BadArgumentError\",\"correlationId\":\"e8d87635-667b-4e0c-a9d7-136159a1c2de\",\"innererror\":{\"code\":\"SyntaxError\",\"message\":\"A recognition error occurred in the query.\",\"innererror\":{\"code\":\"SYN0002\",\"message\":\"Query could not be parsed at 'time([\\\"Time\\\"])' on line [10,59]\",\"line\":10,\"pos\":59,\"token\":\"time([\\\"Time\\\"])\"}}}}"})
+    Code=FailedToQueryDraft
+    Type=adxproxy.Exceptions.FailedToQueryDraft
+    x-ms-activity-id=646a48b0-ac69-42bd-94d4-deb15116c480
+    x-ms-client-request-id=KPBI;5940a88b-e577-41a9-8ce0-ab95abc582f9;8e7cf68c-6b7c-40db-b7c3-3c0dc7f05e04;2b6ca6af-b65a-4ad6-929c-8ae156ef8b6c
