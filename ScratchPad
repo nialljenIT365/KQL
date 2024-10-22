@@ -280,3 +280,20 @@ in
     Source
 
 
+let
+    // Source query from Azure Data Explorer
+    Source = AzureDataExplorer.Contents(
+        LAWClusterURLAVD, 
+        LAWNameAVD, 
+        "WVDConnections" &
+        "#(lf)| where TimeGenerated >= ago(30d)" &
+        "#(lf)| where SessionHostIPAddress != '<>'" &  // Exclude the literal "<>"
+        "#(lf)| extend HostPoolName = tostring(split(_ResourceId, '/')[-1])" &  // Extract value after the last "/"
+        "#(lf)| extend HostPoolName = trim(' ', tolower(HostPoolName))" &  // Trim spaces and convert to lowercase
+        "#(lf)| distinct HostPoolName, SessionHostIPAddress",  // Select distinct columns
+
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    )
+in
+    Source
+
