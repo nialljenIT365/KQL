@@ -9,3 +9,10 @@ WVDHostRegistrations
 | where TimeGenerated >= ago(30d)
 | extend HostPoolName = tostring(split(_ResourceId, "/")[-1])  // Extract the value after the last "/"
 
+Working
+
+WVDHostRegistrations
+| where TimeGenerated >= ago(30d)
+| extend HostPoolName = tostring(split(_ResourceId, "/")[-1])  // Extract the value after the last "/"
+| extend HostPoolName = trim(@""\\s"", tolower(HostPoolName))
+
