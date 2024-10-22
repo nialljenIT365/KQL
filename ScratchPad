@@ -210,7 +210,6 @@ in
     #"Removed Duplicates1"
 
 
-Fix this
 let
     // Source query from Azure Data Explorer
     Source = AzureDataExplorer.Contents(
@@ -218,10 +217,10 @@ let
         LAWNameAVD, 
         "WVDConnections" &
         "#(lf)| where TimeGenerated >= ago(30d)" &
-        "#(lf)| where SessionHostIPAddress != <> &
+        "#(lf)| where SessionHostIPAddress != \"<>\"" &  // Correct comparison for "<>"
         "#(lf)| extend HostPoolName = tostring(split(_ResourceId, ""/"")[-1])" &  // Extract value after the last "/"
-        "#(lf)| extend HostPoolName = trim("" "", tolower(HostPoolName))" &  // trime values and set to lower case
-        "#(lf)| project HostPoolName, SessionHostIPAddress",
+        "#(lf)| extend HostPoolName = trim("" "", tolower(HostPoolName))" &  // Trim spaces and set to lower case
+        "#(lf)| project HostPoolName, SessionHostIPAddress",  // Select columns
 
         [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
     )
