@@ -27,3 +27,39 @@ let
     #"Changed Type" = Table.TransformColumnTypes(Source,{{"Date", type date}})
 in
     #"Changed Type"
+
+
+let
+    // Source query from Azure Data Explorer
+    Source = AzureDataExplorer.Contents(
+        LAWClusterURLAVD, 
+        LAWNameAVD, 
+        "WVDConnectionNetworkData" &
+        "#(lf)| where TimeGenerated >= ago(30d)" &
+        "#(lf)| extend HostPoolName = tostring(split(_ResourceId, '/')[-1])" &  // Extract value after the last "/"
+        "#(lf)| extend HostPoolName = trim(' ', tolower(HostPoolName))" &  // Trim spaces and convert to lowercase
+        "#(lf)| extend Date = format_datetime(TimeGenerated, 'yyyy-MM-dd')" &  // Adds Date column
+        "#(lf)| extend Time = format_datetime(TimeGenerated, 'HH:mm:ss')" &    // Adds Time column
+        "#(lf)| extend Timekey = format_datetime(TimeGenerated, 'HHmm')" &    // Adds Timekey column
+        "#(lf)| extend TimekeyFull = format_datetime(TimeGenerated, 'HHmmssfff')",  // Adds TimekeyFull column             
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    ),
+    
+    // Change Date column type
+    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Date", type date}}),
+
+    // Extract only the hour and minute from TimeGenerated (removing seconds)
+    #"Extracted Time" = Table.TransformColumns(#"Changed Type",{{"Time", DateTime.Time, type time}}),
+    
+    // Convert the extracted Time column to text
+    #"Changed Type1" = Table.TransformColumnTypes(#"Extracted Time",{{"Time", type text}}),
+    
+    // Extract text before the delimiter (removes the ":00" part)
+    #"Extracted Text Before Delimiter" = Table.TransformColumns(#"Changed Type1", {{"Time", each Text.BeforeDelimiter(_, ":00", {0, RelativePosition.FromEnd}), type text}}),
+
+    // Change the extracted Time back to time type
+    #"Changed Type2" = Table.TransformColumnTypes(#"Extracted Text Before Delimiter",{{"Time", type time}})
+    
+in
+    #"Changed Type2"
+
