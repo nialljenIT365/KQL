@@ -174,3 +174,38 @@ let
     #"Changed Type" = Table.TransformColumnTypes(Source, {{"Date", type date}})
 in
     #"Changed Type"
+
+
+
+
+let
+    // Source query from Azure Data Explorer
+    Source = AzureDataExplorer.Contents(
+        LAWClusterURLAVD, 
+        LAWNameAVD, 
+        "WVDConnections" &
+        "#(lf)| where TimeGenerated >= ago(30d)" &
+        "#(lf)| where not(isempty(UserName)) and UserName != ""<>""" &  // Check for empty or "<>"
+        "#(lf)| extend HostPoolName = tostring(split(_ResourceId, ""/"")[-1])" &  // Extract value after the last "/"
+        "#(lf)| extend HostPoolName = trim("" "", tolower(HostPoolName))" &  // Extract value after the last "/"
+        "#(lf)| project HostPoolName, SessionHostIPAddress",  // Cast the formatted time directly to a string
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    ),
+
+    #"Removed Columns" = Table.RemoveColumns(Source,{"TenantId", "CorrelationId", "UserName", "State", "ClientOS", "ClientVersion", "ClientType", "ClientIPAddress", "ClientSideIPAddress", "PredecessorConnectionId", "ConnectionType", "ResourceAlias", "SessionHostPoolType", "SessionHostAzureVmId", "SessionHostOSVersion", "SessionHostOSDescription", "SessionHostAgentVersion", "SessionHostSxSStackVersion", "SessionHostSessionId", "AadTenantId", "GatewayRegion", "UdpUse", "SessionHostJoinType", "IsClientPrivateLink", "IsSessionHostPrivateLink", "TransportType", "SourceSystem", "Type", "_ResourceId", "Protocol", "Date", "Time", "Timekey", "TimekeyFull", "TimeGenerated"}),
+    #"Replaced Value" = Table.ReplaceValue(#"Removed Columns","≤","",Replacer.ReplaceText,{"SessionHostIPAddress"}),
+    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value","≥","",Replacer.ReplaceText,{"SessionHostIPAddress"}),
+    #"Filtered Rows" = Table.SelectRows(#"Replaced Value1", each ([SessionHostIPAddress] <> "<>")),
+    #"Reordered Columns" = Table.ReorderColumns(#"Filtered Rows",{"HostPoolName", "SessionHostName", "SessionHostIPAddress"}),
+    #"Inserted Text Before Delimiter" = Table.AddColumn(#"Reordered Columns", "Text Before Delimiter", each Text.BeforeDelimiter([SessionHostIPAddress], ".", {0, RelativePosition.FromEnd}), type text),
+    #"Renamed Columns" = Table.RenameColumns(#"Inserted Text Before Delimiter",{{"Text Before Delimiter", "1st3Octets"}}),
+    #"Inserted Text Before Delimiter1" = Table.AddColumn(#"Renamed Columns", "Text Before Delimiter", each Text.BeforeDelimiter([SessionHostIPAddress], ".", {1, RelativePosition.FromEnd}), type text),
+    #"Renamed Columns1" = Table.RenameColumns(#"Inserted Text Before Delimiter1",{{"Text Before Delimiter", "1st2Octets"}}),
+    #"Filtered Rows1" = Table.SelectRows(#"Renamed Columns1", each true),
+    #"Removed Duplicates" = Table.Distinct(#"Filtered Rows1", {"1st3Octets"}),
+    #"Removed Columns1" = Table.RemoveColumns(#"Removed Duplicates",{"SessionHostName"}),
+    #"Renamed Columns2" = Table.RenameColumns(#"Removed Columns1",{{"SessionHostIPAddress", "HostPoolIPAddress"}}),
+    #"Removed Duplicates1" = Table.Distinct(#"Renamed Columns2", {"1st2Octets"})
+in
+    #"Removed Duplicates1"
+
