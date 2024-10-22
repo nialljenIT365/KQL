@@ -12,21 +12,21 @@ let
         "#(lf)    | extend UserName = trim(@""\\s"", tolower(UserName))" &
         "#(lf)    | extend Protocol = iff(UdpUse in (""0"", ""<>""), ""TCP"", ""UDP"")" &
         "#(lf)    | extend ClientType = " &
-        "iff(ClientType == \"com.microsoft.rdc.windows.msrdc.x64\", \"Win RD x64 (MSI)\", " &
-        "iff(ClientType == \"com.igel.rdc.linux\", \"IGEL\", " &
-        "iff(ClientType == \"com.microsoft.rdc.windows.store\", \"Win RD Store\", " &
-        "iff(ClientType == \"com.microsoft.rdc.html\", \"Web Browser (HTML5)\", " &
-        "iff(ClientType == \"com.microsoft.rdc.macos\", \"MAC OS\", " &
-        "iff(ClientType == \"com.microsoft.rdc.macos.beta\", \"MAC OS (Beta)\", " &
-        "iff(ClientType == \"com.microsoft.rdc.osx.beta\", \"MAC OSx (Beta)\", " &
-        "iff(ClientType == \"cpc.web.beta\", \"Windows Web App (Preview)\", " &
-        "iff(ClientType == \"com.microsoft.rdc.windows.msrdc.arm64\", \"Win RD ARM 64 (MSI)\", " &
-        "iff(ClientType == \"com.microsoft.rdc.windows.wa.msrdc.msix.arm64\", \"Win RD ARM 64 (MSI)\", " &
-        "iff(ClientType == \"com.microsoft.rdc.ios\", \"iOS\", " &
-        "iff(ClientType == \"com.microsoft.rdc.androidx.beta\", \"Android OS (Beta)\", " &
-        "iff(ClientType == \"com.microsoft.rdc.androidx\", \"Android OS\", " &
-        "iff(ClientType == \"com.microsoft.rdc.windows.msrdc.msix.x64\", \"Win RD x64 (MSIX)\", " &
-        "iff(ClientType == \"com.microsoft.rdc.windows.wa.msrdc.msix.x64\", \"Win App x64 (MSIX)\", " &
+        "iff(ClientType == ""com.microsoft.rdc.windows.msrdc.x64"", ""Win RD x64 (MSI)"", " &
+        "iff(ClientType == ""com.igel.rdc.linux"", ""IGEL"", " &
+        "iff(ClientType == ""com.microsoft.rdc.windows.store"", ""Win RD Store"", " &
+        "iff(ClientType == ""com.microsoft.rdc.html"", ""Web Browser (HTML5)"", " &
+        "iff(ClientType == ""com.microsoft.rdc.macos"", ""MAC OS"", " &
+        "iff(ClientType == ""com.microsoft.rdc.macos.beta"", ""MAC OS (Beta)"", " &
+        "iff(ClientType == ""com.microsoft.rdc.osx.beta"", ""MAC OSx (Beta)"", " &
+        "iff(ClientType == ""cpc.web.beta"", ""Windows Web App (Preview)"", " &
+        "iff(ClientType == ""com.microsoft.rdc.windows.msrdc.arm64"", ""Win RD ARM 64 (MSI)"", " &
+        "iff(ClientType == ""com.microsoft.rdc.windows.wa.msrdc.msix.arm64"", ""Win RD ARM 64 (MSI)"", " &
+        "iff(ClientType == ""com.microsoft.rdc.ios"", ""iOS"", " &
+        "iff(ClientType == ""com.microsoft.rdc.androidx.beta"", ""Android OS (Beta)"", " &
+        "iff(ClientType == ""com.microsoft.rdc.androidx"", ""Android OS"", " &
+        "iff(ClientType == ""com.microsoft.rdc.windows.msrdc.msix.x64"", ""Win RD x64 (MSIX)"", " &
+        "iff(ClientType == ""com.microsoft.rdc.windows.wa.msrdc.msix.x64"", ""Win App x64 (MSIX)"", " &
         """Other"")))))))))))))))" &
         "#(lf)) on CorrelationId" &  // Join on CorrelationId
         "#(lf)| extend HostPoolName = tostring(split(_ResourceId, ""/"")[-1])" &
