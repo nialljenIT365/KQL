@@ -217,13 +217,11 @@ let
         LAWNameAVD, 
         "WVDConnections" &
         "#(lf)| where TimeGenerated >= ago(30d)" &
-        "#(lf)| where SessionHostIPAddress != \"<>\"" &  // Properly compare SessionHostIPAddress to "<>"
         "#(lf)| extend HostPoolName = tostring(split(_ResourceId, '/')[ -1 ])" &  // Extract value after the last "/"
         "#(lf)| extend HostPoolName = trim(' ', tolower(HostPoolName))" &  // Trim spaces and convert to lowercase
-        "#(lf)| project HostPoolName, SessionHostIPAddress",  // Project required columns
+        "#(lf)| distinct HostPoolName, SessionHostIPAddress",  // Project required columns
 
         [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
     )
 in
     Source
-
