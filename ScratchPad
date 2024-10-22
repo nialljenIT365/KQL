@@ -69,3 +69,12 @@ let
 in
     #"Converted Time"
 
+
+Bad request: failed to query Draft resource name: nmw-app-law-fwjv4wn75m4qg, resource id: ce4e1e84-3765-4cfe-ac40-5de8d7633df4; (inner error: {"code":"Bad Request","message":"{\"error\":{\"message\":\"The request had some invalid properties\",\"code\":\"BadArgumentError\",\"correlationId\":\"25c760e6-ec6b-4ded-9112-4946a2943490\",\"innererror\":{\"code\":\"SyntaxError\",\"message\":\"A recognition error occurred in the query.\",\"innererror\":{\"code\":\"SYN0002\",\"message\":\"Query could not be parsed at 'time([\\\"t1_0\\\"])' on line [12,20]\",\"line\":12,\"pos\":20,\"token\":\"time([\\\"t1_0\\\"])\"}}}}"})
+Details:
+    Error=failed to query Draft resource name: nmw-app-law-fwjv4wn75m4qg, resource id: ce4e1e84-3765-4cfe-ac40-5de8d7633df4; (inner error: {"code":"Bad Request","message":"{\"error\":{\"message\":\"The request had some invalid properties\",\"code\":\"BadArgumentError\",\"correlationId\":\"25c760e6-ec6b-4ded-9112-4946a2943490\",\"innererror\":{\"code\":\"SyntaxError\",\"message\":\"A recognition error occurred in the query.\",\"innererror\":{\"code\":\"SYN0002\",\"message\":\"Query could not be parsed at 'time([\\\"t1_0\\\"])' on line [12,20]\",\"line\":12,\"pos\":20,\"token\":\"time([\\\"t1_0\\\"])\"}}}}"})
+    Code=FailedToQueryDraft
+    Type=adxproxy.Exceptions.FailedToQueryDraft
+    x-ms-activity-id=89a78593-bfa8-444a-9df9-b66480188fa5
+    x-ms-client-request-id=KPBI;50e0df82-0529-4aae-b680-362503736b07;89eb994b-afe5-4063-b79c-51850d98f74c;a6c6b33d-121a-4b33-9717-d459b986e279
+
