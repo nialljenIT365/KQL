@@ -299,3 +299,15 @@ in
 
 
 If TimeGenerated is in format 21/10/2024, 15:36:03.680 how can I run a query to return all time generated for Date, Time in format HH:MM:SS
+
+
+WVDConnectionNetworkData
+//| where TimeGenerated >= ago(30d)
+| where TimeGenerated == datetime(22/10/2024T09:35:38)
+
+Query could not be parsed at 'datetime(22/10/2024T09:35:38)' on line [3,26]
+
+Token: datetime(22/10/2024T09:35:38)
+Line: 3
+Position: 26
+Request id: 1434c4ae-3f48-4913-aa10-ea56e8313187
