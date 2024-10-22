@@ -7,7 +7,7 @@ let
         "#(lf)| join kind=leftouter (" &
         "#(lf)    WVDConnections" &
         "#(lf)    | where TimeGenerated >= ago(30d)" &  // Filter data from the last 30 days
-        "#(lf)    | where State in (\"Connected\")" &  // Filter for 'Connected' state
+        "#(lf)    | where State in (\"Connected\")" &  // Filter for 'Connected' state without unnecessary backslashes
         "#(lf)    | where not(isempty(UserName)) and UserName != \"<>\"" &  // Exclude empty or '<>' UserName
         "#(lf)    | extend UserName = trim(@\"\\s\", tolower(UserName))" &  // Trim and lowercase UserName
         "#(lf)    | extend Protocol = iff(UdpUse in (\"0\", \"<>\"), \"TCP\", \"UDP\")" &  // Determine protocol
