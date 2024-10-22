@@ -78,3 +78,24 @@ Details:
     x-ms-activity-id=89a78593-bfa8-444a-9df9-b66480188fa5
     x-ms-client-request-id=KPBI;50e0df82-0529-4aae-b680-362503736b07;89eb994b-afe5-4063-b79c-51850d98f74c;a6c6b33d-121a-4b33-9717-d459b986e279
 
+let
+    // Source query from Azure Data Explorer
+    Source = AzureDataExplorer.Contents(
+        LAWClusterURLAVD, 
+        LAWNameAVD, 
+        "WVDConnectionNetworkData" &
+        "#(lf)| where TimeGenerated >= ago(30d)" &
+        "#(lf)| extend HostPoolName = tostring(split(_ResourceId, '/')[-1])" &  // Extract value after the last "/"
+        "#(lf)| extend HostPoolName = trim(' ', tolower(HostPoolName))" &  // Trim spaces and convert to lowercase
+        "#(lf)| extend Date = format_datetime(TimeGenerated, 'yyyy-MM-dd')" &  // Adds Date column
+        "#(lf)| extend Time = format_datetime(TimeGenerated, 'HH:mm:ss')" &    // Adds Time column
+        "#(lf)| extend Timekey = format_datetime(TimeGenerated, 'HHmm')" &    // Adds Timekey column
+        "#(lf)| extend TimekeyFull = format_datetime(TimeGenerated, 'HHmmssfff')" &  // Adds TimekeyFull column             
+        "#(lf)| project HostPoolName, Date, Time, Timekey, TimekeyFull",  // Project the needed columns
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    ),
+    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Date", type date}, {"Time", type text}})
+in
+    #"Changed Type"
+
+
