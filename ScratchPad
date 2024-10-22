@@ -16,3 +16,28 @@ WVDHostRegistrations
 | extend HostPoolName = tostring(split(_ResourceId, "/")[-1])  // Extract the value after the last "/"
 | extend HostPoolName = trim(" ", tolower(HostPoolName))       // Trim any spaces and convert to lowercase
 
+
+
+Take this query:
+WVDHostRegistrations
+| where TimeGenerated >= ago(30d)
+| extend HostPoolName = tostring(split(_ResourceId, "/")[-1])  // Extract the value after the last "/"
+| extend HostPoolName = trim(" ", tolower(HostPoolName))       // Trim any spaces and convert to lowercase
+| distinct HostPoolName
+
+and replace the KQL in below M-Query with the code above, note I want to continue to use LAWClusterURLAVD and LAWNameAVD variables just replace KQL query
+
+let
+    // Source query from Azure Data Explorer for WVDConnections
+    Source = AzureDataExplorer.Contents(
+        LAWClusterURLAVD, 
+        LAWNameAVD, 
+        "WVDConnections" &
+        "#(lf)| where TimeGenerated >= ago(30d)" &                      // Filter for data from the last 30 days
+        "#(lf)| extend UserName = trim(@""\\s"", tolower(UserName))" &   // Trim and lowercase UserName
+        "#(lf)| distinct UserName",                                     // Select distinct UserNames
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    )
+in
+    Source
+
