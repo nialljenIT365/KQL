@@ -4,3 +4,8 @@ WVDHostRegistrations
 returns /subscriptions/d0440ed0-d440-456e-bf57-e6514e3dab37/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-sea-prd/providers/microsoft.desktopvirtualization/hostpools/sea_prd_sspersistent in column _ResourceId
 
 how can I modify query to create a new column called HostPoolName that takes value after last /
+
+WVDHostRegistrations
+| where TimeGenerated >= ago(30d)
+| extend HostPoolName = tostring(split(_ResourceId, "/")[-1])  // Extract the value after the last "/"
+
