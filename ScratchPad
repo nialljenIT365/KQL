@@ -297,3 +297,5 @@ let
 in
     Source
 
+
+If TimeGenerated is in format 21/10/2024, 15:36:03.680 how can I run a query to return all time generated for Date, Time in format HH:MM:SS
