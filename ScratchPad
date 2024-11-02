@@ -1,24 +1,13 @@
-let
-    // Source query from Azure Data Explorer
-    Source = AzureDataExplorer.Contents(
-        LAWClusterURLAVD, 
-        LAWNameAVD, 
-        "WVDConnections" &
-        "#(lf)| where TimeGenerated >= ago(30d)" &
-        "#(lf)| where SessionHostIPAddress != '<>'" &  // Exclude the literal "<>"
-        "#(lf)| extend HostPoolName = tostring(split(_ResourceId, '/')[-1])" &  // Extract value after the last "/"
-        "#(lf)| extend HostPoolName = trim(' ', tolower(HostPoolName))" &  // Trim spaces and convert to lowercase
-        "#(lf)| distinct HostPoolName, SessionHostIPAddress",  // Select distinct columns
+WVDConnectionNetworkData
+| where TimeGenerated >= ago(30d)
+| extend HostPoolName = tostring(split(_ResourceId, '/')[-1])  // Extract value after the last "/"
+| extend HostPoolName = trim(' ', tolower(HostPoolName))       // Trim spaces and convert to lowercase
+| extend Timekey = format_datetime(TimeGenerated, 'HHmm')      // Adds Timekey column
 
-        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
-    ),
-    #"Replaced Value" = Table.ReplaceValue(Source,"≤","",Replacer.ReplaceText,{"SessionHostIPAddress"}),
-    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value","≥","",Replacer.ReplaceText,{"SessionHostIPAddress"}),
-    #"Removed Duplicates" = Table.Distinct(#"Replaced Value1", {"HostPoolName"}),
-    #"Invoked Custom Function" = Table.AddColumn(#"Removed Duplicates", "2-fn_GetIPAddressDetails (API)", each #"2-fn_GetIPAddressDetails (API)"([SessionHostIPAddress])),
-    #"Expanded 2-fn_GetIPAddressDetails (API)" = Table.ExpandTableColumn(#"Invoked Custom Function", "2-fn_GetIPAddressDetails (API)", {"timezone"}, {"timezone"}),
-    #"Renamed Columns" = Table.RenameColumns(#"Expanded 2-fn_GetIPAddressDetails (API)",{{"timezone", "HostPoolLocation"}}),
-    #"Added Conditional Column" = Table.AddColumn(#"Renamed Columns", "HostPoolRegion", each if Text.Contains([HostPoolLocation], "Asia") then "APAC" else if Text.Contains([HostPoolLocation], "Europe") then "EMEA" else if Text.Contains([HostPoolLocation], "America") then "AMRS" else "Other"),
-    #"Removed Columns" = Table.RemoveColumns(#"Added Conditional Column",{"SessionHostIPAddress"})
-in
-    #"Removed Columns"
+
+WVDConnections
+| where TimeGenerated >= ago(30d)
+| where SessionHostIPAddress != '<>'  // Exclude the literal "<>"
+| extend HostPoolName = tostring(split(_ResourceId, '/')[-1])  // Extract value after the last "/"
+| extend HostPoolName = trim(' ', tolower(HostPoolName))       // Trim spaces and convert to lowercase
+| distinct HostPoolName, SessionHostIPAddress  // Select distinct columns
