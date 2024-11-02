@@ -1,66 +1,22 @@
-function Set-DesktopBackgroundColor {
-    param (
-        [Parameter(Position=0)]
-        [int]$R = 255,
-        
-        [Parameter(Position=1)]
-        [int]$G = 255,
-        
-        [Parameter(Position=2)]
-        [int]$B = 255
-    )
-
-    $code = @'
-    using System;
-    using System.Drawing;
-    using System.Runtime.InteropServices;
-    using Microsoft.Win32;
- 
-    namespace CurrentUser
-    {
-        public class Desktop
-        {
-            [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-            private static extern int SystemParametersInfo(int uAction, int uParm, string lpvParam, int fuWinIni);
-            [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-            private static extern int SetSysColors(int cElements, int[] lpaElements, int[] lpRgbValues);
-            public const int UpdateIniFile = 0x01;
-            public const int SendWinIniChange = 0x02;
-            public const int SetDesktopBackground = 0x0014;
-            public const int COLOR_DESKTOP = 1;
-            public int[] first = {COLOR_DESKTOP};
-
-            public static void RemoveWallPaper()
-            {
-                SystemParametersInfo(SetDesktopBackground, 0, "", SendWinIniChange | UpdateIniFile);
-                RegistryKey regkey = Registry.CurrentUser.OpenSubKey("Control Panel\\Desktop", true);
-                regkey.SetValue(@"WallPaper", 0);
-                regkey.Close();
-            }
-
-            public static void SetBackground(byte r, byte g, byte b)
-            {
-                int[] elements = {COLOR_DESKTOP};
-
-                RemoveWallPaper();
-                System.Drawing.Color color = System.Drawing.Color.FromArgb(r, g, b);
-                int[] colors = { System.Drawing.ColorTranslator.ToWin32(color) };
-
-                SetSysColors(elements.Length, elements, colors);
-                RegistryKey key = Registry.CurrentUser.OpenSubKey("Control Panel\\Colors", true);
-                key.SetValue(@"Background", string.Format("{0} {1} {2}", color.R, color.G, color.B));
-                key.Close();
-            }
-        }
-    }
-'@
-
-    try {
-        Add-Type -TypeDefinition $code -ReferencedAssemblies System.Drawing.dll
-    } catch {
-        # Ignore error if the type [CurrentUser.Desktop] already exists
-    } finally {
-        # Set the desktop background color using the specified RGB values
-        [CurrentUser.Desktop]::SetBackground($R, $G, $B)
-    }
-}
+let
+    // Source query from Azure Data Explorer
+    Source = AzureDataExplorer.Contents(
+        LAWClusterURLAVD, 
+        LAWNameAVD, 
+        "WVDConnectionNetworkData" &
+        "#(lf)| where TimeGenerated >= ago(30d)" &
+        "#(lf)| extend HostPoolName = tostring(split(_ResourceId, '/')[-1])" &  // Extract value after the last "/"
+        "#(lf)| extend HostPoolName = trim(' ', tolower(HostPoolName))" &  // Trim spaces and convert to lowercase
+        "#(lf)| extend Timekey = format_datetime(TimeGenerated, 'HHmm')",    // Adds Timekey column        
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    ),
+    #"Duplicated Column" = Table.DuplicateColumn(Source, "TimeGenerated", "TimeGenerated - Copy"),
+    #"Duplicated Column1" = Table.DuplicateColumn(#"Duplicated Column", "TimeGenerated", "TimeGenerated - Copy.1"),
+    #"Reordered Columns" = Table.ReorderColumns(#"Duplicated Column1",{"TenantId", "TimeGenerated", "TimeGenerated - Copy", "TimeGenerated - Copy.1", "CorrelationId", "EstRoundTripTimeInMs", "EstAvailableBandwidthKBps", "SourceSystem", "Type", "_ResourceId", "HostPoolName", "Timekey"}),
+    #"Renamed Columns" = Table.RenameColumns(#"Reordered Columns",{{"TimeGenerated - Copy", "Date"}, {"TimeGenerated - Copy.1", "Time"}}),
+    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns",{{"Date", type date}, {"Time", type text}}),
+    #"Extracted Text After Delimiter" = Table.TransformColumns(#"Changed Type", {{"Time", each Text.AfterDelimiter(_, "T"), type text}}),
+    #"Extracted First Characters" = Table.TransformColumns(#"Extracted Text After Delimiter", {{"Time", each Text.Start(_, 12), type text}}),
+    #"Changed Type1" = Table.TransformColumnTypes(#"Extracted First Characters",{{"Time", type time}})
+in
+    #"Changed Type1"
