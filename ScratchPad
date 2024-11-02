@@ -1,33 +1,31 @@
-Take this M query
-
-let
-    Source = AzureDataExplorer.Contents("https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg", "nmw-app-law-fwjv4wn75m4qg", "WVDConnections#(lf)| where TimeGenerated >= ago(30d)#(lf)| where SessionHostIPAddress != '<>'  // Exclude the literal ""<>""#(lf)| extend HostPoolName = tostring(split(_ResourceId, '/')[-1])  // Extract value after the last ""/""#(lf)| extend HostPoolName = trim(' ', tolower(HostPoolName))       // Trim spaces and convert to lowercase#(lf)| distinct HostPoolName, SessionHostIPAddress  // Select distinct columns", [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null])
-in
-    Source
-
-and apply the table transforms from this M Query to it.
-
 let
     // Source query from Azure Data Explorer
     Source = AzureDataExplorer.Contents(
-        LAWClusterURLAVD, 
-        LAWNameAVD, 
-        "WVDConnections" &
-        "#(lf)| where TimeGenerated >= ago(30d)" &
-        "#(lf)| where SessionHostIPAddress != '<>'" &  // Exclude the literal "<>"
-        "#(lf)| extend HostPoolName = tostring(split(_ResourceId, '/')[-1])" &  // Extract value after the last "/"
-        "#(lf)| extend HostPoolName = trim(' ', tolower(HostPoolName))" &  // Trim spaces and convert to lowercase
-        "#(lf)| distinct HostPoolName, SessionHostIPAddress",  // Select distinct columns
-
+        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg", 
+        "nmw-app-law-fwjv4wn75m4qg", 
+        "WVDConnections#(lf)| where TimeGenerated >= ago(30d)#(lf)| where SessionHostIPAddress != '<>'  // Exclude the literal ""<>""#(lf)| extend HostPoolName = tostring(split(_ResourceId, '/')[-1])  // Extract value after the last ""/""#(lf)| extend HostPoolName = trim(' ', tolower(HostPoolName))       // Trim spaces and convert to lowercase#(lf)| distinct HostPoolName, SessionHostIPAddress  // Select distinct columns", 
         [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
     ),
-    #"Replaced Value" = Table.ReplaceValue(Source,"≤","",Replacer.ReplaceText,{"SessionHostIPAddress"}),
-    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value","≥","",Replacer.ReplaceText,{"SessionHostIPAddress"}),
+    // Replace values in SessionHostIPAddress column
+    #"Replaced Value" = Table.ReplaceValue(Source, "≤", "", Replacer.ReplaceText, {"SessionHostIPAddress"}),
+    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value", "≥", "", Replacer.ReplaceText, {"SessionHostIPAddress"}),
+
+    // Remove duplicates based on HostPoolName
     #"Removed Duplicates" = Table.Distinct(#"Replaced Value1", {"HostPoolName"}),
+
+    // Invoke custom function to add IP address details
     #"Invoked Custom Function" = Table.AddColumn(#"Removed Duplicates", "2-fn_GetIPAddressDetails (API)", each #"2-fn_GetIPAddressDetails (API)"([SessionHostIPAddress])),
+
+    // Expand timezone column from the custom function output
     #"Expanded 2-fn_GetIPAddressDetails (API)" = Table.ExpandTableColumn(#"Invoked Custom Function", "2-fn_GetIPAddressDetails (API)", {"timezone"}, {"timezone"}),
-    #"Renamed Columns" = Table.RenameColumns(#"Expanded 2-fn_GetIPAddressDetails (API)",{{"timezone", "HostPoolLocation"}}),
+
+    // Rename the expanded column to HostPoolLocation
+    #"Renamed Columns" = Table.RenameColumns(#"Expanded 2-fn_GetIPAddressDetails (API)", {{"timezone", "HostPoolLocation"}}),
+
+    // Add a conditional column for HostPoolRegion based on HostPoolLocation
     #"Added Conditional Column" = Table.AddColumn(#"Renamed Columns", "HostPoolRegion", each if Text.Contains([HostPoolLocation], "Asia") then "APAC" else if Text.Contains([HostPoolLocation], "Europe") then "EMEA" else if Text.Contains([HostPoolLocation], "America") then "AMRS" else "Other"),
-    #"Removed Columns" = Table.RemoveColumns(#"Added Conditional Column",{"SessionHostIPAddress"})
+
+    // Remove the SessionHostIPAddress column
+    #"Removed Columns" = Table.RemoveColumns(#"Added Conditional Column", {"SessionHostIPAddress"})
 in
     #"Removed Columns"
