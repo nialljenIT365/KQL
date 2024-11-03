@@ -1,13 +1,4 @@
-let
-    // Source query from Azure Data Explorer for WVDConnections
-    Source = AzureDataExplorer.Contents(
-        LAWClusterURLAVD, 
-        LAWNameAVD, 
-        "WVDConnections" &
-        "#(lf)| where TimeGenerated >= ago(30d)" &                      // Filter for data from the last 30 days
-        "#(lf)| extend UserName = trim(@""\\s"", tolower(UserName))" &   // Trim and lowercase UserName
-        "#(lf)| distinct UserName",                                     // Select distinct UserNames
-        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
-    )
-in
-    Source
+WVDConnections
+| where TimeGenerated >= ago(30d)                       // Filter for data from the last 30 days
+| extend UserName = trim(" ", tolower(UserName))        // Trim whitespace and convert UserName to lowercase
+| distinct UserName                                     // Select distinct UserNames
