@@ -47,3 +47,25 @@ TimeGenerated [UTC]	TimeGenerated1 [UTC]	UserName	Protocol	EstAvailableBandwidth
 TimeGenerated is from WVDConnectionNetworkData TimeGenerated1 is from WVDConnections
 
 I would like to return the average, median and max EstAvailableBandwidthKBps and EstRoundTripTimeInMs for each unique set CorrelationId
+
+
+WVDConnectionNetworkData
+| where TimeGenerated >= ago(30d)
+| join kind=leftouter (
+    WVDConnections
+    | where State == "Connected"
+    | extend Protocol = iff(UdpUse in ("0","<>"), "TCP", "UDP")
+) on CorrelationId
+| where UserName contains "niall"
+| summarize 
+    avg_EstAvailableBandwidthKBps = avg(EstAvailableBandwidthKBps),
+    median_EstAvailableBandwidthKBps = percentile(EstAvailableBandwidthKBps, 50),
+    max_EstAvailableBandwidthKBps = max(EstAvailableBandwidthKBps),
+    avg_EstRoundTripTimeInMs = avg(EstRoundTripTimeInMs),
+    median_EstRoundTripTimeInMs = percentile(EstRoundTripTimeInMs, 50),
+    max_EstRoundTripTimeInMs = max(EstRoundTripTimeInMs)
+by CorrelationId, TimeGenerated1, UserName, Protocol
+| project CorrelationId, TimeGenerated1, UserName, Protocol, 
+          avg_EstAvailableBandwidthKBps, median_EstAvailableBandwidthKBps, max_EstAvailableBandwidthKBps, 
+          avg_EstRoundTripTimeInMs, median_EstRoundTripTimeInMs, max_EstRoundTripTimeInMs
+
