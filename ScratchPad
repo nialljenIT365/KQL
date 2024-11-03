@@ -1,7 +1,5 @@
-Difference_Count = 
-    COUNTROWS(
-        FILTER(
-            'User Name Lookup',
-            'User Name Lookup'[ColumnName] <> RELATED('User Session Data'[ColumnName])
-        )
-    )
+WVDConnections
+| where TimeGenerated >= ago(30d)
+| where State == "Started"
+//| where State == "Completed"
+//| where UserName contains "osam" 
