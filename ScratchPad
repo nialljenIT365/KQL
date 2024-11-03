@@ -3,100 +3,6 @@ WVDConnectionNetworkData
 | join kind=leftouter (
     WVDConnections
     | where State == "Connected"
-    | extend Protocol = iff(UdpUse in ("0","<>"),"TCP","UDP")
-) on CorrelationId
-| where UserName contains "niall"
-| project TimeGenerated, TimeGenerated1, UserName, Protocol, EstAvailableBandwidthKBps, EstRoundTripTimeInMs, CorrelationId
-
-returns 
-
-TimeGenerated [UTC]	TimeGenerated1 [UTC]	UserName	Protocol	EstAvailableBandwidthKBps	EstRoundTripTimeInMs	CorrelationId
-03/11/2024, 16:46:00.444	03/11/2024, 16:20:08.653	Niall.Jennings@abrdn.com	TCP	1809	144	566b62fc-7ecb-4880-b939-9aaf006b0000
-03/11/2024, 16:44:00.431	03/11/2024, 16:20:08.653	Niall.Jennings@abrdn.com	TCP	1718	143	566b62fc-7ecb-4880-b939-9aaf006b0000
-03/11/2024, 16:40:00.331	03/11/2024, 16:20:08.653	Niall.Jennings@abrdn.com	TCP	1774	143	566b62fc-7ecb-4880-b939-9aaf006b0000
-03/11/2024, 16:42:00.356	03/11/2024, 16:20:08.653	Niall.Jennings@abrdn.com	TCP	1778	143	566b62fc-7ecb-4880-b939-9aaf006b0000
-03/11/2024, 16:38:00.326	03/11/2024, 16:20:08.653	Niall.Jennings@abrdn.com	TCP	1774	147	566b62fc-7ecb-4880-b939-9aaf006b0000
-03/11/2024, 16:36:00.301	03/11/2024, 16:20:08.653	Niall.Jennings@abrdn.com	TCP	1839	146	566b62fc-7ecb-4880-b939-9aaf006b0000
-03/11/2024, 16:25:57.481	03/11/2024, 16:20:08.653	Niall.Jennings@abrdn.com	TCP	1440	176	566b62fc-7ecb-4880-b939-9aaf006b0000
-03/11/2024, 16:33:58.579	03/11/2024, 16:20:08.653	Niall.Jennings@abrdn.com	TCP	1641	146	566b62fc-7ecb-4880-b939-9aaf006b0000
-03/11/2024, 16:31:58.236	03/11/2024, 16:20:08.653	Niall.Jennings@abrdn.com	TCP	1734	150	566b62fc-7ecb-4880-b939-9aaf006b0000
-03/11/2024, 16:29:58.238	03/11/2024, 16:20:08.653	Niall.Jennings@abrdn.com	TCP	1559	145	566b62fc-7ecb-4880-b939-9aaf006b0000
-03/11/2024, 16:27:57.797	03/11/2024, 16:20:08.653	Niall.Jennings@abrdn.com	TCP	1547	193	566b62fc-7ecb-4880-b939-9aaf006b0000
-03/11/2024, 16:21:57.201	03/11/2024, 16:20:08.653	Niall.Jennings@abrdn.com	TCP	849	154	566b62fc-7ecb-4880-b939-9aaf006b0000
-03/11/2024, 16:23:57.456	03/11/2024, 16:20:08.653	Niall.Jennings@abrdn.com	TCP	1400	159	566b62fc-7ecb-4880-b939-9aaf006b0000
-02/11/2024, 19:51:51.593	02/11/2024, 16:07:38.435	Niall.Jennings@abrdn.com	TCP	2273	146	beae2db7-4903-4f8b-8d62-45c2a6ca0000
-02/11/2024, 19:50:09.727	02/11/2024, 16:07:38.435	Niall.Jennings@abrdn.com	TCP	2554	144	beae2db7-4903-4f8b-8d62-45c2a6ca0000
-02/11/2024, 19:48:09.534	02/11/2024, 16:07:38.435	Niall.Jennings@abrdn.com	TCP	2596	143	beae2db7-4903-4f8b-8d62-45c2a6ca0000
-02/11/2024, 19:46:09.439	02/11/2024, 16:07:38.435	Niall.Jennings@abrdn.com	TCP	2385	145	beae2db7-4903-4f8b-8d62-45c2a6ca0000
-02/11/2024, 19:44:09.428	02/11/2024, 16:07:38.435	Niall.Jennings@abrdn.com	TCP	2434	143	beae2db7-4903-4f8b-8d62-45c2a6ca0000
-02/11/2024, 19:42:09.413	02/11/2024, 16:07:38.435	Niall.Jennings@abrdn.com	TCP	2432	144	beae2db7-4903-4f8b-8d62-45c2a6ca0000
-02/11/2024, 19:40:08.129	02/11/2024, 16:07:38.435	Niall.Jennings@abrdn.com	TCP	2407	144	beae2db7-4903-4f8b-8d62-45c2a6ca0000
-02/11/2024, 19:38:07.508	02/11/2024, 16:07:38.435	Niall.Jennings@abrdn.com	TCP	2446	143	beae2db7-4903-4f8b-8d62-45c2a6ca0000
-02/11/2024, 19:36:07.513	02/11/2024, 16:07:38.435	Niall.Jennings@abrdn.com	TCP	2349	144	beae2db7-4903-4f8b-8d62-45c2a6ca0000
-02/11/2024, 19:34:06.941	02/11/2024, 16:07:38.435	Niall.Jennings@abrdn.com	TCP	2420	145	beae2db7-4903-4f8b-8d62-45c2a6ca0000
-02/11/2024, 19:32:06.921	02/11/2024, 16:07:38.435	Niall.Jennings@abrdn.com	TCP	2611	143	beae2db7-4903-4f8b-8d62-45c2a6ca0000
-02/11/2024, 19:30:06.910	02/11/2024, 16:07:38.435	Niall.Jennings@abrdn.com	TCP	2556	144	beae2db7-4903-4f8b-8d62-45c2a6ca0000
-02/11/2024, 19:28:06.892	02/11/2024, 16:07:38.435	Niall.Jennings@abrdn.com	TCP	2407	143	beae2db7-4903-4f8b-8d62-45c2a6ca0000
-02/11/2024, 19:26:06.885	02/11/2024, 16:07:38.435	Niall.Jennings@abrdn.com	TCP	2197	144	beae2db7-4903-4f8b-8d62-45c2a6ca0000
-02/11/2024, 19:24:06.876	02/11/2024, 16:07:38.435	Niall.Jennings@abrdn.com	TCP	2146	146	beae2db7-4903-4f8b-8d62-45c2a6ca0000
-02/11/2024, 19:22:06.879	02/11/2024, 16:07:38.435	Niall.Jennings@abrdn.com	TCP	2225	143	beae2db7-4903-4f8b-8d62-45c2a6ca0000
-02/11/2024, 19:20:06.863	02/11/2024, 16:07:38.435	Niall.Jennings@abrdn.com	TCP	2284	154	beae2db7-4903-4f8b-8d62-45c2a6ca0000
-02/11/2024, 19:18:06.827	02/11/2024, 16:07:38.435	Niall.Jennings@abrdn.com	TCP	2305	143	beae2db7-4903-4f8b-8d62-45c2a6ca0000
-02/11/2024, 19:16:06.010	02/11/2024, 16:07:38.435	Niall.Jennings@abrdn.com	TCP	2305	142	beae2db7-4903-4f8b-8d62-45c2a6ca0000
-
-TimeGenerated is from WVDConnectionNetworkData TimeGenerated1 is from WVDConnections
-
-I would like to return the average, median and max EstAvailableBandwidthKBps and EstRoundTripTimeInMs for each unique set CorrelationId
-
-
-WVDConnectionNetworkData
-| where TimeGenerated >= ago(30d)
-| join kind=leftouter (
-    WVDConnections
-    | where State == "Connected"
-    | extend Protocol = iff(UdpUse in ("0","<>"), "TCP", "UDP")
-) on CorrelationId
-| where UserName contains "niall"
-| summarize 
-    avg_EstAvailableBandwidthKBps = avg(EstAvailableBandwidthKBps),
-    median_EstAvailableBandwidthKBps = percentile(EstAvailableBandwidthKBps, 50),
-    max_EstAvailableBandwidthKBps = max(EstAvailableBandwidthKBps),
-    avg_EstRoundTripTimeInMs = avg(EstRoundTripTimeInMs),
-    median_EstRoundTripTimeInMs = percentile(EstRoundTripTimeInMs, 50),
-    max_EstRoundTripTimeInMs = max(EstRoundTripTimeInMs)
-by CorrelationId, TimeGenerated1, UserName, Protocol
-| project CorrelationId, TimeGenerated1, UserName, Protocol, 
-          avg_EstAvailableBandwidthKBps, median_EstAvailableBandwidthKBps, max_EstAvailableBandwidthKBps, 
-          avg_EstRoundTripTimeInMs, median_EstRoundTripTimeInMs, max_EstRoundTripTimeInMs
-
-
-
-
-WVDConnectionNetworkData
-| where TimeGenerated >= ago(30d)
-| join kind=leftouter (
-    WVDConnections
-    | where State == "Connected"
-    | extend Protocol = iff(UdpUse in ("0","<>"), "TCP", "UDP")
-) on CorrelationId
-| summarize 
-    avg_EstAvailableBandwidthKBps = avg(EstAvailableBandwidthKBps),
-    median_EstAvailableBandwidthKBps = percentile(EstAvailableBandwidthKBps, 50),
-    max_EstAvailableBandwidthKBps = max(EstAvailableBandwidthKBps),
-    avg_EstRoundTripTimeInMs = avg(EstRoundTripTimeInMs),
-    median_EstRoundTripTimeInMs = percentile(EstRoundTripTimeInMs, 50),
-    max_EstRoundTripTimeInMs = max(EstRoundTripTimeInMs)
-by CorrelationId, TimeGenerated1, UserName, Protocol
-| extend Timekey = format_datetime(TimeGenerated1, 'HHmm')
-| project CorrelationId, TimeGenerated1, Timekey, UserName, Protocol, avg_EstAvailableBandwidthKBps, median_EstAvailableBandwidthKBps, max_EstAvailableBandwidthKBps, avg_EstRoundTripTimeInMs, median_EstRoundTripTimeInMs, max_EstRoundTripTimeInMs
-| where isnotempty(UserName)
-
-
-WVDConnectionNetworkData
-| where TimeGenerated >= ago(30d)
-| join kind=leftouter (
-    WVDConnections
-    | where State == "Connected"
     | extend Protocol = iff(UdpUse in ("0","<>"), "TCP", "UDP")
 ) on CorrelationId
 | summarize 
@@ -112,4 +18,3 @@ by CorrelationId, TimeGenerated1, UserName, Protocol
           avg_EstAvailableBandwidthKBps, median_EstAvailableBandwidthKBps, max_EstAvailableBandwidthKBps, 
           avg_EstRoundTripTimeInMs, median_EstRoundTripTimeInMs, max_EstRoundTripTimeInMs
 | where isnotempty(UserName)
-
