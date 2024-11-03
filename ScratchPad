@@ -1,44 +1,29 @@
-CorrelationId	                        Code
-801d0a7b-cdc1-4e7a-a353-9c201d850000	-2147467259
-801d0a7b-cdc1-4e7a-a353-9c201d850000	-2147467259
-9141c166-834b-44ca-96e5-f1e53e680000	-2147467259
-9141c166-834b-44ca-96e5-f1e53e680000	-2147467259
-9141c166-834b-44ca-96e5-f1e53e680000	3076
-833cbf20-48e5-4c68-b717-b69b6f4b0000	-2147467259
-833cbf20-48e5-4c68-b717-b69b6f4b0000	-2147467259
-ddb2ca38-fad9-48c8-ac33-18c22cda0000	-2147467259
-ddb2ca38-fad9-48c8-ac33-18c22cda0000	-2147467259
-3b883a41-4d5b-443b-9449-58209a9e0000	-2147467259
-3b883a41-4d5b-443b-9449-58209a9e0000	-2147467259
-cdb98921-4332-44a6-8e78-847386da0000	-2147467259
-cdb98921-4332-44a6-8e78-847386da0000	-2147467259
-801d0a7b-cdc1-4e7a-a353-9c201d850000	3076
-3ef77107-9db7-4995-b31c-1c8f82f70000	2055
-3588c3f7-fcec-4d41-b5a6-ab55334b0100	-2147467259
-3588c3f7-fcec-4d41-b5a6-ab55334b0100	-2147467259
-72d9fa2c-5e60-4cc1-b2ee-fc1d12880000	-2146233083
-ab56226d-23d2-490a-80fb-0bd197361100	-2147467259
-ab56226d-23d2-490a-80fb-0bd197361100	-2147467259
-ab56226d-23d2-490a-80fb-0bd197361100	516
-d71ff3b5-94ce-4c6b-9935-b6d0db1c0000	-2147467259
-d71ff3b5-94ce-4c6b-9935-b6d0db1c0000	-2147467259
-7f00f27e-d6d0-46bf-a407-51461ba30000	516
-833cbf20-48e5-4c68-b717-b69b6f4b0000	50331694
-833cbf20-48e5-4c68-b717-b69b6f4b0000	3076
-3588c3f7-fcec-4d41-b5a6-ab55334b0100	50331694
-3588c3f7-fcec-4d41-b5a6-ab55334b0100	3076
-59c3c496-4288-4e1c-b3b1-9e6213bd0100	-2147467259
-59c3c496-4288-4e1c-b3b1-9e6213bd0100	-2147467259
-7f00f27e-d6d0-46bf-a407-51461ba30100	50331694
-7f00f27e-d6d0-46bf-a407-51461ba30100	516
-324a3c7a-900c-4b0f-90f9-15fd492e0000	516
-7f00f27e-d6d0-46bf-a407-51461ba30100	-2147467259
-7f00f27e-d6d0-46bf-a407-51461ba30100	-2147467259
-9141c166-834b-44ca-96e5-f1e53e680200	-2147467259
-9141c166-834b-44ca-96e5-f1e53e680200	-2147467259
-899eb33d-f932-40ef-92b7-18360bfd0000	-2147467259
-ab56226d-23d2-490a-80fb-0bd197361200	-2147467259
-ab56226d-23d2-490a-80fb-0bd197361200	-2147467259
-ab56226d-23d2-490a-80fb-0bd197361200	267
-c11f5e35-f4e6-4303-9495-c78c63ce0000	-2147467259
-c11f5e35-f4e6-4303-9495-c78c63ce0000	-2147467259
+let AnalyticsQuery =
+let Source = Json.Document(Web.Contents("https://api.loganalytics.io/v1/workspaces/ce4e1e84-3765-4cfe-ac40-5de8d7633df4/query", 
+[Query=[#"query"="WVDErrors
+",#"x-ms-app"="OmsAnalyticsPBI",#"timespan"="P7D",#"prefer"="ai.response-thinning=true"],Timeout=#duration(0,0,4,0)])),
+TypeMap = #table(
+{ "AnalyticsTypes", "Type" }, 
+{ 
+{ "string",   Text.Type },
+{ "int",      Int32.Type },
+{ "long",     Int64.Type },
+{ "real",     Double.Type },
+{ "timespan", Duration.Type },
+{ "datetime", DateTimeZone.Type },
+{ "bool",     Logical.Type },
+{ "guid",     Text.Type },
+{ "dynamic",  Text.Type }
+}),
+DataTable = Source[tables]{0},
+Columns = Table.FromRecords(DataTable[columns]),
+ColumnsWithType = Table.Join(Columns, {"type"}, TypeMap , {"AnalyticsTypes"}),
+Rows = Table.FromRows(DataTable[rows], Columns[name]), 
+Table = Table.TransformColumnTypes(Rows, Table.ToList(ColumnsWithType, (c) => { c{0}, c{3}}))
+in
+Table,
+    #"Removed Columns" = Table.RemoveColumns(AnalyticsQuery,{"TenantId", "UserName", "ActivityType", "ServiceError", "SourceSystem", "Type", "_ResourceId", "Source", "CodeSymbolic", "Message", "Operation"}),
+    #"Changed Type" = Table.TransformColumnTypes(#"Removed Columns",{{"Code", type text}}),
+    #"Grouped Rows" = Table.Group(#"Changed Type", {"CorrelationId"}, {{"Codes", each Text.Combine(List.Sort([Code]),", ")}})
+in
+    #"Grouped Rows"
