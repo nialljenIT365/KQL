@@ -43,3 +43,27 @@ by CorrelationId, TimeGenerated1, UserName, Protocol
           avg_EstAvailableBandwidthKBps, median_EstAvailableBandwidthKBps, max_EstAvailableBandwidthKBps, min_EstAvailableBandwidthKBps,
           avg_EstRoundTripTimeInMs, median_EstRoundTripTimeInMs, max_EstRoundTripTimeInMs, min_EstRoundTripTimeInMs
 | where isnotempty(UserName)
+
+
+WVDConnectionNetworkData
+| where TimeGenerated >= ago(30d)
+| join kind=leftouter (
+    WVDConnections
+    | where State == "Connected"
+    | extend Protocol = iff(UdpUse in ("0","<>"), "TCP", "UDP")
+) on CorrelationId
+| summarize 
+    avg_EstAvailableBandwidthKBps = round(avg(EstAvailableBandwidthKBps), 0),
+    median_EstAvailableBandwidthKBps = percentile(EstAvailableBandwidthKBps, 50),
+    max_EstAvailableBandwidthKBps = max(EstAvailableBandwidthKBps),
+    min_EstAvailableBandwidthKBps = min(EstAvailableBandwidthKBps),
+    avg_EstRoundTripTimeInMs = round(avg(EstRoundTripTimeInMs), 0),
+    median_EstRoundTripTimeInMs = percentile(EstRoundTripTimeInMs, 50),
+    max_EstRoundTripTimeInMs = max(EstRoundTripTimeInMs),
+    min_EstRoundTripTimeInMs = min(EstRoundTripTimeInMs)
+by CorrelationId, TimeGenerated1, UserName, Protocol
+| extend Timekey = format_datetime(TimeGenerated1, 'HHmm')
+| project CorrelationId, TimeGenerated = TimeGenerated1, Timekey, UserName, Protocol, 
+          avg_EstAvailableBandwidthKBps, median_EstAvailableBandwidthKBps, max_EstAvailableBandwidthKBps, min_EstAvailableBandwidthKBps,
+          avg_EstRoundTripTimeInMs, median_EstRoundTripTimeInMs, max_EstRoundTripTimeInMs, min_EstRoundTripTimeInMs
+| where isnotempty(UserName)
