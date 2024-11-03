@@ -1,7 +1,7 @@
-DifferencesCount = 
+Difference_Count = 
     COUNTROWS(
         FILTER(
-            Table1,
-            Table1[ColumnName] <> RELATED(Table2[ColumnName])
+            'User Name Lookup',
+            'User Name Lookup'[ColumnName] <> RELATED('User Session Data'[ColumnName])
         )
     )
