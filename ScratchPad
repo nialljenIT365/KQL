@@ -1,4 +1,7 @@
-WVDConnections
-| where TimeGenerated >= ago(30d)                       // Filter for data from the last 30 days
-| extend UserName = trim(" ", tolower(UserName))        // Trim whitespace and convert UserName to lowercase
-| distinct UserName                                     // Select distinct UserNames
+DifferencesCount = 
+    COUNTROWS(
+        FILTER(
+            Table1,
+            Table1[ColumnName] <> RELATED(Table2[ColumnName])
+        )
+    )
