@@ -22,3 +22,25 @@ order by todatetime(Checkpoints['Time']) asc
 ) on CorrelationId 
 | project-away CorrelationId1, CorrelationId2 
 | order by  TimeGenerated desc
+
+
+WVDFeeds
+| project-away TenantId,SourceSystem
+| join kind=leftouter (  
+WVDErrors
+|summarize Errors=makelist(pack('Code', Code, 'CodeSymbolic', CodeSymbolic, 
+'Time', TimeGenerated, 'Message', Message ,'ServiceError', ServiceError, 'Source', 
+Source)) by CorrelationId
+) on CorrelationId
+| join kind=leftouter (
+WVDCheckpoints
+| summarize Checkpoints=makelist(pack('Time', TimeGenerated, 'Name', Name,
+'Parameters', Parameters, 'Source', Source)) by CorrelationId
+| mv-apply Checkpoints on
+(
+order by todatetime(Checkpoints['Time']) asc
+| summarize Checkpoints=makelist(Checkpoints)  
+)
+) on CorrelationId
+| project-away CorrelationId1, CorrelationId2
+| order by  TimeGenerated desc
