@@ -24,6 +24,8 @@ order by todatetime(Checkpoints['Time']) asc
 | order by  TimeGenerated desc
 
 
+| where TimeGenerated >= ago(30d)
+
 WVDFeeds
 | project-away TenantId,SourceSystem
 | join kind=leftouter (  
