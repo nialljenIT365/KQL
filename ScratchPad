@@ -46,3 +46,16 @@ order by todatetime(Checkpoints['Time']) asc
 ) on CorrelationId
 | project-away CorrelationId1, CorrelationId2
 | order by  TimeGenerated desc
+
+
+let Events = WVDConnections
+Events
+
+| where State == "Connected"
+| project CorrelationId , UserName, ResourceAlias , StartTime=TimeGenerated
+| join (Events
+| where State == "Completed"
+| project EndTime=TimeGenerated, CorrelationId)
+on CorrelationId
+| project Duration = EndTime - StartTime, ResourceAlias
+| sort by Duration asc
