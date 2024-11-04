@@ -8,5 +8,8 @@ Events
     | where State == "Completed"
     | project EndTime = TimeGenerated, CorrelationId, PredecessorConnectionId
 ) on CorrelationId
-| project CorrelationId, StartTime, EndTime, UserName, Duration = EndTime - StartTime, PredecessorConnectionId
+| project CorrelationId, StartTime, EndTime, UserName, 
+          Duration = EndTime - StartTime, 
+          DurationMinutes = (EndTime - StartTime) / 1min, 
+          PredecessorConnectionId
 | sort by Duration asc
