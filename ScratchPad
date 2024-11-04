@@ -12,3 +12,22 @@ Events
 | project CorrelationId, StartTime, EndTime, UserName, 
           DurationSeconds = (EndTime - StartTime) / 1s,
           PredecessorConnectionId
+
+
+
+
+let Events = WVDConnections;
+Events
+| where TimeGenerated >= ago(30d)
+| extend UserName = trim(" ", tolower(UserName))
+| where State == "Connected"
+| project CorrelationId, UserName, ResourceAlias, StartTime = TimeGenerated, PredecessorConnectionId
+| join (
+    Events
+    | where State == "Completed"
+    | project EndTime = TimeGenerated, CorrelationId, PredecessorConnectionId
+) on CorrelationId
+| project CorrelationId, StartTime, EndTime, UserName, 
+          DurationSeconds = (EndTime - StartTime) / 1s,
+          PredecessorConnectionId
+| summarize arg_max(StartTime, *) by CorrelationId
