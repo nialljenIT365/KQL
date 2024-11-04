@@ -1,6 +1,7 @@
 let Events = WVDConnections;
 Events
 | where TimeGenerated >= ago(30d)
+| extend UserName = trim(" ", tolower(UserName))
 | where State == "Connected"
 | project CorrelationId, UserName, ResourceAlias, StartTime = TimeGenerated, PredecessorConnectionId
 | join (
@@ -9,8 +10,5 @@ Events
     | project EndTime = TimeGenerated, CorrelationId, PredecessorConnectionId
 ) on CorrelationId
 | project CorrelationId, StartTime, EndTime, UserName, 
-          Duration = EndTime - StartTime, 
-          DurationMinutes = (EndTime - StartTime) / 1min,
-          DurationSeconds = round(((EndTime - StartTime) / 1s) * 10, 0) / 10.0,
+          DurationSeconds = (EndTime - StartTime) / 1s,
           PredecessorConnectionId
-| sort by Duration asc
