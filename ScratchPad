@@ -11,6 +11,6 @@ Events
 | project CorrelationId, StartTime, EndTime, UserName, 
           Duration = EndTime - StartTime, 
           DurationMinutes = (EndTime - StartTime) / 1min,
-          DurationSeconds = (EndTime - StartTime) / 1s,
+          DurationSeconds = round((EndTime - StartTime) / 1s, 0.1),
           PredecessorConnectionId
 | sort by Duration asc
