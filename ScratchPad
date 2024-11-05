@@ -1,72 +1,13 @@
-WVDConnections
+let ipPrefix = "10.";
+Heartbeat
 | where TimeGenerated >= ago(30d)
-| where State in ("Connected")
-| where not(isempty(UserName)) and UserName != "<>"
-| extend UserName = trim(@"\s", tolower(UserName))
-| extend Protocol = iff(UdpUse in ("0", "<>"), "TCP", "UDP")
-| extend ClientType = 
-    iff(ClientType == "com.microsoft.rdc.windows.msrdc.x64", "Win RD x64 (MSI)",
-    iff(ClientType == "com.igel.rdc.linux", "IGEL",
-    iff(ClientType == "com.microsoft.rdc.windows.store", "Win RD Store",
-    iff(ClientType == "com.microsoft.rdc.html", "Web Browser (HTML5)",
-    iff(ClientType == "com.microsoft.rdc.macos", "MAC OS",
-    iff(ClientType == "com.microsoft.rdc.macos.beta", "MAC OS (Beta)",
-    iff(ClientType == "com.microsoft.rdc.osx.beta", "MAC OSx (Beta)",
-    iff(ClientType == "cpc.web.beta", "Windows Web App (Preview)",
-    iff(ClientType == "com.microsoft.rdc.windows.msrdc.arm64", "Win RD ARM 64 (MSI)",
-    iff(ClientType == "com.microsoft.rdc.windows.wa.msrdc.msix.arm64", "Win RD ARM 64 (MSI)",
-    iff(ClientType == "com.microsoft.rdc.ios", "iOS",
-    iff(ClientType == "com.microsoft.rdc.androidx.beta", "Android OS (Beta)",
-    iff(ClientType == "com.microsoft.rdc.androidx", "Android OS",
-    iff(ClientType == "com.microsoft.rdc.windows.msrdc.msix.x64", "Win RD x64 (MSIX)",
-    iff(ClientType == "com.microsoft.rdc.windows.wa.msrdc.msix.x64", "Win App x64 (MSIX)", 
-    "Other")))))))))))))))
-//| extend HostPoolName = tostring(split(_ResourceId, "/")[-1])
-//| extend HostPoolName = trim(" ", tolower(HostPoolName))
-//| extend Timekey = format_datetime(TimeGenerated, 'HHmm')
-| extend HostPoolName = tostring(split(_ResourceId, "/")[-1])
-| extend Timekey = format_datetime(TimeGenerated, 'HHmm')
-| extend UserName = trim(" ", tolower(UserName))
-| project CorrelationId, PredecessorConnectionId, TimeGenerated, Timekey, UserName, GatewayRegion, ConnectionType, TransportType, Protocol, HostPoolName, SessionHostPoolType, SessionHostName, SessionHostIPAddress, SessionHostOSVersion, SessionHostOSDescription, SessionHostAgentVersion, SessionHostSxSStackVersion, SessionHostSessionId, IsSessionHostPrivateLink, ClientOS, ClientVersion, ClientSideIPAddress, IsClientPrivateLink
-
-Returns
-
-CorrelationId	PredecessorConnectionId	TimeGenerated [UTC]	Timekey	UserName	GatewayRegion	ConnectionType	TransportType	Protocol	HostPoolName	SessionHostPoolType	SessionHostName	SessionHostIPAddress	SessionHostOSVersion	SessionHostOSDescription	SessionHostAgentVersion	SessionHostSxSStackVersion	SessionHostSessionId	IsSessionHostPrivateLink	ClientOS
-693a774f-de80-4581-b780-dfcde3370000	<>	29/10/2024, 10:08:06.034	1008	bella.amafilikoko@abrdn.com	uksouth	DESKTOP	Websocket	TCP	neu_prd_mspooled	SharedDesktop	M01PMSNI0016.aberdeen.aberdeen-asset.com	148.64.15.38	10.0.22631.4317	Windows 10 Enterprise multi-session	1.0.9742.2500_release	rdp-sxs240705700	<>	FALSE	WINDOWS 10.0.22621.4317
-23ecf4cc-7cde-4ef5-8ad7-db74a1990000	<>	29/10/2024, 10:12:57.151	1012	michael.robertson@abrdn.com	ukwest	DESKTOP	Websocket	TCP	neu_prd_sspersistent	PersonalDesktop	M01PSSPI0527.aberdeen.aberdeen-asset.com	52.169.10.218	10.0.22631.4317	Windows 10 Enterprise	1.0.9742.2500_release	rdp-sxs240705700	<>	FALSE	Linux IGEL OS 11
-78a03bd0-3b08-40f9-8e45-afdf5f5d0000	<>	29/10/2024, 10:15:27.464	1015	naghman.khan@abrdn.com	uksouth	DESKTOP	Websocket	TCP	neu_prd_mspooled	SharedDesktop	M01PMSNI0011.aberdeen.aberdeen-asset.com	148.64.15.83	10.0.22631.4037	Windows 10 Enterprise multi-session	1.0.9742.2500_release	rdp-sxs240705700	<>	FALSE	WINDOWS 10.0.22631.4317
-f839e34e-692c-49b1-bb40-0f71a1f50000	<>	29/10/2024, 10:15:31.012	1015	lathasri.madeti@abrdn.com	southindia	DESKTOP	Websocket	TCP	neu_prd_mspooled	SharedDesktop	M01PMSNI0032.aberdeen.aberdeen-asset.com	148.64.15.68	10.0.22631.4037	Windows 10 Enterprise multi-session	1.0.9742.2500_release	rdp-sxs240705700	27	FALSE	WINDOWS 10.0.22631.4317
-8eb044b7-2a0a-4306-aa95-65853b4c0000	<>	29/10/2024, 10:16:11.718	1016	afroz.pasha@abrdn.com	southindia	DESKTOP	Websocket	TCP	neu_prd_mspooled	SharedDesktop	M01PMSNI0003.aberdeen.aberdeen-asset.com	52.169.10.218	10.0.22631.4169	Windows 10 Enterprise multi-session	1.0.9742.2500_release	rdp-sxs240705700	<>	FALSE	WINDOWS 10.0.22631.4317
-ed5b0704-6c1e-40cb-864c-2c0290c10000	<>	29/10/2024, 10:16:37.113	1016	lawrence.mccarron1@abrdn.com	uksouth	DESKTOP	Websocket	TCP	neu_uat_multisession	SharedDesktop	M01UMSNI0003.aberdeen.aberdeen-asset.com	52.169.10.218	10.0.22631.4317	Windows 10 Enterprise multi-session	1.0.9742.2500_release	rdp-sxs240705700	<>	FALSE	Linux IGEL OS 11
-
-I want to add a Column called AutoReconnect, if PredecessorConnectionId = <> set to false else set to true
-
-
-WVDConnections
-| where TimeGenerated >= ago(30d)
-| where State in ("Connected")
-| where not(isempty(UserName)) and UserName != "<>"
-| extend UserName = trim(@"\s", tolower(UserName))
-| extend Protocol = iff(UdpUse in ("0", "<>"), "TCP", "UDP")
-| extend ClientType = 
-    iff(ClientType == "com.microsoft.rdc.windows.msrdc.x64", "Win RD x64 (MSI)",
-    iff(ClientType == "com.igel.rdc.linux", "IGEL",
-    iff(ClientType == "com.microsoft.rdc.windows.store", "Win RD Store",
-    iff(ClientType == "com.microsoft.rdc.html", "Web Browser (HTML5)",
-    iff(ClientType == "com.microsoft.rdc.macos", "MAC OS",
-    iff(ClientType == "com.microsoft.rdc.macos.beta", "MAC OS (Beta)",
-    iff(ClientType == "com.microsoft.rdc.osx.beta", "MAC OSx (Beta)",
-    iff(ClientType == "cpc.web.beta", "Windows Web App (Preview)",
-    iff(ClientType == "com.microsoft.rdc.windows.msrdc.arm64", "Win RD ARM 64 (MSI)",
-    iff(ClientType == "com.microsoft.rdc.windows.wa.msrdc.msix.arm64", "Win RD ARM 64 (MSI)",
-    iff(ClientType == "com.microsoft.rdc.ios", "iOS",
-    iff(ClientType == "com.microsoft.rdc.androidx.beta", "Android OS (Beta)",
-    iff(ClientType == "com.microsoft.rdc.androidx", "Android OS",
-    iff(ClientType == "com.microsoft.rdc.windows.msrdc.msix.x64", "Win RD x64 (MSIX)",
-    iff(ClientType == "com.microsoft.rdc.windows.wa.msrdc.msix.x64", "Win App x64 (MSIX)", 
-    "Other")))))))))))))))
-| extend HostPoolName = tostring(split(_ResourceId, "/")[-1])
-| extend Timekey = format_datetime(TimeGenerated, 'HHmm')
-| extend UserName = trim(" ", tolower(UserName))
-| extend AutoReconnect = iff(PredecessorConnectionId == "<>", "false", "true")
-| project CorrelationId, PredecessorConnectionId, TimeGenerated, Timekey, UserName, GatewayRegion, ConnectionType, TransportType, Protocol, HostPoolName, SessionHostPoolType, SessionHostName, SessionHostIPAddress, SessionHostOSVersion, SessionHostOSDescription, SessionHostAgentVersion, SessionHostSxSStackVersion, SessionHostSessionId, IsSessionHostPrivateLink, ClientOS, ClientVersion, ClientSideIPAddress, IsClientPrivateLink, AutoReconnect
+| summarize arg_max(TimeGenerated, *) by Computer
+| extend FirstIPCandidate = tostring(split(tolower(tostring(ComputerPrivateIPs)), ",")[0])
+| extend SecondIPCandidate = tostring(split(tolower(tostring(ComputerPrivateIPs)), ",")[1])
+| extend IsFirstIPStartsWithPrefix = FirstIPCandidate has tolower(ipPrefix)
+| extend PrivateIPAddressCandidate = iff(IsFirstIPStartsWithPrefix, FirstIPCandidate, SecondIPCandidate)
+| extend PrivateIPAddress = replace(@'["\[\]]', '', PrivateIPAddressCandidate)
+| extend Computer = trim(" ", tolower(Computer))
+| project-rename SessionHostName = Computer
+| project SessionHostName, tostring(ComputerPrivateIPs), PrivateIPAddress
+| distinct SessionHostName, ComputerPrivateIPs, PrivateIPAddress
