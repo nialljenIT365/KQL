@@ -10,4 +10,5 @@ Heartbeat
 | extend Computer = trim(" ", tolower(Computer))
 | project-rename SessionHostName = Computer
 | project SessionHostName, tostring(ComputerPrivateIPs), PrivateIPAddress
-| distinct SessionHostName, ComputerPrivateIPs, PrivateIPAddress
+| project-rename SessionHostPrivateIPAddress = PrivateIPAddress
+| distinct SessionHostName, ComputerPrivateIPs, SessionHostPrivateIPAddress
