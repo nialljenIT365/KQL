@@ -1,10 +1,14 @@
 let
+    // Convert RangeStart and RangeEnd to the required string format for KQL
+    strRangeStart = DateTime.ToText(RangeStart, [Format="yyyy-MM-ddTHH:mm:ssZ", Culture="en-US"]),
+    strRangeEnd = DateTime.ToText(RangeEnd, [Format="yyyy-MM-ddTHH:mm:ssZ", Culture="en-US"]),
+
     // Connect to Azure Data Explorer with time range applied directly in KQL
     Source = AzureDataExplorer.Contents(
         "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg",
         "nmw-app-law-fwjv4wn75m4qg",
         "WVDErrors
-        | where TimeGenerated >= datetime(" & RangeStart & ") and TimeGenerated <= datetime(" & RangeEnd & ")
+        | where TimeGenerated >= datetime(" & strRangeStart & ") and TimeGenerated <= datetime(" & strRangeEnd & ")
         | join kind=leftouter (
             WVDConnections
             | where State == 'Completed'
@@ -46,10 +50,3 @@ let
     #"Added Custom" = Table.AddColumn(Source, "UTC Data Load Date", each CurrentDateTime, type datetimezone)
 in
     #"Added Custom"
-
-Expression.Error: We cannot apply operator & to types Text and DateTime.
-Details:
-    Operator=&
-    Left=WVDErrors
-        | where TimeGenerated >= datetime(
-    Right=30/10/2024 00:00:00
