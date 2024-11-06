@@ -1,11 +1,11 @@
 let
-    // Step 1: Connect to Azure Data Explorer
+    // Step 1: Connect to Azure Data Explorer, injecting Power BI parameters for dynamic date range in KQL
     Source = AzureDataExplorer.Contents(
         "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg", 
         "nmw-app-law-fwjv4wn75m4qg", 
         "
-            let RangeStart = '5/11/2024 11:00:00';
-            let RangeEnd = '5/11/2024 11:25:00';
+            let RangeStart = '" & RangeStart & "';
+            let RangeEnd = '" & RangeEnd & "';
             
             Heartbeat
             | extend DayStart = substring(RangeStart, 0, indexof(RangeStart, '/')),
@@ -28,9 +28,6 @@ let
     CurrentDateTime = DateTimeZone.FixedUtcNow(),
 
     // Step 3: Add a custom column for the data load date
-    AddLoadDate = Table.AddColumn(Source, "UTC Data Load Date", each CurrentDateTime, type datetimezone),
-
-    // Step 4: Filter rows within the specified date range (RangeStart to RangeEnd)
-    FilteredRows = Table.SelectRows(AddLoadDate, each DateTime.From([TimeGenerated]) >= DateTime.FromText(RangeStart) and DateTime.From([TimeGenerated]) <= DateTime.FromText(RangeEnd))
+    AddLoadDate = Table.AddColumn(Source, "UTC Data Load Date", each CurrentDateTime, type datetimezone)
 in
-    FilteredRows
+    AddLoadDate
