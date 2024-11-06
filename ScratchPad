@@ -3,6 +3,8 @@ Heartbeat
 | extend ParsedDate = parse_datetime(OriginalDateString, "d/M/yyyy HH:mm:ss")
 | extend FormattedDateString = format_datetime(ParsedDate, "yyyy-M-d'T'HH:mm:ss")
 
+Unknown function: 'parse_datetime'.
+
 
 
 #datetime(2024, 10, 30, 0, 0, 0) meta [IsParameterQuery=true, Type="DateTime", IsParameterQueryRequired=true]
