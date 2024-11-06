@@ -11,20 +11,4 @@ Heartbeat
          TimeEnd = substring(RangeEnd, indexof(RangeEnd, " ") + 1)
 | extend ParsedRangeEnd = todatetime(strcat(YearEnd, "-", MonthEnd, "-", DayEnd, " ", TimeEnd))
 | where TimeGenerated between (ParsedRangeStart .. ParsedRangeEnd)
-
-
-Heartbeat
-| extend RangeStart = "5/11/2024 11:00:00", RangeEnd = "5/11/2024 11:25:00"
-| extend DayStart = substring(RangeStart, 0, indexof(RangeStart, "/")),
-         MonthStart = substring(RangeStart, indexof(RangeStart, "/") + 1, indexof(RangeStart, "/", indexof(RangeStart, "/") + 1) - indexof(RangeStart, "/") - 1),
-         YearStart = substring(RangeStart, indexof(RangeStart, "/", indexof(RangeStart, "/") + 1) + 1, 4),
-         TimeStart = substring(RangeStart, indexof(RangeStart, " ") + 1)
-| extend ParsedRangeStart = todatetime(strcat(YearStart, "-", MonthStart, "-", DayStart, " ", TimeStart))
-| extend DayEnd = substring(RangeEnd, 0, indexof(RangeEnd, "/")),
-         MonthEnd = substring(RangeEnd, indexof(RangeEnd, "/") + 1, indexof(RangeEnd, "/", indexof(RangeEnd, "/") + 1) - indexof(RangeEnd, "/") - 1),
-         YearEnd = substring(RangeEnd, indexof(RangeEnd, "/", indexof(RangeEnd, "/") + 1) + 1, 4),
-         TimeEnd = substring(RangeEnd, indexof(RangeEnd, " ") + 1)
-| extend ParsedRangeEnd = todatetime(strcat(YearEnd, "-", MonthEnd, "-", DayEnd, " ", TimeEnd))
-| where TimeGenerated between (ParsedRangeStart .. ParsedRangeEnd)
 | project-away RangeStart, DayStart, MonthStart, YearStart, TimeStart, ParsedRangeStart, RangeEnd, DayEnd, MonthEnd, YearEnd, TimeEnd, ParsedRangeEnd
-
