@@ -46,3 +46,10 @@ let
     #"Added Custom" = Table.AddColumn(Source, "UTC Data Load Date", each CurrentDateTime, type datetimezone)
 in
     #"Added Custom"
+
+Expression.Error: We cannot apply operator & to types Text and DateTime.
+Details:
+    Operator=&
+    Left=WVDErrors
+        | where TimeGenerated >= datetime(
+    Right=30/10/2024 00:00:00
