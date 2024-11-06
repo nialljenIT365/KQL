@@ -1,52 +1,36 @@
-let
-    // Convert RangeStart and RangeEnd to the required string format for KQL
-    strRangeStart = DateTime.ToText(RangeStart, [Format="yyyy-MM-ddTHH:mm:ssZ", Culture="en-US"]),
-    strRangeEnd = DateTime.ToText(RangeEnd, [Format="yyyy-MM-ddTHH:mm:ssZ", Culture="en-US"]),
+let RangeStart = datetime(2024-10-30T00:00:00Z);
+let RangeEnd = datetime(2024-10-31T23:59:59Z);
 
-    // Connect to Azure Data Explorer with time range applied directly in KQL
-    Source = AzureDataExplorer.Contents(
-        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg",
-        "nmw-app-law-fwjv4wn75m4qg",
-        "WVDErrors
-        | where TimeGenerated >= datetime(" & strRangeStart & ") and TimeGenerated <= datetime(" & strRangeEnd & ")
-        | join kind=leftouter (
-            WVDConnections
-            | where State == 'Completed'
-            | extend Protocol = iff(UdpUse in ('0', '<>'), 'TCP', 'UDP')
-        ) on CorrelationId
-        | extend ClientType = iff(
-            ClientType == 'com.microsoft.rdc.windows.msrdc.x64', 'Windows RD Client x64 (MSI)',
+WVDErrors
+| where TimeGenerated between (RangeStart .. RangeEnd)
+| join kind=leftouter (
+    WVDConnections
+    | where State == "Completed"
+    | extend Protocol = iff(UdpUse in ("0", "<>"), "TCP", "UDP")
+) on CorrelationId
+| extend ClientType = iff(
+    ClientType == "com.microsoft.rdc.windows.msrdc.x64", "Windows RD Client x64 (MSI)",
+    iff(
+        ClientType == "com.igel.rdc.linux", "IGEL",
+        iff(
+            ClientType == "com.microsoft.rdc.windows.store", "Windows RD Client Store App",
             iff(
-                ClientType == 'com.igel.rdc.linux', 'IGEL',
+                ClientType == "com.microsoft.rdc.html", "Web Browser (HTML5)",
                 iff(
-                    ClientType == 'com.microsoft.rdc.windows.store', 'Windows RD Client Store App',
+                    ClientType == "com.microsoft.rdc.macos", "MAC OS",
                     iff(
-                        ClientType == 'com.microsoft.rdc.html', 'Web Browser (HTML5)',
+                        ClientType == "com.microsoft.rdc.windows.msrdc.arm64", "Windows RD Client ARM 64 (MSI)",
                         iff(
-                            ClientType == 'com.microsoft.rdc.macos', 'MAC OS',
+                            ClientType == "com.microsoft.rdc.ios", "iOS",
                             iff(
-                                ClientType == 'com.microsoft.rdc.windows.msrdc.arm64', 'Windows RD Client ARM 64 (MSI)',
-                                iff(
-                                    ClientType == 'com.microsoft.rdc.ios', 'iOS',
-                                    iff(
-                                        ClientType == 'com.microsoft.rdc.windows.msrdc.msix.x64', 'Windows RD Client x64 (MSIX)',
-                                        iff(ClientType == 'com.microsoft.rdc.windows.wa.msrdc.msix.arm64', 'Windows App x64 (MSIX)', 'Other')
-                                    )
-                                )
+                                ClientType == "com.microsoft.rdc.windows.msrdc.msix.x64", "Windows RD Client x64 (MSIX)",
+                                iff(ClientType == "com.microsoft.rdc.windows.wa.msrdc.msix.arm64", "Windows App x64 (MSIX)", "Other")
                             )
                         )
                     )
                 )
             )
         )
-        | order by TimeGenerated desc",
-        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
-    ),
-
-    // Find the current date and time when this query runs
-    CurrentDateTime = DateTimeZone.FixedUtcNow(),
-
-    // Add a custom column to record the data load date
-    #"Added Custom" = Table.AddColumn(Source, "UTC Data Load Date", each CurrentDateTime, type datetimezone)
-in
-    #"Added Custom"
+    )
+)
+| order by TimeGenerated desc
