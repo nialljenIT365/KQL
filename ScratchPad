@@ -1,7 +1,8 @@
 Heartbeat
-| extend OriginalDateString = "5/11/2024 11:00:00"
-| extend Day = substring(OriginalDateString, 0, indexof(OriginalDateString, "/"))
-| extend Month = substring(OriginalDateString, indexof(OriginalDateString, "/") + 1, indexof(OriginalDateString, "/", indexof(OriginalDateString, "/") + 1) - indexof(OriginalDateString, "/") - 1)
-| extend Year = substring(OriginalDateString, indexof(OriginalDateString, "/", indexof(OriginalDateString, "/") + 1) + 1, 4)
-| extend Time = substring(OriginalDateString, indexof(OriginalDateString, " ") + 1)
-| extend FormattedDateString = strcat(Year, "-", Month, "-", Day, "T", Time)
+| extend RangeStart = "5/11/2024 11:00:00"
+| extend Day = substring(RangeStart, 0, indexof(RangeStart, "/"))
+| extend Month = substring(RangeStart, indexof(RangeStart, "/") + 1, indexof(RangeStart, "/", indexof(RangeStart, "/") + 1) - indexof(RangeStart, "/") - 1)
+| extend Year = substring(RangeStart, indexof(RangeStart, "/", indexof(RangeStart, "/") + 1) + 1, 4)
+| extend Time = substring(RangeStart, indexof(RangeStart, " ") + 1)
+| extend fRangeStart = strcat(Year, "-", Month, "-", Day, "T", Time)
+| project RangeStart, fRangeStart
