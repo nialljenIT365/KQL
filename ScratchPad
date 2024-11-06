@@ -11,3 +11,11 @@ Heartbeat
          TimeEnd = substring(RangeEnd, indexof(RangeEnd, " ") + 1)
 | extend fRangeEnd = strcat(YearEnd, "-", MonthEnd, "-", DayEnd, "T", TimeEnd)
 | where TimeGenerated between (datetime(fRangeStart) .. datetime(fRangeEnd))
+
+
+Heartbeat
+| extend RangeStart = "5/11/2024 11:00:00", RangeEnd = "5/11/2024 11:25:00"
+| extend ParsedRangeStart = datetime(parse("dd/MM/yyyy HH:mm:ss", RangeStart))
+| extend ParsedRangeEnd = datetime(parse("dd/MM/yyyy HH:mm:ss", RangeEnd))
+| where TimeGenerated between (ParsedRangeStart .. ParsedRangeEnd)
+
