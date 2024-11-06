@@ -1,18 +1,15 @@
-Expression.Error: We cannot apply operator & to types Text and DateTime.
-Details:
-    Operator=&
-    Left=
-            let RangeStart = '
-    Right=05/11/2024 00:00:00
-
 let
-    // Step 1: Connect to Azure Data Explorer, injecting Power BI parameters for dynamic date range in KQL
+    // Convert Power BI parameters to text in the desired format
+    RangeStartText = DateTime.ToText(RangeStart, "d/M/yyyy HH:mm:ss"),
+    RangeEndText = DateTime.ToText(RangeEnd, "d/M/yyyy HH:mm:ss"),
+
+    // Step 1: Connect to Azure Data Explorer, injecting the text values of RangeStart and RangeEnd
     Source = AzureDataExplorer.Contents(
         "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg", 
         "nmw-app-law-fwjv4wn75m4qg", 
         "
-            let RangeStart = '" & RangeStart & "';
-            let RangeEnd = '" & RangeEnd & "';
+            let RangeStart = '" & RangeStartText & "';
+            let RangeEnd = '" & RangeEndText & "';
             
             Heartbeat
             | extend DayStart = substring(RangeStart, 0, indexof(RangeStart, '/')),
