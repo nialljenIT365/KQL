@@ -1,3 +1,10 @@
+Expression.Error: We cannot apply operator & to types Text and DateTime.
+Details:
+    Operator=&
+    Left=
+            let RangeStart = '
+    Right=05/11/2024 00:00:00
+
 let
     // Step 1: Connect to Azure Data Explorer, injecting Power BI parameters for dynamic date range in KQL
     Source = AzureDataExplorer.Contents(
