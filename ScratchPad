@@ -1,3 +1,10 @@
+Query could not be parsed at 'datetime(YearStart, MonthStart, DayStart, HourStart, MinuteStart, 0)' on line [8,29]
+
+Token: datetime(YearStart, MonthStart, DayStart, HourStart, MinuteStart, 0)
+Line: 8
+Position: 29
+Request id: 05d650e2-714f-4066-a117-ee285714ecbd
+
 Heartbeat
 | extend RangeStart = "5/11/2024 11:00:00", RangeEnd = "5/11/2024 11:25:00"
 | extend DayStart = toint(substring(RangeStart, 0, indexof(RangeStart, "/"))),
