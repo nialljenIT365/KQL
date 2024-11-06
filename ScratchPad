@@ -7,3 +7,8 @@
 
 
 30/10/2024 00:00:00
+
+Heartbeat
+| extend ParsedDate = datetime_parse(TimeGenerated, "dd/MM/yyyy HH:mm:ss")
+| extend FormattedDate = format_datetime(ParsedDate, "yyyy-MM-ddTHH:mm:ss")
+
