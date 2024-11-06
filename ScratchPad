@@ -1,15 +1,36 @@
 let
-    // Connect to Azure Data Explorer
-    Source = AzureDataExplorer.Contents("https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg", "nmw-app-law-fwjv4wn75m4qg", "let RangeStart = ""5/11/2024 11:00:00"";#(lf)let RangeEnd = ""5/11/2024 11:25:00"";#(lf)Heartbeat#(lf)| extend DayStart = substring(RangeStart, 0, indexof(RangeStart, ""/"")),#(lf)         MonthStart = substring(RangeStart, indexof(RangeStart, ""/"") + 1, indexof(RangeStart, ""/"", indexof(RangeStart, ""/"") + 1) - indexof(RangeStart, ""/"") - 1),#(lf)         YearStart = substring(RangeStart, indexof(RangeStart, ""/"", indexof(RangeStart, ""/"") + 1) + 1, 4),#(lf)         TimeStart = substring(RangeStart, indexof(RangeStart, "" "") + 1)#(lf)| extend ParsedRangeStart = todatetime(strcat(YearStart, ""-"", MonthStart, ""-"", DayStart, "" "", TimeStart))#(lf)| extend DayEnd = substring(RangeEnd, 0, indexof(RangeEnd, ""/"")),#(lf)         MonthEnd = substring(RangeEnd, indexof(RangeEnd, ""/"") + 1, indexof(RangeEnd, ""/"", indexof(RangeEnd, ""/"") + 1) - indexof(RangeEnd, ""/"") - 1),#(lf)         YearEnd = substring(RangeEnd, indexof(RangeEnd, ""/"", indexof(RangeEnd, ""/"") + 1) + 1, 4),#(lf)         TimeEnd = substring(RangeEnd, indexof(RangeEnd, "" "") + 1)#(lf)| extend ParsedRangeEnd = todatetime(strcat(YearEnd, ""-"", MonthEnd, ""-"", DayEnd, "" "", TimeEnd))#(lf)| where TimeGenerated between (ParsedRangeStart .. ParsedRangeEnd)#(lf)| project-away DayStart, MonthStart, YearStart, TimeStart, ParsedRangeStart, DayEnd, MonthEnd, YearEnd, TimeEnd, ParsedRangeEnd", [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]),
+    // Step 1: Connect to Azure Data Explorer
+    Source = AzureDataExplorer.Contents(
+        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg", 
+        "nmw-app-law-fwjv4wn75m4qg", 
+        "
+            let RangeStart = '5/11/2024 11:00:00';
+            let RangeEnd = '5/11/2024 11:25:00';
+            
+            Heartbeat
+            | extend DayStart = substring(RangeStart, 0, indexof(RangeStart, '/')),
+                     MonthStart = substring(RangeStart, indexof(RangeStart, '/') + 1, indexof(RangeStart, '/', indexof(RangeStart, '/') + 1) - indexof(RangeStart, '/') - 1),
+                     YearStart = substring(RangeStart, indexof(RangeStart, '/', indexof(RangeStart, '/') + 1) + 1, 4),
+                     TimeStart = substring(RangeStart, indexof(RangeStart, ' ') + 1)
+            | extend ParsedRangeStart = todatetime(strcat(YearStart, '-', MonthStart, '-', DayStart, ' ', TimeStart))
+            | extend DayEnd = substring(RangeEnd, 0, indexof(RangeEnd, '/')),
+                     MonthEnd = substring(RangeEnd, indexof(RangeEnd, '/') + 1, indexof(RangeEnd, '/', indexof(RangeEnd, '/') + 1) - indexof(RangeEnd, '/') - 1),
+                     YearEnd = substring(RangeEnd, indexof(RangeEnd, '/', indexof(RangeEnd, '/') + 1) + 1, 4),
+                     TimeEnd = substring(RangeEnd, indexof(RangeEnd, ' ') + 1)
+            | extend ParsedRangeEnd = todatetime(strcat(YearEnd, '-', MonthEnd, '-', DayEnd, ' ', TimeEnd))
+            | where TimeGenerated between (ParsedRangeStart .. ParsedRangeEnd)
+            | project-away DayStart, MonthStart, YearStart, TimeStart, ParsedRangeStart, DayEnd, MonthEnd, YearEnd, TimeEnd, ParsedRangeEnd
+        ",
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    ),
 
-    // Find the current date and time when this query runs
+    // Step 2: Retrieve the current UTC date and time
     CurrentDateTime = DateTimeZone.FixedUtcNow(),
 
-    // Add a custom column to record the data load date
-    #"Added Custom" = Table.AddColumn(Source, "UTC Data Load Date", each CurrentDateTime, type datetimezone),
+    // Step 3: Add a custom column for the data load date
+    AddLoadDate = Table.AddColumn(Source, "UTC Data Load Date", each CurrentDateTime, type datetimezone),
 
-    // Filter the data based on RangeStart and RangeEnd
-    // Modify this logic based on the nature of your data and requirements
-    #"Filtered Rows" = Table.SelectRows(#"Added Custom", each DateTime.Date([TimeGenerated]) >= RangeStart and DateTime.Date([TimeGenerated]) <= RangeEnd)
+    // Step 4: Filter rows within the specified date range (RangeStart to RangeEnd)
+    FilteredRows = Table.SelectRows(AddLoadDate, each DateTime.From([TimeGenerated]) >= DateTime.FromText(RangeStart) and DateTime.From([TimeGenerated]) <= DateTime.FromText(RangeEnd))
 in
-    #"Filtered Rows"
+    FilteredRows
