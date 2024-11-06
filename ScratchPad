@@ -1,8 +1,13 @@
 Heartbeat
-| extend RangeStart = "5/11/2024 11:00:00"
-| extend Day = substring(RangeStart, 0, indexof(RangeStart, "/"))
-| extend Month = substring(RangeStart, indexof(RangeStart, "/") + 1, indexof(RangeStart, "/", indexof(RangeStart, "/") + 1) - indexof(RangeStart, "/") - 1)
-| extend Year = substring(RangeStart, indexof(RangeStart, "/", indexof(RangeStart, "/") + 1) + 1, 4)
-| extend Time = substring(RangeStart, indexof(RangeStart, " ") + 1)
-| extend fRangeStart = strcat(Year, "-", Month, "-", Day, "T", Time)
-| project RangeStart, fRangeStart
+| extend RangeStart = "5/11/2024 11:00:00", RangeEnd = "5/11/2024 11:25:00"
+| extend DayStart = substring(RangeStart, 0, indexof(RangeStart, "/")),
+         MonthStart = substring(RangeStart, indexof(RangeStart, "/") + 1, indexof(RangeStart, "/", indexof(RangeStart, "/") + 1) - indexof(RangeStart, "/") - 1),
+         YearStart = substring(RangeStart, indexof(RangeStart, "/", indexof(RangeStart, "/") + 1) + 1, 4),
+         TimeStart = substring(RangeStart, indexof(RangeStart, " ") + 1)
+| extend fRangeStart = strcat(YearStart, "-", MonthStart, "-", DayStart, "T", TimeStart)
+| extend DayEnd = substring(RangeEnd, 0, indexof(RangeEnd, "/")),
+         MonthEnd = substring(RangeEnd, indexof(RangeEnd, "/") + 1, indexof(RangeEnd, "/", indexof(RangeEnd, "/") + 1) - indexof(RangeEnd, "/") - 1),
+         YearEnd = substring(RangeEnd, indexof(RangeEnd, "/", indexof(RangeEnd, "/") + 1) + 1, 4),
+         TimeEnd = substring(RangeEnd, indexof(RangeEnd, " ") + 1)
+| extend fRangeEnd = strcat(YearEnd, "-", MonthEnd, "-", DayEnd, "T", TimeEnd)
+| project RangeStart, fRangeStart, RangeEnd, fRangeEnd
