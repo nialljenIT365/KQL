@@ -1,7 +1,7 @@
 Heartbeat
 | where TimeGenerated between (datetime(2024-05-11) .. datetime(2024-06-11))
 
-
+| where TimeGenerated between (datetime(2024-11-5) .. datetime(2024-11-6))
 
 
 30/10/2024 00:00:00
