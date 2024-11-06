@@ -10,4 +10,4 @@ Heartbeat
          YearEnd = substring(RangeEnd, indexof(RangeEnd, "/", indexof(RangeEnd, "/") + 1) + 1, 4),
          TimeEnd = substring(RangeEnd, indexof(RangeEnd, " ") + 1)
 | extend fRangeEnd = strcat(YearEnd, "-", MonthEnd, "-", DayEnd, "T", TimeEnd)
-| project RangeStart, fRangeStart, RangeEnd, fRangeEnd
+| where TimeGenerated between (datetime(fRangeStart) .. datetime(fRangeEnd))
