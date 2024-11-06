@@ -1,26 +1,7 @@
 Heartbeat
 | extend OriginalDateString = "5/11/2024 11:00:00"
-| extend ParsedDate = parse_datetime(OriginalDateString, "d/M/yyyy HH:mm:ss")
-| extend FormattedDateString = format_datetime(ParsedDate, "yyyy-M-d'T'HH:mm:ss")
-
-Unknown function: 'parse_datetime'.
-
-
-
-#datetime(2024, 10, 30, 0, 0, 0) meta [IsParameterQuery=true, Type="DateTime", IsParameterQueryRequired=true]
-
-2024-11-5T11:00:00
-
-
-#datetime(2024, 11, 5, 11, 0, 0) meta [IsParameterQuery=true, Type="DateTime", IsParameterQueryRequired=true]
-
-
-30/10/2024 00:00:00
-
-Heartbeat
-| extend ParsedDate = datetime_parse(TimeGenerated, "dd/MM/yyyy HH:mm:ss")
-| extend FormattedDate = format_datetime(ParsedDate, "yyyy-MM-ddTHH:mm:ss")
-
-
-KQL to turn the string 5/11/2024 11:00:00 into the string 2024-11-5T11:00:00
-
+| extend Day = substring(OriginalDateString, 0, indexof(OriginalDateString, "/"))
+| extend Month = substring(OriginalDateString, indexof(OriginalDateString, "/") + 1, indexof(OriginalDateString, "/", indexof(OriginalDateString, "/") + 1) - indexof(OriginalDateString, "/") - 1)
+| extend Year = substring(OriginalDateString, indexof(OriginalDateString, "/", indexof(OriginalDateString, "/") + 1) + 1, 4)
+| extend Time = substring(OriginalDateString, indexof(OriginalDateString, " ") + 1)
+| extend FormattedDateString = strcat(Year, "-", Month, "-", Day, "T", Time)
