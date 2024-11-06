@@ -1,32 +1,15 @@
-WVDErrors
-| join kind=leftouter (
-    WVDConnections
-    | where State == "Completed"
-    | extend Protocol = iff(UdpUse in ("0", "<>"), "TCP", "UDP")
-) on CorrelationId
-| extend ClientType = iff(
-    ClientType == "com.microsoft.rdc.windows.msrdc.x64", "Windows RD Client x64 (MSI)",
-    iff(
-        ClientType == "com.igel.rdc.linux", "IGEL",
-        iff(
-            ClientType == "com.microsoft.rdc.windows.store", "Windows RD Client Store App",
-            iff(
-                ClientType == "com.microsoft.rdc.html", "Web Browser (HTML5)",
-                iff(
-                    ClientType == "com.microsoft.rdc.macos", "MAC OS",
-                    iff(
-                        ClientType == "com.microsoft.rdc.windows.msrdc.arm64", "Windows RD Client ARM 64 (MSI)",
-                        iff(
-                            ClientType == "com.microsoft.rdc.ios", "iOS",
-                            iff(
-                                ClientType == "com.microsoft.rdc.windows.msrdc.msix.x64", "Windows RD Client x64 (MSIX)",
-                                iff(ClientType == "com.microsoft.rdc.windows.wa.msrdc.msix.arm64", "Windows App x64 (MSIX)", "Other")
-                            )
-                        )
-                    )
-                )
-            )
-        )
-    )
-)
-| order by TimeGenerated desc
+let
+    // Connect to Azure Data Explorer
+    Source = AzureDataExplorer.Contents("https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg", "nmw-app-law-fwjv4wn75m4qg", "WVDErrors#(lf)| join kind=leftouter (#(lf)    WVDConnections#(lf)    | where State == ""Completed""#(lf)    | extend Protocol = iff(UdpUse in (""0"", ""<>""), ""TCP"", ""UDP"")#(lf)) on CorrelationId#(lf)| extend ClientType = iff(#(lf)    ClientType == ""com.microsoft.rdc.windows.msrdc.x64"", ""Windows RD Client x64 (MSI)"",#(lf)    iff(#(lf)        ClientType == ""com.igel.rdc.linux"", ""IGEL"",#(lf)        iff(#(lf)            ClientType == ""com.microsoft.rdc.windows.store"", ""Windows RD Client Store App"",#(lf)            iff(#(lf)                ClientType == ""com.microsoft.rdc.html"", ""Web Browser (HTML5)"",#(lf)                iff(#(lf)                    ClientType == ""com.microsoft.rdc.macos"", ""MAC OS"",#(lf)                    iff(#(lf)                        ClientType == ""com.microsoft.rdc.windows.msrdc.arm64"", ""Windows RD Client ARM 64 (MSI)"",#(lf)                        iff(#(lf)                            ClientType == ""com.microsoft.rdc.ios"", ""iOS"",#(lf)                            iff(#(lf)                                ClientType == ""com.microsoft.rdc.windows.msrdc.msix.x64"", ""Windows RD Client x64 (MSIX)"",#(lf)                                iff(ClientType == ""com.microsoft.rdc.windows.wa.msrdc.msix.arm64"", ""Windows App x64 (MSIX)"", ""Other"")#(lf)                            )#(lf)                        )#(lf)                    )#(lf)                )#(lf)            )#(lf)        )#(lf)    )#(lf))#(lf)| order by TimeGenerated desc", [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]),
+
+    // Find the current date and time when this query runs
+    CurrentDateTime = DateTimeZone.FixedUtcNow(),
+
+    // Add a custom column to record the data load date
+    #"Added Custom" = Table.AddColumn(Source, "UTC Data Load Date", each CurrentDateTime, type datetimezone),
+
+    // Filter the data based on RangeStart and RangeEnd
+    // Modify this logic based on the nature of your data and requirements
+    #"Filtered Rows" = Table.SelectRows(#"Added Custom", each DateTime.Date([TimeGenerated]) >= RangeStart and DateTime.Date([TimeGenerated]) <= RangeEnd)
+in
+    #"Filtered Rows"
