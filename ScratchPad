@@ -120,3 +120,6 @@ WVDErrors
 )
 | order by TimeGenerated desc
 
+No tabular expression statement found
+Request id: 10b80318-1226-4376-a0d6-14420389f14b
+
