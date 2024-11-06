@@ -1,7 +1,7 @@
 30/10/2024 00:00:00
 
-let RangeStart = "2024/11/5";
-let RangeEnd = "2024/10/6";
+let RangeStart = "30/10/2024 00:00:00";
+let RangeEnd = "31/10/2024 00:00:00";
 
 WVDErrors
 | where TimeGenerated between (RangeStart .. RangeEnd)
@@ -39,3 +39,42 @@ WVDErrors
 
 No tabular expression statement found
 Request id: 3465dc93-f467-40b1-9145-6d29d01d63b2
+
+how do I make it accept values in this format? 30/10/2024 00:00:00
+
+let RangeStart = datetime_parse("30/10/2024 00:00:00", "dd/MM/yyyy HH:mm:ss");
+let RangeEnd = datetime_parse("31/10/2024 00:00:00", "dd/MM/yyyy HH:mm:ss");
+
+WVDErrors
+| where TimeGenerated between (RangeStart .. RangeEnd)
+| join kind=leftouter (
+    WVDConnections
+    | where State == "Completed"
+    | extend Protocol = iff(UdpUse in ("0", "<>"), "TCP", "UDP")
+) on CorrelationId
+| extend ClientType = iff(
+    ClientType == "com.microsoft.rdc.windows.msrdc.x64", "Windows RD Client x64 (MSI)",
+    iff(
+        ClientType == "com.igel.rdc.linux", "IGEL",
+        iff(
+            ClientType == "com.microsoft.rdc.windows.store", "Windows RD Client Store App",
+            iff(
+                ClientType == "com.microsoft.rdc.html", "Web Browser (HTML5)",
+                iff(
+                    ClientType == "com.microsoft.rdc.macos", "MAC OS",
+                    iff(
+                        ClientType == "com.microsoft.rdc.windows.msrdc.arm64", "Windows RD Client ARM 64 (MSI)",
+                        iff(
+                            ClientType == "com.microsoft.rdc.ios", "iOS",
+                            iff(
+                                ClientType == "com.microsoft.rdc.windows.msrdc.msix.x64", "Windows RD Client x64 (MSIX)",
+                                iff(ClientType == "com.microsoft.rdc.windows.wa.msrdc.msix.arm64", "Windows App x64 (MSIX)", "Other")
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    )
+)
+| order by TimeGenerated desc
