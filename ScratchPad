@@ -1,5 +1,7 @@
-let RangeStart = datetime(2024-10-30T00:00:00Z);
-let RangeEnd = datetime(2024-10-31T23:59:59Z);
+30/10/2024 00:00:00
+
+let RangeStart = "2024/11/5";
+let RangeEnd = "2024/10/6";
 
 WVDErrors
 | where TimeGenerated between (RangeStart .. RangeEnd)
@@ -34,3 +36,6 @@ WVDErrors
     )
 )
 | order by TimeGenerated desc
+
+No tabular expression statement found
+Request id: 3465dc93-f467-40b1-9145-6d29d01d63b2
