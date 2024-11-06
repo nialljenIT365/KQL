@@ -78,3 +78,7 @@ WVDErrors
     )
 )
 | order by TimeGenerated desc
+
+
+'where' operator: Failed to resolve scalar expression named 'RangeStart'
+Request id: 12f3b413-9400-40d3-9b28-19cf1f135d01
