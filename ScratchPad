@@ -1,112 +1,153 @@
-WVDConnections
-| where TimeGenerated >= ago(30d)
-| where State in ("Connected")
-| where not(isempty(UserName)) and UserName != "<>"
-| extend UserName = trim(@"\s", tolower(UserName))
-| extend Protocol = iff(UdpUse in ("0", "<>"), "TCP", "UDP")
-| extend ClientType = 
-    iff(ClientType == "com.microsoft.rdc.windows.msrdc.x64", "Win RD x64 (MSI)",
-    iff(ClientType == "com.igel.rdc.linux", "IGEL",
-    iff(ClientType == "com.microsoft.rdc.windows.store", "Win RD Store",
-    iff(ClientType == "com.microsoft.rdc.html", "Web Browser (HTML5)",
-    iff(ClientType == "com.microsoft.rdc.macos", "MAC OS",
-    iff(ClientType == "com.microsoft.rdc.macos.beta", "MAC OS (Beta)",
-    iff(ClientType == "com.microsoft.rdc.osx.beta", "MAC OSx (Beta)",
-    iff(ClientType == "cpc.web.beta", "Windows Web App (Preview)",
-    iff(ClientType == "com.microsoft.rdc.windows.msrdc.arm64", "Win RD ARM 64 (MSI)",
-    iff(ClientType == "com.microsoft.rdc.windows.wa.msrdc.msix.arm64", "Win RD ARM 64 (MSI)",
-    iff(ClientType == "com.microsoft.rdc.ios", "iOS",
-    iff(ClientType == "com.microsoft.rdc.androidx.beta", "Android OS (Beta)",
-    iff(ClientType == "com.microsoft.rdc.androidx", "Android OS",
-    iff(ClientType == "com.microsoft.rdc.windows.msrdc.msix.x64", "Win RD x64 (MSIX)",
-    iff(ClientType == "com.microsoft.rdc.windows.wa.msrdc.msix.x64", "Win App x64 (MSIX)", 
-    "Other")))))))))))))))
-| extend HostPoolName = tostring(split(_ResourceId, "/")[-1])
-| extend Timekey = format_datetime(TimeGenerated, 'HHmm')
-| extend UserName = trim(" ", tolower(UserName))
-| extend SessionHostName = trim(" ", tolower(SessionHostName))
-| extend AutoReconnect = iff(PredecessorConnectionId == "<>", "False", "True")
-| extend EntraJoined = iff(SessionHostName contains ".", "False", "True")
-| project CorrelationId, PredecessorConnectionId, AutoReconnect, TimeGenerated, Timekey, UserName, GatewayRegion, ConnectionType, TransportType, Protocol, HostPoolName, SessionHostPoolType, SessionHostName, EntraJoined, SessionHostIPAddress, SessionHostOSVersion, SessionHostOSDescription, SessionHostAgentVersion, SessionHostSxSStackVersion, SessionHostSessionId, IsSessionHostPrivateLink, ClientOS, ClientVersion, ClientSideIPAddress, IsClientPrivateLink
-| summarize arg_max(TimeGenerated, *) by CorrelationId
-
-
-Make this more readable
 let
-    Source = AzureDataExplorer.Contents("https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg", "nmw-app-law-fwjv4wn75m4qg", "WVDConnections#(lf)| where TimeGenerated >= ago(30d)#(lf)| where State in (""Connected"")#(lf)| where not(isempty(UserName)) and UserName != ""<>""#(lf)| extend UserName = trim(@""\s"", tolower(UserName))#(lf)| extend Protocol = iff(UdpUse in (""0"", ""<>""), ""TCP"", ""UDP"")#(lf)| extend ClientType = #(lf)    iff(ClientType == ""com.microsoft.rdc.windows.msrdc.x64"", ""Win RD x64 (MSI)"",#(lf)    iff(ClientType == ""com.igel.rdc.linux"", ""IGEL"",#(lf)    iff(ClientType == ""com.microsoft.rdc.windows.store"", ""Win RD Store"",#(lf)    iff(ClientType == ""com.microsoft.rdc.html"", ""Web Browser (HTML5)"",#(lf)    iff(ClientType == ""com.microsoft.rdc.macos"", ""MAC OS"",#(lf)    iff(ClientType == ""com.microsoft.rdc.macos.beta"", ""MAC OS (Beta)"",#(lf)    iff(ClientType == ""com.microsoft.rdc.osx.beta"", ""MAC OSx (Beta)"",#(lf)    iff(ClientType == ""cpc.web.beta"", ""Windows Web App (Preview)"",#(lf)    iff(ClientType == ""com.microsoft.rdc.windows.msrdc.arm64"", ""Win RD ARM 64 (MSI)"",#(lf)    iff(ClientType == ""com.microsoft.rdc.windows.wa.msrdc.msix.arm64"", ""Win RD ARM 64 (MSI)"",#(lf)    iff(ClientType == ""com.microsoft.rdc.ios"", ""iOS"",#(lf)    iff(ClientType == ""com.microsoft.rdc.androidx.beta"", ""Android OS (Beta)"",#(lf)    iff(ClientType == ""com.microsoft.rdc.androidx"", ""Android OS"",#(lf)    iff(ClientType == ""com.microsoft.rdc.windows.msrdc.msix.x64"", ""Win RD x64 (MSIX)"",#(lf)    iff(ClientType == ""com.microsoft.rdc.windows.wa.msrdc.msix.x64"", ""Win App x64 (MSIX)"", #(lf)    ""Other"")))))))))))))))#(lf)| extend HostPoolName = tostring(split(_ResourceId, ""/"")[-1])#(lf)| extend Timekey = format_datetime(TimeGenerated, 'HHmm')#(lf)| extend UserName = trim("" "", tolower(UserName))#(lf)| extend SessionHostName = trim("" "", tolower(SessionHostName))#(lf)| extend AutoReconnect = iff(PredecessorConnectionId == ""<>"", ""False"", ""True"")#(lf)| extend EntraJoined = iff(SessionHostName contains ""."", ""False"", ""True"")#(lf)| project CorrelationId, PredecessorConnectionId, AutoReconnect, TimeGenerated, Timekey, UserName, GatewayRegion, ConnectionType, TransportType, Protocol, HostPoolName, SessionHostPoolType, SessionHostName, EntraJoined, SessionHostIPAddress, SessionHostOSVersion, SessionHostOSDescription, SessionHostAgentVersion, SessionHostSxSStackVersion, SessionHostSessionId, IsSessionHostPrivateLink, ClientOS, ClientVersion, ClientSideIPAddress, IsClientPrivateLink#(lf)| summarize arg_max(TimeGenerated, *) by CorrelationId", [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null])
+    Source = AzureDataExplorer.Contents(
+        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg",
+        "nmw-app-law-fwjv4wn75m4qg",
+        "WVDConnections
+            | where TimeGenerated >= ago(30d)
+            | where State in ('Connected')
+            | where not(isempty(UserName)) and UserName != '<>'
+            | extend UserName = trim(@'\s', tolower(UserName))
+            | extend Protocol = iff(UdpUse in ('0', '<>'), 'TCP', 'UDP')
+            | extend ClientType = 
+                iff(ClientType == 'com.microsoft.rdc.windows.msrdc.x64', 'Win RD x64 (MSI)',
+                iff(ClientType == 'com.igel.rdc.linux', 'IGEL',
+                iff(ClientType == 'com.microsoft.rdc.windows.store', 'Win RD Store',
+                iff(ClientType == 'com.microsoft.rdc.html', 'Web Browser (HTML5)',
+                iff(ClientType == 'com.microsoft.rdc.macos', 'MAC OS',
+                iff(ClientType == 'com.microsoft.rdc.macos.beta', 'MAC OS (Beta)',
+                iff(ClientType == 'com.microsoft.rdc.osx.beta', 'MAC OSx (Beta)',
+                iff(ClientType == 'cpc.web.beta', 'Windows Web App (Preview)',
+                iff(ClientType == 'com.microsoft.rdc.windows.msrdc.arm64', 'Win RD ARM 64 (MSI)',
+                iff(ClientType == 'com.microsoft.rdc.windows.wa.msrdc.msix.arm64', 'Win RD ARM 64 (MSI)',
+                iff(ClientType == 'com.microsoft.rdc.ios', 'iOS',
+                iff(ClientType == 'com.microsoft.rdc.androidx.beta', 'Android OS (Beta)',
+                iff(ClientType == 'com.microsoft.rdc.androidx', 'Android OS',
+                iff(ClientType == 'com.microsoft.rdc.windows.msrdc.msix.x64', 'Win RD x64 (MSIX)',
+                iff(ClientType == 'com.microsoft.rdc.windows.wa.msrdc.msix.x64', 'Win App x64 (MSIX)', 
+                'Other'
+                )))))))))))))))
+            | extend HostPoolName = tostring(split(_ResourceId, '/')[-1])
+            | extend Timekey = format_datetime(TimeGenerated, 'HHmm')
+            | extend UserName = trim(' ', tolower(UserName))
+            | extend SessionHostName = trim(' ', tolower(SessionHostName))
+            | extend AutoReconnect = iff(PredecessorConnectionId == '<>', 'False', 'True')
+            | extend EntraJoined = iff(SessionHostName contains '.', 'False', 'True')
+            | project 
+                CorrelationId, 
+                PredecessorConnectionId, 
+                AutoReconnect, 
+                TimeGenerated, 
+                Timekey, 
+                UserName, 
+                GatewayRegion, 
+                ConnectionType, 
+                TransportType, 
+                Protocol, 
+                HostPoolName, 
+                SessionHostPoolType, 
+                SessionHostName, 
+                EntraJoined, 
+                SessionHostIPAddress, 
+                SessionHostOSVersion, 
+                SessionHostOSDescription, 
+                SessionHostAgentVersion, 
+                SessionHostSxSStackVersion, 
+                SessionHostSessionId, 
+                IsSessionHostPrivateLink, 
+                ClientOS, 
+                ClientVersion, 
+                ClientSideIPAddress, 
+                IsClientPrivateLink
+            | summarize arg_max(TimeGenerated, *) by CorrelationId",
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    )
 in
     Source
 
+I want to take this query and add the Define start and end date/time parameters as below 
+
+strRangeStart = RangeStart,
+strRangeEnd = RangeEnd,
+
+and then set the values in the KQL query as below:
+        let paramRangeStart = todatetime('" & DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss") & "');
+        let paramRangeEnd = todatetime('" & DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss") & "');
+You will then need to swap out | where TimeGenerated >= ago(30d) and replace with | where TimeGenerated between (paramRangeStart .. paramRangeEnd)
 
 
-let 
-strRangeStart = DateTime.ToText(RangeStart,[Format="yyyy-MM-ddTHH:mm:ss", Culture="en-US"]),
-strRangeEnd = DateTime.ToText(RangeEnd,[Format="yyyy-MM-ddTHH:mm:ss", Culture="en-US"]),
-AnalyticsQuery =
-let Source = Json.Document(Web.Contents("https://api.loganalytics.io/v1/workspaces/ce4e1e84-3765-4cfe-ac40-5de8d7633df4/query", 
-[Query=[#"query"="
-let paramRangeStart = todatetime('"& strRangeStart &"');
-let paramRangeEnd = todatetime('"& strRangeEnd &"');
-WVDErrors
-| where TimeGenerated between (paramRangeStart .. paramRangeEnd)
-| join kind=leftouter (    
-    WVDConnections
-    | where State == ""Completed""
-    | extend Protocol = iff(UdpUse in (""0"", ""<>""), ""TCP"", ""UDP"")
+
+let
+    // Define start and end date/time parameters
+    strRangeStart = RangeStart,
+    strRangeEnd = RangeEnd,
+
+    // Create the query
+    Source = AzureDataExplorer.Contents(
+        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg",
+        "nmw-app-law-fwjv4wn75m4qg",
+        "
+        let paramRangeStart = todatetime('" & DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss") & "');
+        let paramRangeEnd = todatetime('" & DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss") & "');
+        
+        WVDConnections
+            | where TimeGenerated between (paramRangeStart .. paramRangeEnd)
+            | where State in ('Connected')
+            | where not(isempty(UserName)) and UserName != '<>'
+            | extend UserName = trim(@'\\s', tolower(UserName))
+            | extend Protocol = iff(UdpUse in ('0', '<>'), 'TCP', 'UDP')
+            | extend ClientType = 
+                iff(ClientType == 'com.microsoft.rdc.windows.msrdc.x64', 'Win RD x64 (MSI)',
+                iff(ClientType == 'com.igel.rdc.linux', 'IGEL',
+                iff(ClientType == 'com.microsoft.rdc.windows.store', 'Win RD Store',
+                iff(ClientType == 'com.microsoft.rdc.html', 'Web Browser (HTML5)',
+                iff(ClientType == 'com.microsoft.rdc.macos', 'MAC OS',
+                iff(ClientType == 'com.microsoft.rdc.macos.beta', 'MAC OS (Beta)',
+                iff(ClientType == 'com.microsoft.rdc.osx.beta', 'MAC OSx (Beta)',
+                iff(ClientType == 'cpc.web.beta', 'Windows Web App (Preview)',
+                iff(ClientType == 'com.microsoft.rdc.windows.msrdc.arm64', 'Win RD ARM 64 (MSI)',
+                iff(ClientType == 'com.microsoft.rdc.windows.wa.msrdc.msix.arm64', 'Win RD ARM 64 (MSI)',
+                iff(ClientType == 'com.microsoft.rdc.ios', 'iOS',
+                iff(ClientType == 'com.microsoft.rdc.androidx.beta', 'Android OS (Beta)',
+                iff(ClientType == 'com.microsoft.rdc.androidx', 'Android OS',
+                iff(ClientType == 'com.microsoft.rdc.windows.msrdc.msix.x64', 'Win RD x64 (MSIX)',
+                iff(ClientType == 'com.microsoft.rdc.windows.wa.msrdc.msix.x64', 'Win App x64 (MSIX)', 
+                'Other'
+                )))))))))))))))
+            | extend HostPoolName = tostring(split(_ResourceId, '/')[-1])
+            | extend Timekey = format_datetime(TimeGenerated, 'HHmm')
+            | extend UserName = trim(' ', tolower(UserName))
+            | extend SessionHostName = trim(' ', tolower(SessionHostName))
+            | extend AutoReconnect = iff(PredecessorConnectionId == '<>', 'False', 'True')
+            | extend EntraJoined = iff(SessionHostName contains '.', 'False', 'True')
+            | project 
+                CorrelationId, 
+                PredecessorConnectionId, 
+                AutoReconnect, 
+                TimeGenerated, 
+                Timekey, 
+                UserName, 
+                GatewayRegion, 
+                ConnectionType, 
+                TransportType, 
+                Protocol, 
+                HostPoolName, 
+                SessionHostPoolType, 
+                SessionHostName, 
+                EntraJoined, 
+                SessionHostIPAddress, 
+                SessionHostOSVersion, 
+                SessionHostOSDescription, 
+                SessionHostAgentVersion, 
+                SessionHostSxSStackVersion, 
+                SessionHostSessionId, 
+                IsSessionHostPrivateLink, 
+                ClientOS, 
+                ClientVersion, 
+                ClientSideIPAddress, 
+                IsClientPrivateLink
+            | summarize arg_max(TimeGenerated, *) by CorrelationId
+        ",
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
     )
-    on CorrelationId
-| extend ClientType = iff(
-                          ClientType == ""com.microsoft.rdc.windows.msrdc.x64"",
-                          ""Windows RD Client x64 (MSI)"",
-                          iff(
-    ClientType == ""com.igel.rdc.linux"",
-    ""IGEL"",
-    iff(
-    ClientType == ""com.microsoft.rdc.windows.store"",
-    ""Windows RD Client Store App"",
-    iff(
-    ClientType == ""com.microsoft.rdc.html"",
-    ""Web Browser (HTML5)"",
-    iff(
-    ClientType == ""com.microsoft.rdc.macos"",
-    ""MAC OS"",
-    iff(
-    ClientType == ""com.microsoft.rdc.windows.msrdc.arm64"",
-    ""Windows RD Client ARM 64 (MSI)"",
-    iff(
-    ClientType == ""com.microsoft.rdc.ios"",
-    ""iOS"",
-    iff(
-    ClientType == ""com.microsoft.rdc.windows.msrdc.msix.x64"", 
-    ""Windows RD Client x64 (MSIX)"",
-    iff(ClientType == ""com.microsoft.rdc.windows.wa.msrdc.msix.arm64"", ""Windows App x64 (MSIX)"", ""Other"")
-)
-)
-)
-)
-)
-)
-)
-                      )
-| order by TimeGenerated desc",#"x-ms-app"="OmsAnalyticsPBI",#"prefer"="ai.response-thinning=true"],Timeout=#duration(0,0,4,0)])),
-TypeMap = #table(
-{ "AnalyticsTypes", "Type" }, 
-{ 
-{ "string",   Text.Type },
-{ "int",      Int32.Type },
-{ "long",     Int64.Type },
-{ "real",     Double.Type },
-{ "timespan", Duration.Type },
-{ "datetime", DateTimeZone.Type },
-{ "bool",     Logical.Type },
-{ "guid",     Text.Type },
-{ "dynamic",  Text.Type }
-}),
-DataTable = Source[tables]{0},
-Columns = Table.FromRecords(DataTable[columns]),
-ColumnsWithType = Table.Join(Columns, {"type"}, TypeMap , {"AnalyticsTypes"}),
-Rows = Table.FromRows(DataTable[rows], Columns[name]), 
-Table = Table.TransformColumnTypes(Rows, Table.ToList(ColumnsWithType, (c) => { c{0}, c{3}}))
 in
-Table
-in AnalyticsQuery
+    Source
