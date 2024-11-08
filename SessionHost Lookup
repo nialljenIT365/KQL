@@ -1,0 +1,7 @@
+let
+    Source = #"User Connections",
+    #"Sorted Rows" = Table.Buffer(Table.Sort(Source,{{"TimeGenerated", Order.Descending}})),
+    #"Removed Columns" = Table.RemoveColumns(#"Sorted Rows",{"CorrelationId", "PredecessorConnectionId", "AutoReconnect", "Timekey", "UserName", "GatewayRegion", "ConnectionType", "TransportType", "Protocol", "SessionHostPoolType", "SessionHostIPAddress", "SessionHostOSVersion", "SessionHostOSDescription", "SessionHostAgentVersion", "SessionHostSxSStackVersion", "SessionHostSessionId", "IsSessionHostPrivateLink", "ClientOS", "ClientVersion", "ClientSideIPAddress", "IsClientPrivateLink"}),
+    #"Removed Duplicates" = Table.Distinct(#"Removed Columns", {"SessionHostName"})
+in
+    #"Removed Duplicates"
