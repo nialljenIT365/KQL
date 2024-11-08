@@ -1,11 +1,56 @@
 let
-    Source = AzureDataExplorer.Contents("https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg", "nmw-app-law-fwjv4wn75m4qg", "WVDConnectionNetworkData#(lf)| where TimeGenerated >= ago(30d)#(lf)| join kind=leftouter (#(lf)    WVDConnections#(lf)    | where State == ""Connected""#(lf)    | extend Protocol = iff(UdpUse in (""0"",""<>""), ""TCP"", ""UDP"")#(lf)) on CorrelationId#(lf)| summarize #(lf)    avg_EstAvailableBandwidthKBps = round(avg(EstAvailableBandwidthKBps), 0),#(lf)    median_EstAvailableBandwidthKBps = percentile(EstAvailableBandwidthKBps, 50),#(lf)    max_EstAvailableBandwidthKBps = max(EstAvailableBandwidthKBps),#(lf)    min_EstAvailableBandwidthKBps = min(EstAvailableBandwidthKBps),#(lf)    avg_EstRoundTripTimeInMs = round(avg(EstRoundTripTimeInMs), 0),#(lf)    median_EstRoundTripTimeInMs = percentile(EstRoundTripTimeInMs, 50),#(lf)    max_EstRoundTripTimeInMs = max(EstRoundTripTimeInMs),#(lf)    min_EstRoundTripTimeInMs = min(EstRoundTripTimeInMs)#(lf)by CorrelationId, TimeGenerated1, UserName, Protocol#(lf)| extend Timekey = format_datetime(TimeGenerated1, 'HHmm')#(lf)| extend UserName = trim("" "", tolower(UserName))#(lf)| project CorrelationId, TimeGenerated = TimeGenerated1, Timekey, UserName, Protocol, #(lf)          avg_EstAvailableBandwidthKBps, median_EstAvailableBandwidthKBps, max_EstAvailableBandwidthKBps, min_EstAvailableBandwidthKBps,#(lf)          avg_EstRoundTripTimeInMs, median_EstRoundTripTimeInMs, max_EstRoundTripTimeInMs, min_EstRoundTripTimeInMs#(lf)| where isnotempty(UserName)", [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]),
+    // Define start and end date/time parameters
+    strRangeStart = RangeStart,
+    strRangeEnd = RangeEnd,
+
+    // Connect to Azure Data Explorer and retrieve WVDConnectionNetworkData data with dynamic date range
+    Source = AzureDataExplorer.Contents(
+        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg",
+        "nmw-app-law-fwjv4wn75m4qg",
+        "
+        let paramRangeStart = todatetime('" & DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss") & "');
+        let paramRangeEnd = todatetime('" & DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss") & "');
+        
+        WVDConnectionNetworkData
+            | where TimeGenerated between (paramRangeStart .. paramRangeEnd)
+            | join kind=leftouter (
+                WVDConnections
+                | where State == ""Connected""
+                | extend Protocol = iff(UdpUse in (""0"",""<>""), ""TCP"", ""UDP"")
+            ) on CorrelationId
+            | summarize 
+                avg_EstAvailableBandwidthKBps = round(avg(EstAvailableBandwidthKBps), 0),
+                median_EstAvailableBandwidthKBps = percentile(EstAvailableBandwidthKBps, 50),
+                max_EstAvailableBandwidthKBps = max(EstAvailableBandwidthKBps),
+                min_EstAvailableBandwidthKBps = min(EstAvailableBandwidthKBps),
+                avg_EstRoundTripTimeInMs = round(avg(EstRoundTripTimeInMs), 0),
+                median_EstRoundTripTimeInMs = percentile(EstRoundTripTimeInMs, 50),
+                max_EstRoundTripTimeInMs = max(EstRoundTripTimeInMs),
+                min_EstRoundTripTimeInMs = min(EstRoundTripTimeInMs)
+            by CorrelationId, TimeGenerated1, UserName, Protocol
+            | extend Timekey = format_datetime(TimeGenerated1, 'HHmm')
+            | extend UserName = trim("" "", tolower(UserName))
+            | project CorrelationId, TimeGenerated = TimeGenerated1, Timekey, UserName, Protocol,
+                      avg_EstAvailableBandwidthKBps, median_EstAvailableBandwidthKBps, max_EstAvailableBandwidthKBps, min_EstAvailableBandwidthKBps,
+                      avg_EstRoundTripTimeInMs, median_EstRoundTripTimeInMs, max_EstRoundTripTimeInMs, min_EstRoundTripTimeInMs
+            | where isnotempty(UserName)
+        ",
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    ),
+
+    // Duplicate and rename TimeGenerated column for date and time separation
     #"Duplicated Column" = Table.DuplicateColumn(Source, "TimeGenerated", "TimeGenerated - Copy"),
-    #"Renamed Columns" = Table.RenameColumns(#"Duplicated Column",{{"TimeGenerated", "Date"}, {"TimeGenerated - Copy", "Time"}}),
-    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns",{{"Date", type date}, {"Time", type text}}),
+    #"Renamed Columns" = Table.RenameColumns(#"Duplicated Column", {{"TimeGenerated", "Date"}, {"TimeGenerated - Copy", "Time"}}),
+
+    // Change data types of Date and Time columns
+    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns", {{"Date", type date}, {"Time", type text}}),
+
+    // Extract and format time from Time column
     #"Extracted Text After Delimiter" = Table.TransformColumns(#"Changed Type", {{"Time", each Text.AfterDelimiter(_, "T"), type text}}),
     #"Extracted First Characters" = Table.TransformColumns(#"Extracted Text After Delimiter", {{"Time", each Text.Start(_, 16), type text}}),
-    #"Changed Type1" = Table.TransformColumnTypes(#"Extracted First Characters",{{"Time", type time}}),
-    #"Reordered Columns" = Table.ReorderColumns(#"Changed Type1",{"CorrelationId", "Date", "Time", "Timekey", "UserName", "Protocol", "avg_EstAvailableBandwidthKBps", "median_EstAvailableBandwidthKBps", "max_EstAvailableBandwidthKBps", "min_EstAvailableBandwidthKBps", "avg_EstRoundTripTimeInMs", "median_EstRoundTripTimeInMs", "max_EstRoundTripTimeInMs", "min_EstRoundTripTimeInMs"})
+    #"Changed Type1" = Table.TransformColumnTypes(#"Extracted First Characters", {{"Time", type time}}),
+
+    // Reorder columns for readability
+    #"Reordered Columns" = Table.ReorderColumns(#"Changed Type1", {"CorrelationId", "Date", "Time", "Timekey", "UserName", "Protocol", "avg_EstAvailableBandwidthKBps", "median_EstAvailableBandwidthKBps", "max_EstAvailableBandwidthKBps", "min_EstAvailableBandwidthKBps", "avg_EstRoundTripTimeInMs", "median_EstRoundTripTimeInMs", "max_EstRoundTripTimeInMs", "min_EstRoundTripTimeInMs"})
 in
     #"Reordered Columns"
