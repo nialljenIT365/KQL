@@ -33,3 +33,6 @@ in
 
 
 Expression.SyntaxError: Token ',' expected.
+
+| extend PrivateIPAddress = replace(@'["""\[\]]', '', PrivateIPAddressCandidate)
+
