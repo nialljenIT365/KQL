@@ -1,11 +1,44 @@
 let
-    Source = AzureDataExplorer.Contents("https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg", "nmw-app-law-fwjv4wn75m4qg", "WVDErrors#(lf)| where TimeGenerated >= ago(30d)#(lf)| join kind=leftouter (#(lf)    WVDConnections#(lf)    | where State == ""Connected""#(lf)) on CorrelationId#(lf)| extend HostPoolName = tostring(split(_ResourceId, ""/"")[-1])#(lf)| extend SessionHostName = trim("" "", tolower(SessionHostName))#(lf)| extend Timekey = format_datetime(TimeGenerated, 'HHmm')#(lf)| extend UserName = trim("" "", tolower(UserName))#(lf)| project CorrelationId,TimeGenerated, Timekey, UserName, ActivityType, Source, Code, CodeSymbolic, Message, ServiceError, Operation, HostPoolName, SessionHostName, ClientOS, ClientVersion,ClientType, ConnectionType, SessionHostIPAddress, SessionHostAgentVersion, SessionHostSxSStackVersion, GatewayRegion, TransportType, IsClientPrivateLink, IsSessionHostPrivateLink, SessionHostPoolType", [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]),
+    // Define start and end date/time parameters
+    strRangeStart = RangeStart,
+    strRangeEnd = RangeEnd,
+
+    // Connect to Azure Data Explorer and retrieve WVDErrors data with dynamic date range
+    Source = AzureDataExplorer.Contents(
+        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg",
+        "nmw-app-law-fwjv4wn75m4qg",
+        "
+        let paramRangeStart = todatetime('" & DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss") & "');
+        let paramRangeEnd = todatetime('" & DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss") & "');
+        
+        WVDErrors
+            | where TimeGenerated between (paramRangeStart .. paramRangeEnd)
+            | join kind=leftouter (
+                WVDConnections
+                | where State == ""Connected""
+            ) on CorrelationId
+            | extend HostPoolName = tostring(split(_ResourceId, ""/"")[-1])
+            | extend SessionHostName = trim("" "", tolower(SessionHostName))
+            | extend Timekey = format_datetime(TimeGenerated, 'HHmm')
+            | extend UserName = trim("" "", tolower(UserName))
+            | project CorrelationId, TimeGenerated, Timekey, UserName, ActivityType, Source, Code, CodeSymbolic, Message, ServiceError, Operation, HostPoolName, SessionHostName, ClientOS, ClientVersion, ClientType, ConnectionType, SessionHostIPAddress, SessionHostAgentVersion, SessionHostSxSStackVersion, GatewayRegion, TransportType, IsClientPrivateLink, IsSessionHostPrivateLink, SessionHostPoolType
+        ",
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    ),
+
+    // Duplicate and rename TimeGenerated column for date and time separation
     #"Duplicated Column" = Table.DuplicateColumn(Source, "TimeGenerated", "TimeGenerated - Copy"),
-    #"Renamed Columns" = Table.RenameColumns(#"Duplicated Column",{{"TimeGenerated", "Date"}, {"TimeGenerated - Copy", "Time"}}),
-    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns",{{"Date", type date}, {"Time", type text}}),
+    #"Renamed Columns" = Table.RenameColumns(#"Duplicated Column", {{"TimeGenerated", "Date"}, {"TimeGenerated - Copy", "Time"}}),
+
+    // Change data types of Date and Time columns
+    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns", {{"Date", type date}, {"Time", type text}}),
+
+    // Extract and format time from Time column
     #"Extracted Text After Delimiter" = Table.TransformColumns(#"Changed Type", {{"Time", each Text.AfterDelimiter(_, "T"), type text}}),
     #"Extracted First Characters" = Table.TransformColumns(#"Extracted Text After Delimiter", {{"Time", each Text.Start(_, 16), type text}}),
-    #"Changed Type1" = Table.TransformColumnTypes(#"Extracted First Characters",{{"Time", type time}}),
-    #"Reordered Columns" = Table.ReorderColumns(#"Changed Type1",{"CorrelationId", "Date", "Time", "Timekey", "UserName", "ActivityType", "Source", "Code", "CodeSymbolic", "Message", "ServiceError", "Operation", "HostPoolName", "SessionHostName", "ClientOS", "ClientVersion", "ClientType", "ConnectionType", "SessionHostIPAddress", "SessionHostAgentVersion", "SessionHostSxSStackVersion", "GatewayRegion", "TransportType", "IsClientPrivateLink", "IsSessionHostPrivateLink"})
+    #"Changed Type1" = Table.TransformColumnTypes(#"Extracted First Characters", {{"Time", type time}}),
+
+    // Reorder columns for readability
+    #"Reordered Columns" = Table.ReorderColumns(#"Changed Type1", {"CorrelationId", "Date", "Time", "Timekey", "UserName", "ActivityType", "Source", "Code", "CodeSymbolic", "Message", "ServiceError", "Operation", "HostPoolName", "SessionHostName", "ClientOS", "ClientVersion", "ClientType", "ConnectionType", "SessionHostIPAddress", "SessionHostAgentVersion", "SessionHostSxSStackVersion", "GatewayRegion", "TransportType", "IsClientPrivateLink", "IsSessionHostPrivateLink"})
 in
     #"Reordered Columns"
