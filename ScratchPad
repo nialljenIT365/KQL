@@ -1,30 +1,4 @@
 let
-    Source = AzureDataExplorer.Contents("https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg", "nmw-app-law-fwjv4wn75m4qg", "WVDConnections#(lf)| where TimeGenerated >= ago(30d)#(lf)| extend UserName = trim("" "", tolower(UserName))#(lf)| where State == ""Connected""#(lf)| project CorrelationId, UserName, ResourceAlias, StartDate = TimeGenerated#(lf)| join (#(lf)    WVDConnections#(lf)    | where State == ""Completed""#(lf)    | project EndDate = TimeGenerated, CorrelationId#(lf)) on CorrelationId#(lf)| extend StartTimekey = format_datetime(StartDate, 'HHmm')#(lf)| extend EndTimekey = format_datetime(EndDate, 'HHmm')#(lf)| project CorrelationId, StartDate,StartTimekey, EndDate, EndTimekey, UserName, DurationSeconds = (EndDate - StartDate) / 1s#(lf)| summarize arg_max(StartDate, *) by CorrelationId", [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]),
-    #"Changed Type2" = Table.TransformColumnTypes(Source,{{"DurationSeconds", type number}}),
-    #"Rounded Off" = Table.TransformColumns(#"Changed Type2",{{"DurationSeconds", each Number.Round(_, 2), type number}}),
-    #"Duplicated Column" = Table.DuplicateColumn(#"Rounded Off", "StartDate", "StartDate - Copy"),
-    #"Changed Type" = Table.TransformColumnTypes(#"Duplicated Column",{{"StartDate - Copy", type text}}),
-    #"Extracted Text After Delimiter" = Table.TransformColumns(#"Changed Type", {{"StartDate - Copy", each Text.AfterDelimiter(_, "T"), type text}}),
-    #"Extracted First Characters" = Table.TransformColumns(#"Extracted Text After Delimiter", {{"StartDate - Copy", each Text.Start(_, 16), type text}}),
-    #"Changed Type1" = Table.TransformColumnTypes(#"Extracted First Characters",{{"StartDate - Copy", type time}}),
-    #"Renamed Columns" = Table.RenameColumns(#"Changed Type1",{{"StartDate - Copy", "StartTime"}}),
-    #"Duplicated Column1" = Table.DuplicateColumn(#"Renamed Columns", "EndDate", "EndDate - Copy"),
-    #"Changed Type3" = Table.TransformColumnTypes(#"Duplicated Column1",{{"EndDate - Copy", type text}}),
-    #"Extracted Text After Delimiter1" = Table.TransformColumns(#"Changed Type3", {{"EndDate - Copy", each Text.AfterDelimiter(_, " "), type text}}),
-    #"Extracted Text Before Delimiter" = Table.TransformColumns(#"Extracted Text After Delimiter1", {{"EndDate - Copy", each Text.BeforeDelimiter(_, " ", {0, RelativePosition.FromEnd}), type text}}),
-    #"Renamed Columns1" = Table.RenameColumns(#"Extracted Text Before Delimiter",{{"EndDate - Copy", "EndTime"}}),
-    #"Changed Type4" = Table.TransformColumnTypes(#"Renamed Columns1",{{"EndTime", type time}}),
-    #"Reordered Columns" = Table.ReorderColumns(#"Changed Type4",{"CorrelationId", "StartDate", "StartTime", "StartTimekey", "EndDate", "EndTime", "EndTimekey", "UserName", "DurationSeconds"}),
-    #"Duplicated Column2" = Table.DuplicateColumn(#"Reordered Columns", "StartDate", "StartDate - Copy"),
-    #"Duplicated Column3" = Table.DuplicateColumn(#"Duplicated Column2", "EndDate", "EndDate - Copy"),
-    #"Changed Type5" = Table.TransformColumnTypes(#"Duplicated Column3",{{"StartDate - Copy", type date}, {"EndDate - Copy", type date}}),
-    #"Renamed Columns2" = Table.RenameColumns(#"Changed Type5",{{"StartDate - Copy", "StartDate - Short"}, {"EndDate - Copy", "EndDate - Short"}})
-in
-    #"Renamed Columns2"
-
-
-
-let
     // Connect to Azure Data Explorer and retrieve WVDConnections data
     Source = AzureDataExplorer.Contents(
         "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg",
@@ -79,3 +53,86 @@ let
     
 in
     #"Renamed Columns2"
+
+Can you incorporate the KQL quert about and the table modifications into the format below ie Define start and end date/time parameters, let paramRangeStart = todatetime('" & DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss") & "');, let paramRangeEnd = todatetime('" & DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss") & "'); and swap | where TimeGenerated >= ago(30d)#(lf)
+for | where TimeGenerated between (paramRangeStart .. paramRangeEnd)
+let
+    // Define start and end date/time parameters
+    strRangeStart = RangeStart,
+    strRangeEnd = RangeEnd,
+
+    // Create the query
+    Source = AzureDataExplorer.Contents(
+        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg",
+        "nmw-app-law-fwjv4wn75m4qg",
+        "
+        let paramRangeStart = todatetime('" & DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss") & "');
+        let paramRangeEnd = todatetime('" & DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss") & "');
+        
+        WVDConnections
+            | where TimeGenerated between (paramRangeStart .. paramRangeEnd)
+            | where State in ('Connected')
+            | where not(isempty(UserName)) and UserName != '<>'
+            | extend UserName = trim(@'\\s', tolower(UserName))
+            | extend Protocol = iff(UdpUse in ('0', '<>'), 'TCP', 'UDP')
+            | extend ClientType = 
+                iff(ClientType == 'com.microsoft.rdc.windows.msrdc.x64', 'Win RD x64 (MSI)',
+                iff(ClientType == 'com.igel.rdc.linux', 'IGEL',
+                iff(ClientType == 'com.microsoft.rdc.windows.store', 'Win RD Store',
+                iff(ClientType == 'com.microsoft.rdc.html', 'Web Browser (HTML5)',
+                iff(ClientType == 'com.microsoft.rdc.macos', 'MAC OS',
+                iff(ClientType == 'com.microsoft.rdc.macos.beta', 'MAC OS (Beta)',
+                iff(ClientType == 'com.microsoft.rdc.osx.beta', 'MAC OSx (Beta)',
+                iff(ClientType == 'cpc.web.beta', 'Windows Web App (Preview)',
+                iff(ClientType == 'com.microsoft.rdc.windows.msrdc.arm64', 'Win RD ARM 64 (MSI)',
+                iff(ClientType == 'com.microsoft.rdc.windows.wa.msrdc.msix.arm64', 'Win RD ARM 64 (MSI)',
+                iff(ClientType == 'com.microsoft.rdc.ios', 'iOS',
+                iff(ClientType == 'com.microsoft.rdc.androidx.beta', 'Android OS (Beta)',
+                iff(ClientType == 'com.microsoft.rdc.androidx', 'Android OS',
+                iff(ClientType == 'com.microsoft.rdc.windows.msrdc.msix.x64', 'Win RD x64 (MSIX)',
+                iff(ClientType == 'com.microsoft.rdc.windows.wa.msrdc.msix.x64', 'Win App x64 (MSIX)', 
+                'Other'
+                )))))))))))))))
+            | extend HostPoolName = tostring(split(_ResourceId, '/')[-1])
+            | extend Timekey = format_datetime(TimeGenerated, 'HHmm')
+            | extend UserName = trim(' ', tolower(UserName))
+            | extend SessionHostName = trim(' ', tolower(SessionHostName))
+            | extend AutoReconnect = iff(PredecessorConnectionId == '<>', 'False', 'True')
+            | extend EntraJoined = iff(SessionHostName contains '.', 'False', 'True')
+            | project 
+                CorrelationId, 
+                PredecessorConnectionId, 
+                AutoReconnect, 
+                TimeGenerated, 
+                Timekey, 
+                UserName, 
+                GatewayRegion, 
+                ConnectionType, 
+                TransportType, 
+                Protocol, 
+                HostPoolName, 
+                SessionHostPoolType, 
+                SessionHostName, 
+                EntraJoined, 
+                SessionHostIPAddress, 
+                SessionHostOSVersion, 
+                SessionHostOSDescription, 
+                SessionHostAgentVersion, 
+                SessionHostSxSStackVersion, 
+                SessionHostSessionId, 
+                IsSessionHostPrivateLink, 
+                ClientOS, 
+                ClientVersion, 
+                ClientSideIPAddress, 
+                IsClientPrivateLink
+            | summarize arg_max(TimeGenerated, *) by CorrelationId
+        ",
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    ),
+    #"Duplicated Column" = Table.DuplicateColumn(Source, "TimeGenerated", "TimeGenerated - Copy"),
+    #"Changed Type" = Table.TransformColumnTypes(#"Duplicated Column",{{"TimeGenerated - Copy", type date}}),
+    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"TimeGenerated - Copy", "Date"}})
+in
+    #"Renamed Columns"
+
+
