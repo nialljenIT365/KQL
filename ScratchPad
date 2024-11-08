@@ -36,3 +36,32 @@ Expression.SyntaxError: Token ',' expected.
 
 | extend PrivateIPAddress = replace(@'["""\[\]]', '', PrivateIPAddressCandidate)
 
+let
+    // Define start and end date/time parameters
+    strRangeStart = RangeStart,
+    strRangeEnd = RangeEnd,
+
+    // Create the query
+    Source = AzureDataExplorer.Contents(
+        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg",
+        "nmw-app-law-fwjv4wn75m4qg",
+        "let paramRangeStart = todatetime('" & DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss") & "');" &
+        "let paramRangeEnd = todatetime('" & DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss") & "');" &
+        "let ipPrefix = '10.';" &
+        "Heartbeat " &
+        "| where TimeGenerated between (paramRangeStart .. paramRangeEnd) " &
+        "| extend FirstIPCandidate = tostring(split(tolower(tostring(ComputerPrivateIPs)), ',')[0]) " &
+        "| extend SecondIPCandidate = tostring(split(tolower(tostring(ComputerPrivateIPs)), ',')[1]) " &
+        "| extend IsFirstIPStartsWithPrefix = FirstIPCandidate has tolower(ipPrefix) " &
+        "| extend PrivateIPAddressCandidate = iff(IsFirstIPStartsWithPrefix, FirstIPCandidate, SecondIPCandidate) " &
+        "| extend PrivateIPAddress = replace(@'[""\[\]]', '', PrivateIPAddressCandidate) " &
+        "| extend Computer = trim(' ', tolower(Computer)) " &
+        "| extend ResourceGroup = trim(' ', tolower(ResourceGroup)) " &
+        "| project-rename Country = RemoteIPCountry " &
+        "| project-rename SessionHostName = Computer " &
+        "| where ResourceType == 'virtualMachines' " &
+        "| project TimeGenerated, SessionHostName, PrivateIPAddress, Country, ResourceGroup",
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    )
+in
+    Source
