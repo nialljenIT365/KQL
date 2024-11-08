@@ -1,13 +1,22 @@
 let
-    // Source query from Azure Data Explorer
+    // Define start and end date/time parameters
+    strRangeStart = RangeStart,
+    strRangeEnd = RangeEnd,
+
+    // Source query from Azure Data Explorer with dynamic date range
     Source = AzureDataExplorer.Contents(
-        LAWClusterURLAVD, 
-        LAWNameAVD, 
-        "WVDErrors" &
-        "#(lf)| where TimeGenerated >= ago(30d)" &
-        "#(lf)| extend Date = format_datetime(TimeGenerated, 'yyyy-MM-dd')" &  // Adds Date column
-        "#(lf)| extend Time = format_datetime(TimeGenerated, 'HH:mm')" &       // Adds Time column
-        "#(lf)| extend TimeKey = replace("":"", """", Time)",                  // Removes colons from Time
+        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg",
+        "nmw-app-law-fwjv4wn75m4qg",
+        "
+        let paramRangeStart = todatetime('" & DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss") & "');
+        let paramRangeEnd = todatetime('" & DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss") & "');
+        
+        WVDErrors
+            | where TimeGenerated between (paramRangeStart .. paramRangeEnd)
+            | extend Date = format_datetime(TimeGenerated, 'yyyy-MM-dd')    // Adds Date column
+            | extend Time = format_datetime(TimeGenerated, 'HH:mm')         // Adds Time column
+            | extend TimeKey = replace("":"", """", Time)                   // Removes colons from Time
+        ",
         [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
     ),
 
@@ -37,8 +46,8 @@ let
             Date=nullable text, 
             Time=nullable text, 
             TimeKey=nullable text
-        ]}
-    }),
+        ]}}
+    ),
 
     // Add a custom column for 'CodeList'
     #"Added Custom" = Table.AddColumn(#"Grouped Rows", "CodeList", each Table.Column([CorrelationConcat], "Code")),
