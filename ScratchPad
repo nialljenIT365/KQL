@@ -30,3 +30,6 @@ let
     )
 in
     Source
+
+
+Expression.SyntaxError: Token ',' expected.
