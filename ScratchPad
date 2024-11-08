@@ -136,3 +136,71 @@ in
     #"Renamed Columns"
 
 
+
+let
+    // Define start and end date/time parameters
+    strRangeStart = RangeStart,
+    strRangeEnd = RangeEnd,
+
+    // Connect to Azure Data Explorer and retrieve WVDConnections data with dynamic date range
+    Source = AzureDataExplorer.Contents(
+        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg",
+        "nmw-app-law-fwjv4wn75m4qg",
+        "
+        let paramRangeStart = todatetime('" & DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss") & "');
+        let paramRangeEnd = todatetime('" & DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss") & "');
+        
+        WVDConnections
+            | where TimeGenerated between (paramRangeStart .. paramRangeEnd)
+            | extend UserName = trim("" "", tolower(UserName))
+            | where State == ""Connected""
+            | project CorrelationId, UserName, ResourceAlias, StartDate = TimeGenerated
+            | join (
+                WVDConnections
+                | where State == ""Completed""
+                | project EndDate = TimeGenerated, CorrelationId
+            ) on CorrelationId
+            | extend StartTimekey = format_datetime(StartDate, 'HHmm')
+            | extend EndTimekey = format_datetime(EndDate, 'HHmm')
+            | project CorrelationId, StartDate, StartTimekey, EndDate, EndTimekey, UserName, DurationSeconds = (EndDate - StartDate) / 1s
+            | summarize arg_max(StartDate, *) by CorrelationId
+        ",
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    ),
+
+    // Change data type of DurationSeconds column to number
+    #"Changed Type2" = Table.TransformColumnTypes(Source, {{"DurationSeconds", type number}}),
+
+    // Round DurationSeconds to 2 decimal places
+    #"Rounded Off" = Table.TransformColumns(#"Changed Type2", {{"DurationSeconds", each Number.Round(_, 2), type number}}),
+
+    // Duplicate StartDate column to extract StartTime
+    #"Duplicated Column" = Table.DuplicateColumn(#"Rounded Off", "StartDate", "StartDate - Copy"),
+    #"Changed Type" = Table.TransformColumnTypes(#"Duplicated Column", {{"StartDate - Copy", type text}}),
+    #"Extracted Text After Delimiter" = Table.TransformColumns(#"Changed Type", {{"StartDate - Copy", each Text.AfterDelimiter(_, "T"), type text}}),
+    #"Extracted First Characters" = Table.TransformColumns(#"Extracted Text After Delimiter", {{"StartDate - Copy", each Text.Start(_, 16), type text}}),
+    #"Changed Type1" = Table.TransformColumnTypes(#"Extracted First Characters", {{"StartDate - Copy", type time}}),
+    #"Renamed Columns" = Table.RenameColumns(#"Changed Type1", {{"StartDate - Copy", "StartTime"}}),
+
+    // Duplicate EndDate column to extract EndTime
+    #"Duplicated Column1" = Table.DuplicateColumn(#"Renamed Columns", "EndDate", "EndDate - Copy"),
+    #"Changed Type3" = Table.TransformColumnTypes(#"Duplicated Column1", {{"EndDate - Copy", type text}}),
+    #"Extracted Text After Delimiter1" = Table.TransformColumns(#"Changed Type3", {{"EndDate - Copy", each Text.AfterDelimiter(_, " "), type text}}),
+    #"Extracted Text Before Delimiter" = Table.TransformColumns(#"Extracted Text After Delimiter1", {{"EndDate - Copy", each Text.BeforeDelimiter(_, " ", {0, RelativePosition.FromEnd}), type text}}),
+    #"Renamed Columns1" = Table.RenameColumns(#"Extracted Text Before Delimiter", {{"EndDate - Copy", "EndTime"}}),
+    #"Changed Type4" = Table.TransformColumnTypes(#"Renamed Columns1", {{"EndTime", type time}}),
+
+    // Reorder columns for easier readability
+    #"Reordered Columns" = Table.ReorderColumns(#"Changed Type4", {"CorrelationId", "StartDate", "StartTime", "StartTimekey", "EndDate", "EndTime", "EndTimekey", "UserName", "DurationSeconds"}),
+
+    // Duplicate StartDate and EndDate columns to create short date columns
+    #"Duplicated Column2" = Table.DuplicateColumn(#"Reordered Columns", "StartDate", "StartDate - Copy"),
+    #"Duplicated Column3" = Table.DuplicateColumn(#"Duplicated Column2", "EndDate", "EndDate - Copy"),
+    #"Changed Type5" = Table.TransformColumnTypes(#"Duplicated Column3", {{"StartDate - Copy", type date}, {"EndDate - Copy", type date}}),
+    #"Renamed Columns2" = Table.RenameColumns(#"Changed Type5", {{"StartDate - Copy", "StartDate - Short"}, {"EndDate - Copy", "EndDate - Short"}})
+    
+in
+    #"Renamed Columns2"
+
+
+
