@@ -1,3 +1,6 @@
+Virtual Machine Administrator
+
+
 #description: Adds user assigned to personal desktop to local Administrators group on session host VM based on device join type.
 #execution mode: Combined
 #tags: Nerdio
@@ -274,3 +277,105 @@ while ($retryCount -le $maxRetries) {
         $retryCount++
     }
 }
+
+
+#description: Adds user assigned to personal desktop to local Administrators group on session host VM based on device join type.
+#execution mode: Combined
+#tags: Nerdio
+<#
+Notes:
+This script checks if the device is Hybrid Azure AD Joined or Entra ID Joined.
+If Hybrid, it adds the AD user to the local Administrators group.
+If Entra ID Joined, it adds the Azure AD user to the local Administrators group.
+It also checks if the user is already a local admin before attempting to add them.
+If the addition fails, it retries once to ensure the user is added.
+Ensure $DesktopUser is provided in UPN format (e.g., user@contoso.com) for Entra ID joined devices.
+#>
+
+# Output the Desktop User variable for verification
+Write-Output "Desktop User: $DesktopUser"
+
+# Check if $DesktopUser is populated
+if (-not $DesktopUser) {
+    Write-Error -Message 'ERROR: No Desktop User Specified. This VM may not be a personal Desktop.'
+    exit
+}
+
+# Run dsregcmd /status to determine join type
+$dsregStatus = dsregcmd /status
+
+# Define a function to check if the user is in the Administrators group
+function Is-UserInLocalAdminGroup {
+    param (
+        [string]$userName
+    )
+    $admins = Get-LocalGroupMember -Group "Administrators" | Where-Object { $_.Name -eq $userName }
+    return $admins -ne $null
+}
+
+# Define a function to add user to the local Administrators group
+function Add-UserToAdminGroup {
+    param (
+        [string]$userName,
+        [string]$method
+    )
+    if ($method -eq "PowerShell") {
+        Add-LocalGroupMember -Group "Administrators" -Member $userName
+    }
+    elseif ($method -eq "NetCommand") {
+        & net localgroup administrators /add $userName
+    }
+}
+
+# Attempt to add the user, checking if the device is Hybrid or Entra ID joined
+if ($dsregStatus -match "DomainJoined\s*:\s*YES" -and $dsregStatus -match "AzureAdJoined\s*:\s*YES") {
+    # Device is Hybrid Azure AD Joined
+    Write-Output "Device is Hybrid Azure AD Joined."
+    $userToAdd = "$DesktopUser"
+    $method = "PowerShell"
+}
+elseif ($dsregStatus -match "AzureAdJoined\s*:\s*YES" -and $dsregStatus -notmatch "DomainJoined\s*:\s*YES") {
+    # Device is Entra ID Joined
+    Write-Output "Device is Entra ID Joined."
+    $userToAdd = "aberdeen\$DesktopUser"
+    $method = "NetCommand"
+}
+else {
+    Write-Error -Message "ERROR: Device is neither Hybrid Azure AD Joined nor Entra ID Joined."
+    exit
+}
+
+# Add the user if they are not already in the Administrators group
+$retryCount = 0
+$maxRetries = 1
+while ($retryCount -le $maxRetries) {
+    if (Is-UserInLocalAdminGroup -userName $userToAdd) {
+        Write-Output "$userToAdd is already a member of the Administrators group."
+        break
+    }
+    else {
+        Write-Output "Attempting to add $userToAdd to the Administrators group. Attempt $($retryCount + 1)"
+        try {
+            Add-UserToAdminGroup -userName $userToAdd -method $method
+            Write-Output "Successfully added $userToAdd to the Administrators group."
+        }
+        catch {
+            Write-Error -Message "ERROR: Failed to add $userToAdd to the Administrators group. $_"
+        }
+
+        # Check if the addition was successful
+        if (Is-UserInLocalAdminGroup -userName $userToAdd) {
+            Write-Output "$userToAdd has been successfully added to the Administrators group."
+            break
+        }
+        elseif ($retryCount -eq $maxRetries) {
+            Write-Error -Message "ERROR: $userToAdd could not be added to the Administrators group after $($retryCount + 1) attempts."
+        }
+
+        # Increment retry count
+        $retryCount++
+    }
+}
+
+
+
