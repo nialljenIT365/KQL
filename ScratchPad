@@ -1,11 +1,12 @@
-#description: Removes user assigned to personal desktop from local Administrators group on session host VM based on device join type.
+#description: Adds user assigned to personal desktop to local Administrators group on session host VM based on device join type.
 #execution mode: Combined
 #tags: Nerdio
 <#
 Notes:
 This script checks if the device is Hybrid Azure AD Joined or Entra ID Joined.
-If Hybrid, it removes the AD user from the local Administrators group.
-If Entra ID Joined, it removes the Azure AD user from the local Administrators group.
+If Hybrid, it adds the AD user to the local Administrators group.
+If Entra ID Joined, it adds the Azure AD user to the local Administrators group.
+It also checks if the user is already a local admin before attempting to add them.
 Ensure $DesktopUser is provided in UPN format (e.g., user@contoso.com) for Entra ID joined devices.
 #>
 
@@ -21,7 +22,7 @@ if (-not $DesktopUser) {
 # Run dsregcmd /status to determine join type
 $dsregStatus = dsregcmd /status
 
-# Define a function to check if the user is in the Administrators group
+# Define a function to check if the user is already in the Administrators group
 function Is-UserInLocalAdminGroup {
     param (
         [string]$userName
@@ -35,17 +36,17 @@ if ($dsregStatus -match "DomainJoined\s*:\s*YES" -and $dsregStatus -match "Azure
     Write-Output "Device is Hybrid Azure AD Joined."
 
     if (Is-UserInLocalAdminGroup -userName "$DesktopUser") {
-        Write-Output "Removing AD user $DesktopUser from the local Administrators group."
-        try {
-            Remove-LocalGroupMember -Group "Administrators" -Member "$DesktopUser"
-            Write-Output "Successfully removed $DesktopUser from the Administrators group."
-        }
-        catch {
-            Write-Error -Message "ERROR: Failed to remove $DesktopUser from the Administrators group. $_"
-        }
+        Write-Output "$DesktopUser is already a member of the Administrators group."
     }
     else {
-        Write-Output "$DesktopUser is not a member of the Administrators group."
+        Write-Output "Adding AD user $DesktopUser to the local Administrators group."
+        try {
+            Add-LocalGroupMember -Group "Administrators" -Member "$DesktopUser"
+            Write-Output "Successfully added $DesktopUser to the Administrators group."
+        }
+        catch {
+            Write-Error -Message "ERROR: Failed to add $DesktopUser to the Administrators group. $_"
+        }
     }
 }
 elseif ($dsregStatus -match "AzureAdJoined\s*:\s*YES" -and $dsregStatus -notmatch "DomainJoined\s*:\s*YES") {
@@ -56,17 +57,17 @@ elseif ($dsregStatus -match "AzureAdJoined\s*:\s*YES" -and $dsregStatus -notmatc
     $AzureADUser = "AzureAD\$DesktopUser"
 
     if (Is-UserInLocalAdminGroup -userName $AzureADUser) {
-        Write-Output "Removing Azure AD user $AzureADUser from the local Administrators group."
-        try {
-            Remove-LocalGroupMember -Group "Administrators" -Member $AzureADUser
-            Write-Output "Successfully removed $AzureADUser from the Administrators group."
-        }
-        catch {
-            Write-Error -Message "ERROR: Failed to remove $AzureADUser from the Administrators group. $_"
-        }
+        Write-Output "$AzureADUser is already a member of the Administrators group."
     }
     else {
-        Write-Output "$AzureADUser is not a member of the Administrators group."
+        Write-Output "Adding Azure AD user $AzureADUser to the local Administrators group."
+        try {
+            Add-LocalGroupMember -Group "Administrators" -Member $AzureADUser
+            Write-Output "Successfully added $AzureADUser to the Administrators group."
+        }
+        catch {
+            Write-Error -Message "ERROR: Failed to add $AzureADUser to the Administrators group. $_"
+        }
     }
 }
 else {
