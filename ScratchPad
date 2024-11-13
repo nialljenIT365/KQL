@@ -1,1 +1,14 @@
-nmeadmin
+# Define the username and new password
+$username = "nmeadmin"
+$newPassword = "C0caC0la1234"
+
+# Convert the password to a secure string
+$securePassword = ConvertTo-SecureString -String $newPassword -AsPlainText -Force
+
+# Reset the password for the local account
+try {
+    Set-LocalUser -Name $username -Password $securePassword
+    Write-Output "Password for $username has been successfully reset."
+} catch {
+    Write-Error "ERROR: Failed to reset password for $username. $_"
+}
