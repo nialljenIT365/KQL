@@ -1,49 +1,15 @@
-let
-    // Define start and end date/time parameters
-    strRangeStart = RangeStart,
-    strRangeEnd = RangeEnd,
-
-    // Connect to Azure Data Explorer and retrieve WVDConnectionNetworkData data with dynamic date range
-    Source = AzureDataExplorer.Contents(
-        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg",
-        "nmw-app-law-fwjv4wn75m4qg",
-        "
-        let paramRangeStart = todatetime('" & DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss") & "');
-        let paramRangeEnd = todatetime('" & DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss") & "');
-        
-        WVDConnectionNetworkData
-            | where TimeGenerated between (paramRangeStart .. paramRangeEnd)
-            | join kind=leftouter (
-                WVDConnections
-                | where State == ""Connected""
-                | extend Protocol = iff(UdpUse in (""0"",""<>""), ""TCP"", ""UDP"")
-            ) on CorrelationId
-            | summarize 
-                avg_EstAvailableBandwidthKBps = round(avg(EstAvailableBandwidthKBps), 0),
-                median_EstAvailableBandwidthKBps = percentile(EstAvailableBandwidthKBps, 50),
-                max_EstAvailableBandwidthKBps = max(EstAvailableBandwidthKBps),
-                min_EstAvailableBandwidthKBps = min(EstAvailableBandwidthKBps),
-                avg_EstRoundTripTimeInMs = round(avg(EstRoundTripTimeInMs), 0),
-                median_EstRoundTripTimeInMs = percentile(EstRoundTripTimeInMs, 50),
-                max_EstRoundTripTimeInMs = max(EstRoundTripTimeInMs),
-                min_EstRoundTripTimeInMs = min(EstRoundTripTimeInMs)
-            by CorrelationId, TimeGenerated1, UserName, Protocol
-            | extend Timekey = format_datetime(TimeGenerated1, 'HHmm')
-            | extend UserName = trim("" "", tolower(UserName))
-            | project CorrelationId, TimeGenerated = TimeGenerated1, Timekey, UserName, Protocol,
-                      avg_EstAvailableBandwidthKBps, median_EstAvailableBandwidthKBps, max_EstAvailableBandwidthKBps, min_EstAvailableBandwidthKBps,
-                      avg_EstRoundTripTimeInMs, median_EstRoundTripTimeInMs, max_EstRoundTripTimeInMs, min_EstRoundTripTimeInMs
-            | where isnotempty(UserName)
-        ",
-        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
-    ),
-    #"Duplicated Column" = Table.DuplicateColumn(Source, "TimeGenerated", "TimeGenerated - Copy"),
-    #"Duplicated Column1" = Table.DuplicateColumn(#"Duplicated Column", "TimeGenerated", "TimeGenerated - Copy.1"),
-    #"Changed Type" = Table.TransformColumnTypes(#"Duplicated Column1",{{"TimeGenerated - Copy", type date}}),
-    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"TimeGenerated - Copy", "Date"}, {"TimeGenerated - Copy.1", "Time"}}),
-    #"Changed Type1" = Table.TransformColumnTypes(#"Renamed Columns",{{"Time", type text}}),
-    #"Extracted Text After Delimiter" = Table.TransformColumns(#"Changed Type1", {{"Time", each Text.AfterDelimiter(_, "T"), type text}}),
-    #"Extracted Text Before Delimiter" = Table.TransformColumns(#"Extracted Text After Delimiter", {{"Time", each Text.BeforeDelimiter(_, "Z", {0, RelativePosition.FromEnd}), type text}}),
-    #"Changed Type2" = Table.TransformColumnTypes(#"Extracted Text Before Delimiter",{{"Time", type time}})
-in
-    #"Changed Type2"
+#description: Adds user assigned to personal desktop to local Administrators group on session host VM. Use only with personal host pools.
+#execution mode: Combined
+#tags: Nerdio
+<#
+Notes: 
+This script adds the user assigned the personal desktop to the local admin group
+#>
+Write-Output "$DesktopUser"
+if($DesktopUser){
+    Add-LocalGroupMember -Group "Administrators" -Member "$DesktopUser"
+}
+else{
+    Write-Error -Message 'ERROR: No Desktop User Specified. This VM may not be a personal Desktop.'
+    exit
+}
