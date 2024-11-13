@@ -1,3 +1,7 @@
+Niall.Jennings@abrdn.com
+M01DDEVT001
+
+
 # Ensure you have the Az module installed and imported
 # Install-Module -Name Az -Scope CurrentUser -Repository PSGallery -Force
 # Import-Module Az
