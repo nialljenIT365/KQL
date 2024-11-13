@@ -1,3 +1,36 @@
+# Ensure you have the Az module installed and imported
+# Install-Module -Name Az -Scope CurrentUser -Repository PSGallery -Force
+# Import-Module Az
+
+# Define the specific user and VM details
+$userUPN = "Niall.Jennings@abrdn.com"
+$vmName = "M01DDEVT001"
+$roleName = "Virtual Machine Administrator Login"  # Role for VM administrator access
+
+# Get the VM ID to use as the scope for the role assignment
+$scope = (Get-AzVM -Name $vmName).Id
+
+# Check if the user already has the role assigned
+$roleAssignment = Get-AzRoleAssignment -ObjectId (Get-AzADUser -UserPrincipalName $userUPN).Id -Scope $scope -ErrorAction SilentlyContinue
+
+if ($roleAssignment) {
+    Write-Output "$userUPN is already assigned the Virtual Machine Administrator role on $vmName."
+}
+else {
+    Write-Output "Assigning Virtual Machine Administrator role to $userUPN on $vmName."
+    try {
+        New-AzRoleAssignment -ObjectId (Get-AzADUser -UserPrincipalName $userUPN).Id -RoleDefinitionName $roleName -Scope $scope
+        Write-Output "Successfully assigned Virtual Machine Administrator role to $userUPN on $vmName."
+    }
+    catch {
+        Write-Error "ERROR: Failed to assign Virtual Machine Administrator role to $userUPN on $vmName. $_"
+    }
+}
+
+
+
+
+
 Niall.Jennings@abrdn.com
 M01DDEVT001
 
