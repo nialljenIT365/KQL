@@ -1,3 +1,27 @@
+A member was removed from a security-enabled local group.
+ 
+Subject:
+	Security ID:		SYSTEM
+	Account Name:		M01DDEVT001$
+	Account Domain:		WORKGROUP
+	Logon ID:		0x3E7
+ 
+Member:
+	Security ID:		ABERDEEN\Niall.Jennings
+	Account Name:		-
+ 
+Group:
+	Security ID:		BUILTIN\Administrators
+	Group Name:		Administrators
+	Group Domain:		Builtin
+ 
+Additional Information:
+	Privileges:		-
+
+
+
+
+
 #description: Adds user assigned to personal desktop to local Administrators group on session host VM based on device join type.
 #execution mode: Combined
 #tags: Nerdio
