@@ -1,4 +1,18 @@
 WVDConnections
+| where TimeGenerated >= ago(30d)
+| where SessionHostName != "<>"
+| extend HostPoolName = tostring(split(_ResourceId, '/')[-1])
+| summarize arg_max(TimeGenerated, *) by SessionHostName
+| extend SessionHostName = trim(' ', tolower(SessionHostName))
+| extend SessionHostName = replace("≤", "", replace("≥", "", SessionHostName))
+| project TimeGenerated, UserName, SessionHostName, HostPoolName
+| where SessionHostName contains "m01tsspi0001"
+
+
+
+
+
+WVDConnections
             | where TimeGenerated >= ago(30d)
             | where SessionHostName != "<>"
             | extend HostPoolName = tostring(split(_ResourceId, '/')[-1])
