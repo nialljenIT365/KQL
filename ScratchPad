@@ -1,3 +1,6 @@
+= Table.Buffer(Table.Sort(#"Changed Type",{{"OrderDate", Order.Descending}}))
+
+
 WVDConnections
 | where TimeGenerated >= ago(30d)
 | where SessionHostName != "<>"
