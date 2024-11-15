@@ -1,14 +1,18 @@
-# Define the username and new password
-$username = "nmeadmin"
-$newPassword = "C0caC0la1234"
+WVDConnections
+            | where TimeGenerated >= ago(30d)
+            | where SessionHostName != "<>"
+            | extend HostPoolName = tostring(split(_ResourceId, '/')[-1])
+            | summarize arg_max(TimeGenerated, *) by SessionHostName
+            | extend SessionHostName = trim(' ', tolower(SessionHostName))
+            | project TimeGenerated, UserName, SessionHostName, HostPoolName
+            | where SessionHostName contains "m01tsspi0001"
 
-# Convert the password to a secure string
-$securePassword = ConvertTo-SecureString -String $newPassword -AsPlainText -Force
 
-# Reset the password for the local account
-try {
-    Set-LocalUser -Name $username -Password $securePassword
-    Write-Output "Password for $username has been successfully reset."
-} catch {
-    Write-Error "ERROR: Failed to reset password for $username. $_"
-}
+14/11/2024, 21:33:32.605
+ODINIntuneTestUser01@abrdn.com
+≤m01tsspi0001.aberdeen.aberdeen-asset.com≥
+neu_tst_sspersistent
+15/11/2024, 07:33:06.426
+ODINIntuneTestUser01@abrdn.com
+m01tsspi0001.aberdeen.aberdeen-asset.com
+neu_tst_sspersistent
