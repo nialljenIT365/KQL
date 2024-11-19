@@ -1,3 +1,18 @@
+Registry Hive	HKEY_LOCAL_MACHINE
+Registry Path	SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services
+Value Name	fDisableCpm
+Value Type	REG_DWORD
+Enabled Value	1
+Disabled Value	0
+
+
+Configure the following registry key and value. You don't need to restart the local device for the settings to take effect.
+
+Key: HKEY_LOCAL_MACHINE\Software\Microsoft\Terminal Server Client
+Type: REG_DWORD
+Value name: DisablePrinterRedirection
+Value data: 1
+
 # Function to create registry path if it doesn't exist
 function Ensure-RegistryPathExists {
     param (
