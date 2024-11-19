@@ -1,44 +1,41 @@
-Registry Hive	HKEY_LOCAL_MACHINE
-Registry Path	SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services
-Value Name	fDisableCpm
-Value Type	REG_DWORD
-Enabled Value	1
-Disabled Value	0
+#description: Sets the fDisableCpm registry key for Terminal Services
+#tags: Nerdio, Registry, TerminalServices
 
+<#
+Notes:
+This script sets the registry key `fDisableCpm` under 
+`HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services`
+to either 1 (Enabled) or 0 (Disabled).
 
-Configure the following registry key and value. You don't need to restart the local device for the settings to take effect.
+Customize the $EnabledValue variable to set the desired state.
+#>
 
-Key: HKEY_LOCAL_MACHINE\Software\Microsoft\Terminal Server Client
-Type: REG_DWORD
-Value name: DisablePrinterRedirection
-Value data: 1
+# Define registry key details
+$RegistryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services"
+$ValueName = "fDisableCpm"
+$ValueType = "DWORD"  # Registry type
+$EnabledValue = 1     # Set to 1 to enable, 0 to disable
 
-# Function to create registry path if it doesn't exist
-function Ensure-RegistryPathExists {
-    param (
-        [string]$path
-    )
-    
-    if (-not (Test-Path $path)) {
-        New-Item -Path $path -Force | Out-Null
-        Write-Host "INFO: Created registry path $path"
+# Ensure the registry path exists
+Write-Output "Ensuring registry path exists: $RegistryPath"
+if (-not (Test-Path $RegistryPath)) {
+    try {
+        New-Item -Path $RegistryPath -Force | Out-Null
+        Write-Output "Registry path created: $RegistryPath"
+    } catch {
+        Write-Output "Failed to create registry path: $_"
+        Exit 1
     }
 }
 
-# Define the registry key path
-$registryPath = "HKLM:\Software\Microsoft\Terminal Server Client"
-
-# Ensure the registry path exists
-Ensure-RegistryPathExists -path $registryPath
-
-$propertyName = "DisablePrinterRedirection"
-$propertyValue = 1
-
-$currentValue = (Get-ItemProperty -Path $registryPath -Name $propertyName -ErrorAction SilentlyContinue).$propertyName
-
-if ($currentValue -ne $propertyValue) {
-    Set-ItemProperty -Path $registryPath -Name $propertyName -Value $propertyValue
-    Write-Host "INFO: $propertyName is set to $propertyValue"
-} else {
-    Write-Host "INFO: $propertyName has already been set to $propertyValue"
+# Set the registry value
+Write-Output "Setting registry value: $ValueName to $EnabledValue ($ValueType) at $RegistryPath"
+try {
+    Set-ItemProperty -Path $RegistryPath -Name $ValueName -Value $EnabledValue -Type $ValueType
+    Write-Output "Registry value set successfully."
+} catch {
+    Write-Output "Failed to set registry value: $_"
+    Exit 1
 }
+
+### End Script ###
