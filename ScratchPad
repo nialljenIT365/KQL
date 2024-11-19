@@ -1,115 +1,29 @@
-A member was removed from a security-enabled local group.
- 
-Subject:
-	Security ID:		SYSTEM
-	Account Name:		M01DDEVT001$
-	Account Domain:		WORKGROUP
-	Logon ID:		0x3E7
- 
-Member:
-	Security ID:		ABERDEEN\Niall.Jennings
-	Account Name:		-
- 
-Group:
-	Security ID:		BUILTIN\Administrators
-	Group Name:		Administrators
-	Group Domain:		Builtin
- 
-Additional Information:
-	Privileges:		-
-
-
-
-
-
-#description: Adds user assigned to personal desktop to local Administrators group on session host VM based on device join type.
-#execution mode: Combined
-#tags: Nerdio
-<#
-Notes:
-This script checks if the device is Hybrid Azure AD Joined or Entra ID Joined.
-If Hybrid, it adds the AD user to the local Administrators group.
-If Entra ID Joined, it adds the Azure AD user to the local Administrators group.
-It also checks if the user is already a local admin before attempting to add them.
-If the addition fails, it retries once to ensure the user is added.
-Ensure $DesktopUser is provided in UPN format (e.g., user@contoso.com) for Entra ID joined devices.
-#>
-
-# Check if $DesktopUser is populated
-if (-not $DesktopUser) {
-    Write-Error -Message 'ERROR: No Desktop User Specified. This VM may not be a personal Desktop.'
-    exit
+# Function to create registry path if it doesn't exist
+function Ensure-RegistryPathExists {
+    param (
+        [string]$path
+    )
+    
+    if (-not (Test-Path $path)) {
+        New-Item -Path $path -Force | Out-Null
+        Write-Host "INFO: Created registry path $path"
+    }
 }
 
-# Run dsregcmd /status to determine join type
-$dsregStatus = dsregcmd /status
+# Define the registry key path
+$registryPath = "HKLM:\Software\Microsoft\Terminal Server Client"
 
-# Attempt to add the user, checking if the device is Hybrid or Entra ID joined
-if ($dsregStatus -match "DomainJoined\s*:\s*YES" -and $dsregStatus -match "AzureAdJoined\s*:\s*YES") {
-    # Device is Hybrid Azure AD Joined
-    Write-Output "Device is Hybrid Azure AD Joined."
-    # Output the Desktop User variable for verification
-    Write-Output "Desktop User: $DesktopUser"
-    Add-LocalGroupMember -Group "Administrators" -Member $DesktopUser
+# Ensure the registry path exists
+Ensure-RegistryPathExists -path $registryPath
+
+$propertyName = "DisablePrinterRedirection"
+$propertyValue = 1
+
+$currentValue = (Get-ItemProperty -Path $registryPath -Name $propertyName -ErrorAction SilentlyContinue).$propertyName
+
+if ($currentValue -ne $propertyValue) {
+    Set-ItemProperty -Path $registryPath -Name $propertyName -Value $propertyValue
+    Write-Host "INFO: $propertyName is set to $propertyValue"
+} else {
+    Write-Host "INFO: $propertyName has already been set to $propertyValue"
 }
-elseif ($dsregStatus -match "AzureAdJoined\s*:\s*YES" -and $dsregStatus -notmatch "DomainJoined\s*:\s*YES") {
-    # Device is Entra ID Joined
-    Write-Output "Device is Entra ID Joined."
-    Write-Output "Desktop User: $DesktopUser"
-    $AzureAD = "AzureAD\"
-    $Target = $AzureAD+$DesktopUser
-    Add-LocalGroupMember -Group "Administrators" -Member $Target
-}
-else {
-    Write-Error -Message "ERROR: Device is neither Hybrid Azure AD Joined nor Entra ID Joined."
-    exit
-}
-
-
-
-
-
-
-
-
-= Table.Buffer(Table.Sort(#"Changed Type",{{"OrderDate", Order.Descending}}))
-
-
-WVDConnections
-| where TimeGenerated >= ago(30d)
-| where SessionHostName != "<>"
-| extend HostPoolName = tostring(split(_ResourceId, '/')[-1])
-| summarize arg_max(TimeGenerated, *) by SessionHostName
-| extend SessionHostName = trim(' ', tolower(SessionHostName))
-| extend SessionHostName = replace("≤", "", replace("≥", "", SessionHostName))
-| project TimeGenerated, UserName, SessionHostName, HostPoolName
-| where SessionHostName contains "m01tsspi0001"
-
-
-
-
-
-WVDConnections
-            | where TimeGenerated >= ago(30d)
-            | where SessionHostName != "<>"
-            | extend HostPoolName = tostring(split(_ResourceId, '/')[-1])
-            | summarize arg_max(TimeGenerated, *) by SessionHostName
-            | extend SessionHostName = trim(' ', tolower(SessionHostName))
-            | project TimeGenerated, UserName, SessionHostName, HostPoolName
-            | where SessionHostName contains "m01tsspi0001"
-
-
-14/11/2024, 21:33:32.605
-ODINIntuneTestUser01@abrdn.com
-≤m01tsspi0001.aberdeen.aberdeen-asset.com≥
-neu_tst_sspersistent
-15/11/2024, 07:33:06.426
-ODINIntuneTestUser01@abrdn.com
-m01tsspi0001.aberdeen.aberdeen-asset.com
-neu_tst_sspersistent
-
-
-
-
-
-
