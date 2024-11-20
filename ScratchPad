@@ -1,41 +1,21 @@
-#description: Sets the fDisableCpm registry key for Terminal Services
-#tags: Nerdio, Registry, TerminalServices
-
-<#
-Notes:
-This script sets the registry key `fDisableCpm` under 
-`HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services`
-to either 1 (Enabled) or 0 (Disabled).
-
-Customize the $EnabledValue variable to set the desired state.
-#>
-
-# Define registry key details
-$RegistryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services"
-$ValueName = "fDisableCpm"
-$ValueType = "DWORD"  # Registry type
-$EnabledValue = 1     # Set to 1 to enable, 0 to disable
-
-# Ensure the registry path exists
-Write-Output "Ensuring registry path exists: $RegistryPath"
-if (-not (Test-Path $RegistryPath)) {
-    try {
-        New-Item -Path $RegistryPath -Force | Out-Null
-        Write-Output "Registry path created: $RegistryPath"
-    } catch {
-        Write-Output "Failed to create registry path: $_"
-        Exit 1
-    }
-}
-
-# Set the registry value
-Write-Output "Setting registry value: $ValueName to $EnabledValue ($ValueType) at $RegistryPath"
-try {
-    Set-ItemProperty -Path $RegistryPath -Name $ValueName -Value $EnabledValue -Type $ValueType
-    Write-Output "Registry value set successfully."
-} catch {
-    Write-Output "Failed to set registry value: $_"
-    Exit 1
-}
-
-### End Script ###
+let binSize = 5m;
+let timeRangeStart = now(-1d);
+let timeRangeEnd = now();
+let filterSubstring = "ALL"; // Replace with the desired substring, or set to "ALL" for all computers
+Perf
+| where TimeGenerated between (timeRangeStart..timeRangeEnd)
+| where ObjectName == "Processor Information" and CounterName == "% Processor Time"
+| where filterSubstring == "ALL" or tostring(Computer) contains filterSubstring
+| summarize AVG_CPU = round(avg(CounterValue), 2), 
+    MAX_CPU = round(max(CounterValue), 2), 
+    MIN_CPU = round(min(CounterValue), 2),
+    MED_CPU = round(percentile(CounterValue, 50), 2),
+    ItemsPerTimeBin = count() // Counting the number of entries per time bin
+    by BinnedTime = bin(TimeGenerated, binSize), Computer
+    | project TimeGenerated = BinnedTime,
+                  Computer,
+                  AVG_CPU,
+                  MED_CPU,
+                  MAX_CPU,
+                  MIN_CPU,
+                  ItemsPerTimeBin
