@@ -1,30 +1,27 @@
-let binSize = 5m;
-let paramRangeStart = todatetime('<Insert_Start_DateTime>');
-let paramRangeEnd = todatetime('<Insert_End_DateTime>');
-Perf
-| where TimeGenerated between (paramRangeStart .. paramRangeEnd)
-| where ObjectName == 'Processor Information' and CounterName == '% Processor Time'
-| summarize 
-    AVG_CPU = round(avg(CounterValue), 2), 
-    MAX_CPU = round(max(CounterValue), 2), 
-    MIN_CPU = round(min(CounterValue), 2), 
-    MED_CPU = round(percentile(CounterValue, 50), 2), 
-    ItemsPerTimeBin = count()
-by 
-    BinnedTime = bin(TimeGenerated, binSize), Computer
-| extend Computer = trim(' ', tolower(Computer))
-| extend Timekey = format_datetime(BinnedTime, 'HHmm')
-| project 
-    TimeGenerated = BinnedTime, 
-    Timekey, 
-    SessionHostName = Computer, 
-    AVG_CPU, 
-    MED_CPU, 
-    MAX_CPU, 
-    MIN_CPU, 
-    ItemsPerTimeBin
+        let binSize = 5m;
+        let timeRangeStart = now(-1d);
+        let timeRangeEnd = now();
+        Perf
+        | where TimeGenerated between (timeRangeStart..timeRangeEnd)
+        | where ObjectName == "Memory" and CounterName == "% Committed Bytes In Use"
+        | summarize AVG_RAM_CommittedBytesInUse = round(avg(CounterValue), 2),
+                  MAX_RAM_CommittedBytesInUse = round(max(CounterValue), 2),
+                  MIN_RAM_CommittedBytesInUse = round(min(CounterValue), 2),
+                  MED_RAM_CommittedBytesInUse = round(percentile(CounterValue, 50), 2),
+                  ItemsPerTimeBin = count() // Counting the number of entries per time bin
+          by BinnedTime = bin(TimeGenerated, binSize), Computer
+          | extend Computer = trim(' ', tolower(Computer))
+          | extend Timekey = format_datetime(BinnedTime, 'HHmm')
+        | project TimeGenerated = BinnedTime, // Aliased BinnedTime again as "Time"
+                  Timekey,
+                  Computer,
+                  AVG_RAM_CommittedBytesInUse,
+                  MED_RAM_CommittedBytesInUse,
+                  MAX_RAM_CommittedBytesInUse,
+                  MIN_RAM_CommittedBytesInUse,
+                  ItemsPerTimeBin
 
-
+Replace KQL below with KQL above, keep rest of M-Query the same 
 
 let
     // Define start and end date/time parameters
@@ -60,6 +57,15 @@ let
             "         ItemsPerTimeBin"
         }),
         [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
-    )
+    ),
+    #"Duplicated Column" = Table.DuplicateColumn(Source, "TimeGenerated", "TimeGenerated - Copy"),
+    #"Duplicated Column1" = Table.DuplicateColumn(#"Duplicated Column", "TimeGenerated", "TimeGenerated - Copy.1"),
+    #"Changed Type" = Table.TransformColumnTypes(#"Duplicated Column1",{{"TimeGenerated - Copy", type date}}),
+    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"TimeGenerated - Copy", "Date"}, {"TimeGenerated - Copy.1", "Time"}}),
+    #"Changed Type1" = Table.TransformColumnTypes(#"Renamed Columns",{{"Time", type text}}),
+    #"Extracted Text After Delimiter" = Table.TransformColumns(#"Changed Type1", {{"Time", each Text.AfterDelimiter(_, "T"), type text}}),
+    #"Extracted Text Before Delimiter" = Table.TransformColumns(#"Extracted Text After Delimiter", {{"Time", each Text.BeforeDelimiter(_, "Z", {0, RelativePosition.FromEnd}), type text}}),
+    #"Changed Type2" = Table.TransformColumnTypes(#"Extracted Text Before Delimiter",{{"Time", type time}}),
+    #"Reordered Columns" = Table.ReorderColumns(#"Changed Type2",{"TimeGenerated", "Date", "Time", "Timekey", "SessionHostName", "AVG_CPU", "MED_CPU", "MAX_CPU", "MIN_CPU", "ItemsPerTimeBin"})
 in
-    Source
+    #"Reordered Columns"
