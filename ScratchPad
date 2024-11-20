@@ -1,3 +1,29 @@
+        let binSize = 5m;
+        let paramRangeStart = now(-1d);
+        let paramRangeEnd = now();
+        Perf
+        | where TimeGenerated between (paramRangeStart..paramRangeEnd)
+        //| where ObjectName == "PhysicalDisk" and CounterName == "Current Disk Queue Length" and InstanceName == "_Total"
+        | where ObjectName == "LogicalDisk" and CounterName == "Current Disk Queue Length" and InstanceName == "C:"
+        | summarize AVG_Disk_QLength_int = round(avg(CounterValue)), 
+                  MAX_Disk_QLength_int = round(max(CounterValue)), 
+                  MIN_Disk_QLength_int = round(min(CounterValue)),
+                  MED_Disk_QLength_int = round(percentile(CounterValue, 50)),
+                  CountPerTimeBin_int = count() // Counting the number of entries per time bin
+          by BinnedTime = bin(TimeGenerated, binSize), Computer
+        | extend Computer = trim(' ', tolower(Computer))
+        | extend Timekey = format_datetime(BinnedTime, 'HHmm')
+        | project TimeGenerated = BinnedTime, 
+                  Timekey, 
+                  SessionHostName = Computer, 
+                  AVG_Disk_QLength_int,
+                  MAX_Disk_QLength_int, 
+                  MIN_Disk_QLength_int, 
+                  MED_Disk_QLength_int, 
+                  CountPerTimeBin_int
+
+
+
 let
     // Define start and end date/time parameters
     strRangeStart = RangeStart,
