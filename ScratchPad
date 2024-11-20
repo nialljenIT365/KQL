@@ -1,3 +1,23 @@
+        let binSize = 5m;
+        let paramRangeStart = now(-1d);
+        let paramRangeEnd = now();
+        Perf
+        | where TimeGenerated between (paramRangeStart..paramRangeEnd)
+        | where ObjectName == "LogicalDisk" and CounterName == "% Free Space" and InstanceName == "C:"
+        | summarize Disk_FreeSpace = round(avg(CounterValue),2), 
+                  CountPerTimeBin = count() // Counting the number of entries per time bin
+          by BinnedTime = bin(TimeGenerated, binSize), Computer
+        | extend Disk_UsedSpace = round((100 - Disk_FreeSpace),2) // Calculate used disk space
+        | extend Computer = trim(' ', tolower(Computer))
+        | extend Timekey = format_datetime(BinnedTime, 'HHmm')
+        | project TimeGenerated = BinnedTime, 
+                  Timekey, 
+                  Computer, 
+                  Disk_FreeSpace, 
+                  Disk_UsedSpace, 
+                  CountPerTimeBin
+
+
 let
     // Define start and end date/time parameters
     strRangeStart = RangeStart,
