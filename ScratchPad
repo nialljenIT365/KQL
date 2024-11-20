@@ -1,3 +1,5 @@
+Expression.SyntaxError: Token ',' expected.
+
 let
     // Define start and end date/time parameters
     strRangeStart = RangeStart,
