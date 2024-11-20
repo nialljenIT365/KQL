@@ -1,4 +1,57 @@
-        let binSize = 5m;
+let
+    // Define start and end date/time parameters
+    strRangeStart = RangeStart,
+    strRangeEnd = RangeEnd,
+
+    // Connect to Azure Data Explorer and retrieve data with dynamic date range
+    Source = AzureDataExplorer.Contents(
+        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg",
+        "nmw-app-law-fwjv4wn75m4qg",
+        Text.Combine({
+            "let binSize = 5m;",
+            "let paramRangeStart = todatetime('", DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss"), "');",
+            "let paramRangeEnd = todatetime('", DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss"), "');",
+            "Perf",
+            "| where TimeGenerated between (paramRangeStart..paramRangeEnd)",
+            "| where ObjectName == 'PhysicalDisk' and CounterName == 'Avg. Disk sec/Transfer' and InstanceName == '_Total'",
+            "| summarize AVG_Disk_Transfers_ms = round(avg(CounterValue) * 1000, 2),",
+            "          MAX_Disk_Transfers_ms = round(max(CounterValue) * 1000, 2),",
+            "          MIN_Disk_Transfers_ms = round(min(CounterValue) * 1000, 2),",
+            "          MED_Disk_Transfers_ms = round(percentile(CounterValue, 50) * 1000, 2),",
+            "          CountPerTimeBin_int = count()",
+            "by BinnedTime = bin(TimeGenerated, binSize), Computer",
+            "| extend Computer = trim(' ', tolower(Computer))",
+            "| extend Timekey = format_datetime(BinnedTime, 'HHmm')",
+            "| project TimeGenerated = BinnedTime,",
+            "         Timekey,",
+            "         SessionHostName = Computer,",
+            "         AVG_Disk_Transfers_ms,",
+            "         MED_Disk_Transfers_ms,",
+            "         MAX_Disk_Transfers_ms,",
+            "         MIN_Disk_Transfers_ms,",
+            "         CountPerTimeBin_int"
+        }),
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    ),
+    #"Duplicated Column" = Table.DuplicateColumn(Source, "TimeGenerated", "TimeGenerated - Copy"),
+    #"Duplicated Column1" = Table.DuplicateColumn(#"Duplicated Column", "TimeGenerated", "TimeGenerated - Copy.1"),
+    #"Changed Type" = Table.TransformColumnTypes(#"Duplicated Column1",{{"TimeGenerated - Copy", type date}}),
+    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"TimeGenerated - Copy", "Date"}, {"TimeGenerated - Copy.1", "Time"}}),
+    #"Changed Type1" = Table.TransformColumnTypes(#"Renamed Columns",{{"Time", type text}}),
+    #"Extracted Text After Delimiter" = Table.TransformColumns(#"Changed Type1", {{"Time", each Text.AfterDelimiter(_, "T"), type text}}),
+    #"Extracted Text Before Delimiter" = Table.TransformColumns(#"Extracted Text After Delimiter", {{"Time", each Text.BeforeDelimiter(_, "Z", {0, RelativePosition.FromEnd}), type text}}),
+    #"Changed Type2" = Table.TransformColumnTypes(#"Extracted Text Before Delimiter",{{"Time", type time}}),
+    #"Reordered Columns" = Table.ReorderColumns(#"Changed Type2",{"TimeGenerated", "Date", "Time", "Timekey", "SessionHostName", "AVG_Disk_Transfers_ms", "MED_Disk_Transfers_ms", "MAX_Disk_Transfers_ms", "MIN_Disk_Transfers_ms", "CountPerTimeBin_int"})
+in
+    #"Reordered Columns"
+
+
+
+
+
+
+
+let binSize = 5m;
         let paramRangeStart = now(-1d);
         let paramRangeEnd = now();
         Perf
