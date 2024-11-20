@@ -1,3 +1,28 @@
+        let binSize = 5m;
+        let paramRangeStart = now(-1d);
+        let paramRangeEnd = now();
+        Perf
+        | where TimeGenerated between (paramRangeStart..paramRangeEnd)
+        | where ObjectName == "Memory" and CounterName == "Page Faults/sec"
+        | summarize AVG_RAM_PageFaultsPerSec = round(avg(CounterValue), 0), 
+                  MAX_RAM_PageFaultsPerSec = round(max(CounterValue), 0), 
+                  MIN_RAM_PageFaultsPerSec = round(min(CounterValue), 0),
+                  MED_RAM_PageFaultsPerSec = round(percentile(CounterValue, 50), 0),
+                  CountPerTimeBin_int = count() // Counting the number of entries per time bin
+          by BinnedTime = bin(TimeGenerated, binSize), Computer
+        | extend Computer = trim(' ', tolower(Computer))
+        | extend Timekey = format_datetime(BinnedTime, 'HHmm')
+        | project TimeGenerated = BinnedTime, 
+                  Timekey, 
+                  Computer, 
+                  AVG_RAM_PageFaultsPerSec, 
+                  MED_RAM_PageFaultsPerSec, 
+                  MAX_RAM_PageFaultsPerSec, 
+                  MIN_RAM_PageFaultsPerSec, 
+                  CountPerTimeBin_int
+        
+
+
 let
     // Define start and end date/time parameters
     strRangeStart = RangeStart,
