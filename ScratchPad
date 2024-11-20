@@ -3,91 +3,44 @@ let
     strRangeStart = RangeStart,
     strRangeEnd = RangeEnd,
 
-    // Connect to Azure Data Explorer and retrieve data with dynamic date range
-    Source = AzureDataExplorer.Contents(
-        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg",
-        "nmw-app-law-fwjv4wn75m4qg",
-        Text.Combine({
-            "let binSize = 5m;",
-            "let paramRangeStart = todatetime('", DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss"), "');",
-            "let paramRangeEnd = todatetime('", DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss"), "');",
-            "let filterSubstring = \"ALL\";",
-            "Perf",
-            "| where TimeGenerated between (paramRangeStart .. paramRangeEnd)",
-            "| where ObjectName == \"Processor Information\" and CounterName == \"% Processor Time\"",
-            "| where filterSubstring == \"ALL\" or tostring(Computer) contains filterSubstring",
-            "| summarize",
-            "    AVG_CPU = round(avg(CounterValue), 2),",
-            "    MAX_CPU = round(max(CounterValue), 2),",
-            "    MIN_CPU = round(min(CounterValue), 2),",
-            "    MED_CPU = round(percentile(CounterValue, 50), 2),",
-            "    ItemsPerTimeBin = count()",
-            "by BinnedTime = bin(TimeGenerated, binSize), Computer",
-            "| extend",
-            "    Computer = trim(' ', tolower(Computer))",
-            "| extend",
-            "    Timekey = format_datetime(BinnedTime, 'HHmm')",
-            "| project",
-            "    TimeGenerated = BinnedTime,",
-            "    Timekey,",
-            "    SessionHostName = Computer,",
-            "    AVG_CPU,",
-            "    MED_CPU,",
-            "    MAX_CPU,",
-            "    MIN_CPU,",
-            "    ItemsPerTimeBin"
-        }),
-        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
-    )
-in
-    Source
-
-
-
-Expression.SyntaxError: Token ',' expected.
-
-let
-    // Define start and end date/time parameters
-    strRangeStart = RangeStart,
-    strRangeEnd = RangeEnd,
-
-    // Connect to Azure Data Explorer and retrieve data with dynamic date range
+    // Connect to Azure Data Explorer and retrieve WVDErrors data with dynamic date range
     Source = AzureDataExplorer.Contents(
         "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg",
         "nmw-app-law-fwjv4wn75m4qg",
         "
-        let binSize = 5m;
         let paramRangeStart = todatetime('" & DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss") & "');
         let paramRangeEnd = todatetime('" & DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss") & "');
-        let filterSubstring = \"ALL\"; // Replace with the desired substring, or set to \"ALL\" for all computers
         
-        Perf
-        | where TimeGenerated between (paramRangeStart .. paramRangeEnd)
-        | where ObjectName == \"Processor Information\" and CounterName == \"% Processor Time\"
-        | where filterSubstring == \"ALL\" or tostring(Computer) contains filterSubstring
-        | summarize 
-            AVG_CPU = round(avg(CounterValue), 2), 
-            MAX_CPU = round(max(CounterValue), 2), 
-            MIN_CPU = round(min(CounterValue), 2), 
-            MED_CPU = round(percentile(CounterValue, 50), 2), 
-            ItemsPerTimeBin = count() // Counting the number of entries per time bin
-        by 
-            BinnedTime = bin(TimeGenerated, binSize), Computer
-        | extend 
-            Computer = trim(' ', tolower(Computer))
-        | extend 
-            Timekey = format_datetime(BinnedTime, 'HHmm')
-        | project 
-            TimeGenerated = BinnedTime, 
-            Timekey, 
-            SessionHostName = Computer, 
-            AVG_CPU, 
-            MED_CPU, 
-            MAX_CPU, 
-            MIN_CPU, 
-            ItemsPerTimeBin
+        WVDErrors
+            | where TimeGenerated between (paramRangeStart .. paramRangeEnd)
+            | join kind=leftouter (
+                WVDConnections
+                | where State == ""Connected""
+            ) on CorrelationId
+            | extend HostPoolName = tostring(split(_ResourceId, ""/"")[-1])
+            | extend SessionHostName = trim("" "", tolower(SessionHostName))
+            | extend Timekey = format_datetime(TimeGenerated, 'HHmm')
+            | extend UserName = trim("" "", tolower(UserName))
+            | project CorrelationId, TimeGenerated, Timekey, UserName, ActivityType, Source, Code, CodeSymbolic, Message, ServiceError, Operation, HostPoolName, SessionHostName, ClientOS, ClientVersion, ClientType, ConnectionType, SessionHostIPAddress, SessionHostAgentVersion, SessionHostSxSStackVersion, GatewayRegion, TransportType, IsClientPrivateLink, IsSessionHostPrivateLink, SessionHostPoolType
         ",
         [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
     )
 in
     Source
+
+replace KQL above with code below
+
+
+let binSize = 5m;
+let paramRangeStart = todatetime('" & DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss") & "');
+let paramRangeEnd = todatetime('" & DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss") & "');
+Perf
+| where TimeGenerated between (paramRangeStart .. paramRangeEnd)
+| where ObjectName == "Processor Information" and CounterName == "% Processor Time"
+| summarize AVG_CPU = round(avg(CounterValue), 2), MAX_CPU = round(max(CounterValue), 2), MIN_CPU = round(min(CounterValue), 2), MED_CPU = round(percentile(CounterValue, 50), 2), ItemsPerTimeBin = count() // Counting the number of entries per time bin
+by BinnedTime = bin(TimeGenerated, binSize), Computer
+| extend Computer = trim(' ', tolower(Computer))
+| extend Timekey = format_datetime(BinnedTime, 'HHmm')
+| project TimeGenerated = BinnedTime, Timekey, SessionHostName = Computer, AVG_CPU, MED_CPU, MAX_CPU, MIN_CPU, ItemsPerTimeBin
+
+
