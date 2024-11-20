@@ -1,3 +1,58 @@
+Repeat exercise with
+
+        let binSize = 5m;
+        let paramRangeStart = now(-1d);
+        let paramRangeEnd = now();
+        Perf
+        | where TimeGenerated between (paramRangeStart..paramRangeEnd)
+        | where ObjectName == "PhysicalDisk" and CounterName == "Avg. Disk sec/Read" and InstanceName == "_Total"
+        | summarize AVG_Disk_Reads_ms = round(avg(CounterValue) * 1000, 2), 
+                  MAX_Disk_Reads_ms = round(max(CounterValue) * 1000, 2), 
+                  MIN_Disk_Reads_ms = round(min(CounterValue) * 1000, 2),
+                  MED_Disk_Reads_ms = round(percentile(CounterValue, 50) * 1000, 2),
+                  CountPerTimeBin_int = count() // Counting the number of entries per time bin
+          by BinnedTime = bin(TimeGenerated, binSize), Computer
+        | extend Computer = trim(' ', tolower(Computer))
+        | extend Timekey = format_datetime(BinnedTime, 'HHmm')
+        | project TimeGenerated = BinnedTime, 
+                  Timekey, 
+                  SessionHostName = Computer, 
+                  AVG_Disk_Reads_ms, 
+                  MED_Disk_Reads_ms, 
+                  MAX_Disk_Reads_ms, 
+                  MIN_Disk_Reads_ms, 
+                  CountPerTimeBin_int
+
+and for
+
+        let binSize = 5m;
+        let paramRangeStart = now(-1d);
+        let paramRangeEnd = now();
+        Perf
+        | where TimeGenerated between (paramRangeStart..paramRangeEnd)
+        | where ObjectName == "PhysicalDisk" and CounterName == "Avg. Disk sec/Write" and InstanceName == "_Total"
+        | summarize AVG_Disk_Reads_ms = round(avg(CounterValue) * 1000, 2), 
+                  MAX_Disk_Writes_ms = round(max(CounterValue) * 1000, 2), 
+                  MIN_Disk_Writes_ms = round(min(CounterValue) * 1000, 2),
+                  MED_Disk_Writes_ms = round(percentile(CounterValue, 50) * 1000, 2),
+                  CountPerTimeBin_int = count() // Counting the number of entries per time bin
+          by BinnedTime = bin(TimeGenerated, binSize), Computer
+        | extend Computer = trim(' ', tolower(Computer))
+        | extend Timekey = format_datetime(BinnedTime, 'HHmm')
+        | project TimeGenerated = BinnedTime, 
+                  Timekey, 
+                  SessionHostName = Computer, 
+                  AVG_Disk_Reads_ms, 
+                  MED_Disk_Writes_ms, 
+                  MAX_Disk_Writes_ms, 
+                  MIN_Disk_Writes_ms, 
+                  CountPerTimeBin_int
+        
+
+
+
+
+
 let
     // Define start and end date/time parameters
     strRangeStart = RangeStart,
