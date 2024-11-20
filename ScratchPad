@@ -9,10 +9,10 @@ let
         "nmw-app-law-fwjv4wn75m4qg",
         Text.Combine({
             "let binSize = 5m;",
-            "let paramRangeStart = now(-1d);",
-            "let paramRangeEnd = now();",
+            "let paramRangeStart = todatetime('", DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss"), "');",
+            "let paramRangeEnd = todatetime('", DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss"), "');",
             "Perf",
-            "| where TimeGenerated between (paramRangeStart..paramRangeEnd)",
+            "| where TimeGenerated between (paramRangeStart .. paramRangeEnd)",
             "| where ObjectName == 'Memory' and CounterName == 'Page Faults/sec'",
             "| summarize AVG_RAM_PageFaultsPerSec = round(avg(CounterValue), 0),",
             "          MAX_RAM_PageFaultsPerSec = round(max(CounterValue), 0),",
@@ -24,7 +24,7 @@ let
             "| extend Timekey = format_datetime(BinnedTime, 'HHmm')",
             "| project TimeGenerated = BinnedTime,",
             "         Timekey,",
-            "         Computer,",
+            "         SessionHostName = Computer,",
             "         AVG_RAM_PageFaultsPerSec,",
             "         MED_RAM_PageFaultsPerSec,",
             "         MAX_RAM_PageFaultsPerSec,",
@@ -41,227 +41,31 @@ let
     #"Extracted Text After Delimiter" = Table.TransformColumns(#"Changed Type1", {{"Time", each Text.AfterDelimiter(_, "T"), type text}}),
     #"Extracted Text Before Delimiter" = Table.TransformColumns(#"Extracted Text After Delimiter", {{"Time", each Text.BeforeDelimiter(_, "Z", {0, RelativePosition.FromEnd}), type text}}),
     #"Changed Type2" = Table.TransformColumnTypes(#"Extracted Text Before Delimiter",{{"Time", type time}}),
-    #"Reordered Columns" = Table.ReorderColumns(#"Changed Type2",{"TimeGenerated", "Date", "Time", "Timekey", "Computer", "AVG_RAM_PageFaultsPerSec", "MED_RAM_PageFaultsPerSec", "MAX_RAM_PageFaultsPerSec", "MIN_RAM_PageFaultsPerSec", "CountPerTimeBin_int"})
+    #"Reordered Columns" = Table.ReorderColumns(#"Changed Type2",{"TimeGenerated", "Date", "Time", "Timekey", "SessionHostName", "AVG_RAM_PageFaultsPerSec", "MED_RAM_PageFaultsPerSec", "MAX_RAM_PageFaultsPerSec", "MIN_RAM_PageFaultsPerSec", "CountPerTimeBin_int"})
 in
     #"Reordered Columns"
+replace KQL in M-Query with one below, make note of correct paramRangeStart and paramRangeEnd values above and use those. 
 
-
-
-
-
-
-let binSize = 5m;
+        let binSize = 5m;
         let paramRangeStart = now(-1d);
         let paramRangeEnd = now();
         Perf
         | where TimeGenerated between (paramRangeStart..paramRangeEnd)
-        | where ObjectName == "Memory" and CounterName == "Page Faults/sec"
-        | summarize AVG_RAM_PageFaultsPerSec = round(avg(CounterValue), 0), 
-                  MAX_RAM_PageFaultsPerSec = round(max(CounterValue), 0), 
-                  MIN_RAM_PageFaultsPerSec = round(min(CounterValue), 0),
-                  MED_RAM_PageFaultsPerSec = round(percentile(CounterValue, 50), 0),
-                  CountPerTimeBin_int = count() // Counting the number of entries per time bin
-          by BinnedTime = bin(TimeGenerated, binSize), Computer
-        | extend Computer = trim(' ', tolower(Computer))
-        | extend Timekey = format_datetime(BinnedTime, 'HHmm')
-        | project TimeGenerated = BinnedTime, 
-                  Timekey, 
-                  Computer, 
-                  AVG_RAM_PageFaultsPerSec, 
-                  MED_RAM_PageFaultsPerSec, 
-                  MAX_RAM_PageFaultsPerSec, 
-                  MIN_RAM_PageFaultsPerSec, 
-                  CountPerTimeBin_int
-        
-
-
-let
-    // Define start and end date/time parameters
-    strRangeStart = RangeStart,
-    strRangeEnd = RangeEnd,
-
-    // Connect to Azure Data Explorer and retrieve data with dynamic date range
-    Source = AzureDataExplorer.Contents(
-        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg",
-        "nmw-app-law-fwjv4wn75m4qg",
-        Text.Combine({
-            "let binSize = 5m;",
-            "let paramRangeStart = now(-1d);",
-            "let paramRangeEnd = now();",
-            "Perf",
-            "| where TimeGenerated between (paramRangeStart..paramRangeEnd)",
-            "| where ObjectName == 'LogicalDisk' and CounterName == '% Free Space' and InstanceName == 'C:'",
-            "| summarize Disk_FreeSpace = round(avg(CounterValue), 2),",
-            "          CountPerTimeBin = count()",
-            "by BinnedTime = bin(TimeGenerated, binSize), Computer",
-            "| extend Disk_UsedSpace = round((100 - Disk_FreeSpace), 2)",
-            "| extend Computer = trim(' ', tolower(Computer))",
-            "| extend Timekey = format_datetime(BinnedTime, 'HHmm')",
-            "| project TimeGenerated = BinnedTime,",
-            "         Timekey,",
-            "         Computer,",
-            "         Disk_FreeSpace,",
-            "         Disk_UsedSpace,",
-            "         CountPerTimeBin"
-        }),
-        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
-    ),
-    #"Duplicated Column" = Table.DuplicateColumn(Source, "TimeGenerated", "TimeGenerated - Copy"),
-    #"Duplicated Column1" = Table.DuplicateColumn(#"Duplicated Column", "TimeGenerated", "TimeGenerated - Copy.1"),
-    #"Changed Type" = Table.TransformColumnTypes(#"Duplicated Column1",{{"TimeGenerated - Copy", type date}}),
-    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"TimeGenerated - Copy", "Date"}, {"TimeGenerated - Copy.1", "Time"}}),
-    #"Changed Type1" = Table.TransformColumnTypes(#"Renamed Columns",{{"Time", type text}}),
-    #"Extracted Text After Delimiter" = Table.TransformColumns(#"Changed Type1", {{"Time", each Text.AfterDelimiter(_, "T"), type text}}),
-    #"Extracted Text Before Delimiter" = Table.TransformColumns(#"Extracted Text After Delimiter", {{"Time", each Text.BeforeDelimiter(_, "Z", {0, RelativePosition.FromEnd}), type text}}),
-    #"Changed Type2" = Table.TransformColumnTypes(#"Extracted Text Before Delimiter",{{"Time", type time}}),
-    #"Reordered Columns" = Table.ReorderColumns(#"Changed Type2",{"TimeGenerated", "Date", "Time", "Timekey", "Computer", "Disk_FreeSpace", "Disk_UsedSpace", "CountPerTimeBin"})
-in
-    #"Reordered Columns"
-
-
-
-
-let binSize = 5m;
-        let paramRangeStart = now(-1d);
-        let paramRangeEnd = now();
-        Perf
-        | where TimeGenerated between (paramRangeStart..paramRangeEnd)
-        | where ObjectName == "LogicalDisk" and CounterName == "% Free Space" and InstanceName == "C:"
-        | summarize Disk_FreeSpace = round(avg(CounterValue),2), 
+        | where ObjectName == "Memory" and CounterName == "Pages/sec"
+        | summarize AVG_RAM_PagesPerSec = round(avg(CounterValue), 0), 
+                  MAX_RAM_PagesPerSec = round(max(CounterValue), 0), 
+                  MIN_RAM_PagesPerSec = round(min(CounterValue), 0),
+                  MED_RAM_PagesPerSec = round(percentile(CounterValue, 50), 0),
                   CountPerTimeBin = count() // Counting the number of entries per time bin
           by BinnedTime = bin(TimeGenerated, binSize), Computer
-        | extend Disk_UsedSpace = round((100 - Disk_FreeSpace),2) // Calculate used disk space
         | extend Computer = trim(' ', tolower(Computer))
         | extend Timekey = format_datetime(BinnedTime, 'HHmm')
         | project TimeGenerated = BinnedTime, 
                   Timekey, 
-                  Computer, 
-                  Disk_FreeSpace, 
-                  Disk_UsedSpace, 
+                  SessionHostName = Computer 
+                  AVG_RAM_PagesPerSec, 
+                  MED_RAM_PagesPerSec, 
+                  MAX_RAM_PagesPerSec, 
+                  MIN_RAM_PagesPerSec, 
                   CountPerTimeBin
-
-
-let
-    // Define start and end date/time parameters
-    strRangeStart = RangeStart,
-    strRangeEnd = RangeEnd,
-
-    // Connect to Azure Data Explorer and retrieve data with dynamic date range
-    Source = AzureDataExplorer.Contents(
-        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg",
-        "nmw-app-law-fwjv4wn75m4qg",
-        Text.Combine({
-            "let binSize = 5m;",
-            "let timeRangeStart = now(-1d);",
-            "let timeRangeEnd = now();",
-            "Perf",
-            "| where TimeGenerated between (timeRangeStart..timeRangeEnd)",
-            "| where ObjectName == \"Memory\" and CounterName == \"% Committed Bytes In Use\"",
-            "| summarize AVG_RAM_CommittedBytesInUse = round(avg(CounterValue), 2),",
-            "          MAX_RAM_CommittedBytesInUse = round(max(CounterValue), 2),",
-            "          MIN_RAM_CommittedBytesInUse = round(min(CounterValue), 2),",
-            "          MED_RAM_CommittedBytesInUse = round(percentile(CounterValue, 50), 2),",
-            "          ItemsPerTimeBin = count()",
-            "by BinnedTime = bin(TimeGenerated, binSize), Computer",
-            "| extend Computer = trim(' ', tolower(Computer))",
-            "| extend Timekey = format_datetime(BinnedTime, 'HHmm')",
-            "| project TimeGenerated = BinnedTime,",
-            "         Timekey,",
-            "         Computer,",
-            "         AVG_RAM_CommittedBytesInUse,",
-            "         MED_RAM_CommittedBytesInUse,",
-            "         MAX_RAM_CommittedBytesInUse,",
-            "         MIN_RAM_CommittedBytesInUse,",
-            "         ItemsPerTimeBin"
-        }),
-        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
-    ),
-    #"Duplicated Column" = Table.DuplicateColumn(Source, "TimeGenerated", "TimeGenerated - Copy"),
-    #"Duplicated Column1" = Table.DuplicateColumn(#"Duplicated Column", "TimeGenerated", "TimeGenerated - Copy.1"),
-    #"Changed Type" = Table.TransformColumnTypes(#"Duplicated Column1",{{"TimeGenerated - Copy", type date}}),
-    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"TimeGenerated - Copy", "Date"}, {"TimeGenerated - Copy.1", "Time"}}),
-    #"Changed Type1" = Table.TransformColumnTypes(#"Renamed Columns",{{"Time", type text}}),
-    #"Extracted Text After Delimiter" = Table.TransformColumns(#"Changed Type1", {{"Time", each Text.AfterDelimiter(_, "T"), type text}}),
-    #"Extracted Text Before Delimiter" = Table.TransformColumns(#"Extracted Text After Delimiter", {{"Time", each Text.BeforeDelimiter(_, "Z", {0, RelativePosition.FromEnd}), type text}}),
-    #"Changed Type2" = Table.TransformColumnTypes(#"Extracted Text Before Delimiter",{{"Time", type time}}),
-    #"Reordered Columns" = Table.ReorderColumns(#"Changed Type2",{"TimeGenerated", "Date", "Time", "Timekey", "Computer", "AVG_RAM_CommittedBytesInUse", "MED_RAM_CommittedBytesInUse", "MAX_RAM_CommittedBytesInUse", "MIN_RAM_CommittedBytesInUse", "ItemsPerTimeBin"})
-in
-    #"Reordered Columns"
-
-
-
-
-
-
-
-let binSize = 5m;
-        let timeRangeStart = now(-1d);
-        let timeRangeEnd = now();
-        Perf
-        | where TimeGenerated between (timeRangeStart..timeRangeEnd)
-        | where ObjectName == "Memory" and CounterName == "% Committed Bytes In Use"
-        | summarize AVG_RAM_CommittedBytesInUse = round(avg(CounterValue), 2),
-                  MAX_RAM_CommittedBytesInUse = round(max(CounterValue), 2),
-                  MIN_RAM_CommittedBytesInUse = round(min(CounterValue), 2),
-                  MED_RAM_CommittedBytesInUse = round(percentile(CounterValue, 50), 2),
-                  ItemsPerTimeBin = count() // Counting the number of entries per time bin
-          by BinnedTime = bin(TimeGenerated, binSize), Computer
-          | extend Computer = trim(' ', tolower(Computer))
-          | extend Timekey = format_datetime(BinnedTime, 'HHmm')
-        | project TimeGenerated = BinnedTime, // Aliased BinnedTime again as "Time"
-                  Timekey,
-                  Computer,
-                  AVG_RAM_CommittedBytesInUse,
-                  MED_RAM_CommittedBytesInUse,
-                  MAX_RAM_CommittedBytesInUse,
-                  MIN_RAM_CommittedBytesInUse,
-                  ItemsPerTimeBin
-
-Replace KQL below with KQL above, keep rest of M-Query the same 
-
-let
-    // Define start and end date/time parameters
-    strRangeStart = RangeStart,
-    strRangeEnd = RangeEnd,
-
-    // Connect to Azure Data Explorer and retrieve data with dynamic date range
-    Source = AzureDataExplorer.Contents(
-        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg",
-        "nmw-app-law-fwjv4wn75m4qg",
-        Text.Combine({
-            "let binSize = 5m;",
-            "let paramRangeStart = todatetime('", DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss"), "');",
-            "let paramRangeEnd = todatetime('", DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss"), "');",
-            "Perf",
-            "| where TimeGenerated between (paramRangeStart .. paramRangeEnd)",
-            "| where ObjectName == 'Processor Information' and CounterName == '% Processor Time'",
-            "| summarize AVG_CPU = round(avg(CounterValue), 2),",
-            "          MAX_CPU = round(max(CounterValue), 2),",
-            "          MIN_CPU = round(min(CounterValue), 2),",
-            "          MED_CPU = round(percentile(CounterValue, 50), 2),",
-            "          ItemsPerTimeBin = count()",
-            "by BinnedTime = bin(TimeGenerated, binSize), Computer",
-            "| extend Computer = trim(' ', tolower(Computer))",
-            "| extend Timekey = format_datetime(BinnedTime, 'HHmm')",
-            "| project TimeGenerated = BinnedTime,",
-            "         Timekey,",
-            "         SessionHostName = Computer,",
-            "         AVG_CPU,",
-            "         MED_CPU,",
-            "         MAX_CPU,",
-            "         MIN_CPU,",
-            "         ItemsPerTimeBin"
-        }),
-        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
-    ),
-    #"Duplicated Column" = Table.DuplicateColumn(Source, "TimeGenerated", "TimeGenerated - Copy"),
-    #"Duplicated Column1" = Table.DuplicateColumn(#"Duplicated Column", "TimeGenerated", "TimeGenerated - Copy.1"),
-    #"Changed Type" = Table.TransformColumnTypes(#"Duplicated Column1",{{"TimeGenerated - Copy", type date}}),
-    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"TimeGenerated - Copy", "Date"}, {"TimeGenerated - Copy.1", "Time"}}),
-    #"Changed Type1" = Table.TransformColumnTypes(#"Renamed Columns",{{"Time", type text}}),
-    #"Extracted Text After Delimiter" = Table.TransformColumns(#"Changed Type1", {{"Time", each Text.AfterDelimiter(_, "T"), type text}}),
-    #"Extracted Text Before Delimiter" = Table.TransformColumns(#"Extracted Text After Delimiter", {{"Time", each Text.BeforeDelimiter(_, "Z", {0, RelativePosition.FromEnd}), type text}}),
-    #"Changed Type2" = Table.TransformColumnTypes(#"Extracted Text Before Delimiter",{{"Time", type time}}),
-    #"Reordered Columns" = Table.ReorderColumns(#"Changed Type2",{"TimeGenerated", "Date", "Time", "Timekey", "SessionHostName", "AVG_CPU", "MED_CPU", "MAX_CPU", "MIN_CPU", "ItemsPerTimeBin"})
-in
-    #"Reordered Columns"
+        
