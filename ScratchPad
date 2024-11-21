@@ -1,4 +1,12 @@
 let
+    Source = AzureDataExplorer.Contents("https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg", "nmw-app-law-fwjv4wn75m4qg", "WVDConnections#(lf)| where TimeGenerated >= ago(90d)#(lf)| where not(isempty(UserName)) and UserName != '<>'#(lf)| where not(isempty(SessionHostName)) and SessionHostName != '<>'#(lf)| extend SessionHostName = trim(' ', tolower(SessionHostName))#(lf)| extend UserName = trim(' ', tolower(UserName))#(lf)| extend HostPoolName = tostring(split(_ResourceId, '/')[-1])#(lf)| extend HostpoolName = trim(' ', tolower(HostPoolName))#(lf)| summarize arg_max(TimeGenerated, *) by UserName#(lf)| project TimeGenerated, UserName, HostPoolName, SessionHostName", [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]),
+    #"Sorted Rows" = Table.Buffer(Table.Sort(Source,{{"TimeGenerated", Order.Descending}})),
+    #"Removed Duplicates" = Table.Distinct(#"Sorted Rows", {"UserName"})
+in
+    #"Removed Duplicates"
+
+
+let
     // Define start and end date/time parameters
     strRangeStart = RangeStart,
     strRangeEnd = RangeEnd,
