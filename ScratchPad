@@ -11,3 +11,27 @@ on CorrelationId
 
 WVDCheckpoints
 | where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
+
+
+
+// Query 1: WVDConnections for session duration
+let WVDConnectionsData = WVDConnections
+| where TimeGenerated > ago(24h)
+| where State == "Started"
+| project CorrelationId, UserName, ConnectionType, StartTime = TimeGenerated, _ResourceId
+| join (
+    WVDConnections
+    | where State == "Connected"
+    | project EndTime = TimeGenerated, CorrelationId
+) on CorrelationId
+| project CorrelationId, UserName, Duration = EndTime - StartTime;
+
+// Query 2: WVDCheckpoints for VM start events
+let WVDCheckpointsData = WVDCheckpoints
+| where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting";
+
+// Joining both queries on CorrelationId
+WVDConnectionsData
+| join WVDCheckpointsData on CorrelationId
+| project CorrelationId, UserName, Duration, Parameters, StartTime
+
