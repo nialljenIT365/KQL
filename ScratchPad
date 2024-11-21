@@ -1,3 +1,8 @@
+
+
+'join' operator: Failed to resolve table or column expression named 'WVDConnectionsData'
+Request id: 12153aee-114d-4174-84d1-545de2de11e3
+
 // Step 1: Calculate session duration from WVDConnections
 let WVDConnectionsData = WVDConnections
 | where TimeGenerated > ago(24h)
