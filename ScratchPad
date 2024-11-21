@@ -1,3 +1,27 @@
+// Step 1: Calculate session duration from WVDConnections
+let WVDConnectionsData = WVDConnections
+| where TimeGenerated > ago(24h)
+| where State == "Started"
+| project CorrelationId, UserName, ConnectionType, StartTime = TimeGenerated, _ResourceId
+| join (
+    WVDConnections
+    | where State == "Connected"
+    | project EndTime = TimeGenerated, CorrelationId
+) on CorrelationId
+| project CorrelationId, UserName, Duration = EndTime - StartTime, ConnectionType, StartTime, _ResourceId;
+
+// Step 2: Filter WVDCheckpoints for VM start events
+let WVDCheckpointsData = WVDCheckpoints
+| where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
+| project CorrelationId, Parameters;
+
+// Step 3: Join WVDConnectionsData with WVDCheckpointsData
+WVDConnectionsData
+| join kind=leftouter WVDCheckpointsData on CorrelationId
+| project CorrelationId, UserName, Duration, ConnectionType, StartTime, _ResourceId, Parameters
+
+
+
 WVDConnections 
 | where TimeGenerated > ago(24h) 
 | where State == "Started" 
