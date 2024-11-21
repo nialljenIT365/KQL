@@ -1,3 +1,40 @@
+WVDConnections
+| where TimeGenerated > ago(24h)
+| where State == "Started"
+| project CorrelationId, UserName, ConnectionType, StartTime = TimeGenerated, _ResourceId
+| join (
+    WVDConnections
+    | where State == "Connected"
+    | project EndTime = TimeGenerated, CorrelationId
+) on CorrelationId
+| project CorrelationId, UserName, Duration = EndTime - StartTime, ConnectionType, StartTime, _ResourceId
+| join kind=leftouter (
+    WVDCheckpoints
+    | where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
+    | project CorrelationId, Parameters
+) on CorrelationId
+| project CorrelationId, UserName, Duration, ConnectionType, StartTime, _ResourceId, Parameters
+
+
+
+
+// Step 1: Inline calculation for session duration
+WVDConnections
+| where TimeGenerated > ago(24h)
+| where State == "Started"
+| project CorrelationId, UserName, ConnectionType, StartTime = TimeGenerated, _ResourceId
+| join (
+    WVDConnections
+    | where State == "Connected"
+    | project EndTime = TimeGenerated, CorrelationId
+) on CorrelationId
+| project CorrelationId, UserName, Duration = EndTime - StartTime, ConnectionType, StartTime, _ResourceId
+| join kind=leftouter (
+    WVDCheckpoints
+    | where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
+    | project CorrelationId, Parameters
+) on CorrelationId
+| project CorrelationId, UserName, Duration, ConnectionType, StartTime, _ResourceId, Parameters
 
 
 'join' operator: Failed to resolve table or column expression named 'WVDConnectionsData'
