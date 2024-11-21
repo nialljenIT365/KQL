@@ -1,4 +1,3 @@
-Get average session logon time by hostpool
 WVDConnections 
 | where TimeGenerated > ago(24h) 
 | where State == "Started" 
@@ -8,8 +7,7 @@ StartTime=TimeGenerated, _ResourceId
 | where State == "Connected" 
 | project EndTime=TimeGenerated, CorrelationId) 
 on CorrelationId 
-| project Duration = EndTime - StartTime, _ResourceId 
-| summarize AvgDuration=avg(Duration) by _ResourceId 
-| extend Multi=split(_ResourceId, "/") 
-| project AvgDuration, ResourceGroup=Multi[4], HostPool=Multi[8] 
-| sort by AvgDuration desc
+| project CorrelationId, UserName, Duration = EndTime - StartTime
+
+WVDCheckpoints
+| where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
