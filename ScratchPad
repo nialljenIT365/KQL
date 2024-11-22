@@ -1,65 +1,12 @@
-Distinct group key 'Parameters' is of a 'dynamic' type. Please use an explicit cast as grouping by a 'dynamic' type is not supported.
-Request id: 47c318bb-239d-45d4-b289-3a033512df9f
-
-
-
+WVDConnections
+| where State == "Started"
 | where ("no_host_selected" == "no_host_selected" or trim_end("[.].*", SessionHostName) == "no_host_selected")
-
-
-
-//This function declares a variable ChartInfo and assigns it the result of the datatable operator.
-//The datatable operator creates a table with explicitly defined columns and rows of data.
-//Stage Rows: UserRoute, TransportConnected, OnCredentialsAcquisitionCompleted, RdpStackConnectionEstablished, LogonDelay, ShellStart, ProductiveTime
-//Label Rows: User Route, Stack Connected, creds, Stack Connected, Logon, Shell Start, Shell Ready
-//Stage Rows: 1, 2, 3, 4, 5, 6, 7, 8
-//This table serves as a reference or lookup table for mapping technical stage names (used in logs or raw data) to:
-//1. Human-readable labels (label) for visualization or reporting purposes.
-//2. Ordered stages (stageOrder) to arrange the stages in a meaningful sequence for charts or analysis.
-
-
-
-
-
-
-
-
-
-Each row defines a specific stage, its label, and its order.
-
-Stage	Label	Stage Order
-UserRoute	User Route	1
-TransportConnected	Stack Connected	3
-OnCredentialsAcquisitionCompleted	creds	4
-RdpStackConnectionEstablished	Stack Connected	5
-LogonDelay	Logon	6
-ShellStart	Shell Start	7
-ProductiveTime	Shell Ready	8
-
-
-
-
-let ChartInfo = datatable (Stage: string, label: string, stageOrder: int) [
-    "UserRoute", "User Route", 1,
-    "TransportConnected", "Stack Connected", 3,
-    "OnCredentialsAcquisitionCompleted", "creds", 4,
-    "RdpStackConnectionEstablished", "Stack Connected", 5,
-    "LogonDelay", "Logon", 6,
-    "ShellStart", "Shell Start", 7,
-    "ProductiveTime", "Shell Ready", 8
-];
-
-
-WVDCheckpoints
-| summarize arg_min(TimeGenerated, *) by CorrelationId, Name;
-let Checkpoints = (name: string) {
+| distinct TimeGenerated, CorrelationId, PredecessorConnectionId, SessionHostName, _ResourceId // Include PredecessorConnectionId and SessionHostName
+| join kind = leftsemi
+    (
     checkpoints
-    | where Name == name 
-    | project CorrelationId, bag = pack(name, TimeGenerated), Parameters
-    | evaluate bag_unpack(bag)
-};
-
-Filters the checkpoints table to include only rows where Name matches the name parameter.
-Projects the CorrelationId, Parameters, and creates a dictionary (bag) where the key is name and the value is TimeGenerated.
-Unpacks the dictionary (bag) into individual columns for easy access.
-
-Checkpoints("ExampleName")
+    | where Source == "RDStack"
+        and Name == "RdpStackConnectionEstablished"
+        |project CorrelationId, Parameters
+    )
+    on CorrelationId
