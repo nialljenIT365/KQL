@@ -1,3 +1,49 @@
+let paramRangeStart = todatetime('<StartRangeDatetime>'); // Replace with actual start range
+let paramRangeEnd = todatetime('<EndRangeDatetime>'); // Replace with actual end range
+
+WVDConnections
+| where TimeGenerated between (paramRangeStart .. paramRangeEnd)
+| where State == "Started"
+| project CorrelationId, UserName, ConnectionType, StartTime = TimeGenerated, _ResourceId
+| join (
+    WVDConnections
+    | where State == "Connected"
+    | project EndTime = TimeGenerated, CorrelationId, PredecessorConnectionId, SessionHostName
+) on CorrelationId
+| extend LoginDurationSeconds = round((EndTime - StartTime) / 1s, 2) // Convert Duration to seconds and round to 2 decimal places
+| project CorrelationId, UserName, ConnectionType, StartTime, EndTime, _ResourceId, PredecessorConnectionId, SessionHostName, LoginDurationSeconds
+| join kind=leftouter (
+    WVDCheckpoints
+    | where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
+    | project CorrelationId, Parameters
+) on CorrelationId
+| extend 
+    HostPoolName = extract(@"/([^/]+)$", 1, _ResourceId), // Extract the string after the last `/` in `_ResourceId`
+    LoginType = case(
+        isnotempty(Parameters), "StartVMOnConnect",
+        PredecessorConnectionId != "<>", "Reconnect",
+        isempty(Parameters) and PredecessorConnectionId == "<>", "Standard",
+        "Unknown" // Default case
+    )
+| extend StartTimekey = format_datetime(StartTime, 'HHmm')
+| extend ConnectedTimekey = format_datetime(EndTime, 'HHmm')
+| extend UserName = trim(' ', tolower(UserName))
+| extend SessionHostName = trim(' ', tolower(SessionHostName))
+| summarize arg_max(StartTime, *) by CorrelationId // Remove duplicate CorrelationId, keeping the row with the latest StartTime
+| project CorrelationId, 
+          StartTimeGenerated = StartTime, 
+          StartTimekey, 
+          ConnectedTimeGenerated = EndTime, 
+          ConnectedTimekey, 
+          LoginDurationSeconds, 
+          UserName, 
+          HostPoolName, 
+          SessionHostName, 
+          LoginType
+
+
+
+
 let
     // Define start and end date/time parameters
     strRangeStart = RangeStart,
