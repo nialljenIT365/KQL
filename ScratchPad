@@ -1,3 +1,8 @@
+Distinct group key 'Parameters' is of a 'dynamic' type. Please use an explicit cast as grouping by a 'dynamic' type is not supported.
+Request id: 47c318bb-239d-45d4-b289-3a033512df9f
+
+
+
 | where ("no_host_selected" == "no_host_selected" or trim_end("[.].*", SessionHostName) == "no_host_selected")
 
 
