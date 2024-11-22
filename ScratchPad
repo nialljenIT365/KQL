@@ -10,3 +10,6 @@ WVDConnections
         |project CorrelationId, Parameters
     )
     on CorrelationId
+
+
+A leftsemi join keeps only rows from the left table (WVDConnections) where there is a match in the right table (checkpoints) based on the on condition.
