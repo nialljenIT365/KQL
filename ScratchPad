@@ -1,3 +1,6 @@
+
+How can I include the PredecessorConnectionId and SessionHostName columns from WVDConnections table and the Parameters column from WVDCheckpoints in the code below?
+
 let newSessions = true;
 let checkpoints =  WVDCheckpoints
     | summarize arg_min(TimeGenerated, *) by CorrelationId, Name;
@@ -83,5 +86,8 @@ WVDConnections
 | where not(newSessions) or isnotnull(ProductiveTime)
 //| where (datetime_diff("millisecond", UserRoute, TimeGenerated) - coalesce(ssotoken, 0)) >= 0
 | extend LogonDelayDurationSeconds = round(datetime_diff("second", LogonDelay, TimeGenerated), 2) // Calculate and round LogonDelay duration
-| project CorrelationId, TimeGenerated, UserRoute, UserRouteDurationSecs, RdpStackConnectionEstablished, RdpStackConnectionEstablishedDurationSecs, credaquireDurationMilliSecs, ssotoken, LogonDelay, LogonDelayDurationSeconds, ShellStart, ProductiveTime
+| extend ShellStartDurationSeconds = round(datetime_diff("second", ShellStart, TimeGenerated), 2) // Calculate and round ShellStart duration
+| extend ProductiveTimeDurationSeconds = round(datetime_diff("second", ProductiveTime, TimeGenerated), 2) // Calculate and round ProductiveTime duration
+| project CorrelationId, TimeGenerated, UserRoute, UserRouteDurationSecs, RdpStackConnectionEstablished, RdpStackConnectionEstablishedDurationSecs, credaquireDurationMilliSecs, ssotoken, LogonDelay, LogonDelayDurationSeconds, ShellStart, ShellStartDurationSeconds,ProductiveTime, ProductiveTimeDurationSeconds
 | where (datetime_diff("millisecond", UserRoute, TimeGenerated) - coalesce(ssotoken, 0)) >= 0
+//| where CorrelationId contains "bbf8b46b-94b6-428b-9bc9-f5d690ef0000"
