@@ -1,3 +1,7 @@
+
+Arithmetic expression cannot be carried-out between R64 and TimeSpan
+Request id: 1b868319-2a76-4cd5-bc59-c596e11cacb0
+
 WVDConnections
 | where TimeGenerated > ago(24h)
 | where State == "Started"
