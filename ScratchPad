@@ -1,3 +1,7 @@
+| where ("no_host_selected" == "no_host_selected" or trim_end("[.].*", SessionHostName) == "no_host_selected")
+
+
+
 //This function declares a variable ChartInfo and assigns it the result of the datatable operator.
 //The datatable operator creates a table with explicitly defined columns and rows of data.
 //Stage Rows: UserRoute, TransportConnected, OnCredentialsAcquisitionCompleted, RdpStackConnectionEstablished, LogonDelay, ShellStart, ProductiveTime
