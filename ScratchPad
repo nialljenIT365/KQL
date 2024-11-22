@@ -81,97 +81,25 @@ WVDConnections
     on CorrelationId
 | project-away CorrelationId1
 | where not(newSessions) or isnotnull(ProductiveTime)
-| where (datetime_diff("millisecond", UserRoute, TimeGenerated) - coalesce(ssotoken, 0)) >= 0
+//| where (datetime_diff("millisecond", UserRoute, TimeGenerated) - coalesce(ssotoken, 0)) >= 0
 | extend LogonDelayDurationSeconds = round(datetime_diff("second", LogonDelay, TimeGenerated), 2) // Calculate and round LogonDelay duration
-| project CorrelationId, TimeGenerated, UserRoute, UserRouteDurationSecs, RdpStackConnectionEstablished, RdpStackConnectionEstablishedDurationSecs, credaquireDurationMilliSecs, ssotoken, LogonDelay, LogonDelayDurationSeconds, ShellStart, ProductiveTime
-
-
-
-
-
-
-let newSessions = true;
-let checkpoints =  WVDCheckpoints
-    | summarize arg_min(TimeGenerated, *) by CorrelationId, Name;
-let Checkpoints = (name: string) {
-    checkpoints
-    | where Name == name 
-    | project CorrelationId, bag = pack(name, TimeGenerated)
-    | evaluate bag_unpack(bag)
-};
-let ChartInfo = datatable (Stage: string, label: string, stageOrder: int) [
-    "UserRoute", "User Route", 1,
-    "TransportConnected", "Stack Connected", 3,
-    "OnCredentialsAcquisitionCompleted", "creds", 4,
-    "RdpStackConnectionEstablished", "Stack Connected", 5,
-    "LogonDelay", "Logon", 6,
-    "ShellStart", "Shell Start", 7,
-    "ProductiveTime", "Shell Ready", 8
-];
-WVDConnections
-| where State == "Started"
-| where ("no_host_selected" == "no_host_selected" or trim_end("[.].*", SessionHostName) == "no_host_selected")
-| distinct TimeGenerated, CorrelationId
-| join kind = leftsemi
-    (
-    // Only include connections that actually reached the host to prevent short (failed) attempts from skewing the data
-    checkpoints
-    | where Source == "RDStack"
-        and Name == "RdpStackConnectionEstablished"
-    )
-    on CorrelationId
-| project CorrelationId, TimeGenerated
-| join kind = inner // UserRoute
-    (
-    checkpoints
-    | where Name == "LoadBalancedNewConnection"
-    | extend LoadBalanceOutcome=Parameters.LoadBalanceOutcome
-    | where (newSessions and LoadBalanceOutcome == "NewSession") or (not(newSessions) and LoadBalanceOutcome in ('Disconnected', 'Active'))
-    | project CorrelationId, UserRoute=TimeGenerated
-    | distinct CorrelationId, UserRoute
-    )
-    on CorrelationId
-| extend UserRouteDurationSecs = round(datetime_diff("second", UserRoute, TimeGenerated), 2) // Calculate and round UserRoute duration
-| project CorrelationId, TimeGenerated, UserRoute, UserRouteDurationSecs
-| join kind=innerunique Checkpoints("RdpStackConnectionEstablished") on CorrelationId
-| extend RdpStackConnectionEstablishedDurationSecs = round(datetime_diff("second", RdpStackConnectionEstablished, TimeGenerated), 2) // Calculate and round RDP Stack duration
-| project CorrelationId, TimeGenerated, UserRoute, UserRouteDurationSecs, RdpStackConnectionEstablished, RdpStackConnectionEstablishedDurationSecs
-| join kind=leftouter 
-    (
-    checkpoints
-    | where Name =~ "OnCredentialsAcquisitionCompleted"
-    | project CorrelationId, credaquireDurationMilliSecs = tolong(Parameters.DurationMS) // Renamed column
-    )
-    on CorrelationId
-| project-away CorrelationId1
-| join kind=leftouter //SSO token
-    (
-    checkpoints
-    | where Name =~ "SSOTokenRetrieval"
-    | project CorrelationId, ssotoken = tolong(Parameters.DurationMS)
-    )
-    on CorrelationId
-| project-away CorrelationId1
-| join kind=innerunique // Logon Delay
-    (checkpoints
-    | where Name == "LogonDelay"
-    | extend LogonType = tostring(Parameters.LogonType)
-    | where (newSessions and LogonType == "DirectSession") or (not(newSessions) and LogonType == "TemporarySession")
-    | project LogonDelay=TimeGenerated, CorrelationId
-    )
-    on CorrelationId
-| project-away CorrelationId1
-| join kind=leftouter Checkpoints("ShellStart") on CorrelationId
-| project-away CorrelationId1
-| join kind = leftouter
-    (
-    checkpoints // new session
-    | where newSessions
-    | where Name =~ "ShellReady" or
-        (Name =~ "LaunchExecutable" and Parameters.connectionStage == "RdpShellAppExecuted" or Name =~ "RdpShellAppExecuted")
-    | project ProductiveTime=TimeGenerated, CorrelationId
-    )
-    on CorrelationId
-| project-away CorrelationId1
-| where not(newSessions) or isnotnull(ProductiveTime)
+| project CorrelationId, TimeGenerated, UserRoute, UserRouteDurationSecs, RdpStackConnectionEstablished, RdpStackConnectionEstablishedDurationSecs, credaquireDurationMilliSecs, LogonDelay, LogonDelayDurationSeconds, ShellStart, ProductiveTime
 | where (datetime_diff("millisecond", UserRoute, TimeGenerated) - coalesce(ssotoken, 0)) >= 0
+
+returns 
+I want to add a DurationSecs Column for ShellStart [UTC] and ProductiveTime [UTC] in the same method used for UserRouteDurationSecs, RdpStackConnectionEstablishedDurationSecs and LogonDelayDurationSeconds (ie number of seconds since TimeGenerated [UTC])
+
+CorrelationId	TimeGenerated [UTC]	UserRoute [UTC]	UserRouteDurationSecs	RdpStackConnectionEstablished [UTC]	RdpStackConnectionEstablishedDurationSecs	credaquireDurationMilliSecs	LogonDelay [UTC]	LogonDelayDurationSeconds	ShellStart [UTC]	ProductiveTime [UTC]	
+6123f470-bf26-4fd0-aa92-2735d73d0000	22/11/2024, 15:16:10.918	22/11/2024, 15:16:12.168	2	22/11/2024, 15:16:42.613	32	25308	22/11/2024, 15:17:24.901	74	22/11/2024, 15:17:25.874	22/11/2024, 15:17:34.955	
+5083a7ce-03ba-4b02-b7b1-b02fab400000	22/11/2024, 15:48:42.423	22/11/2024, 15:48:43.176	1	22/11/2024, 15:48:53.151	11	4584	22/11/2024, 15:49:01.207	19	22/11/2024, 15:49:03.707	22/11/2024, 15:50:00.551	
+61a8245b-b6f0-4c4b-beb9-acd598d20000	22/11/2024, 15:30:46.837	22/11/2024, 15:30:47.574	1	22/11/2024, 15:31:04.217	18	11995	22/11/2024, 15:31:18.537	32	22/11/2024, 15:31:21.329	22/11/2024, 15:31:50.131	
+360ee366-fcc4-4b6f-a3f2-53e7cc880000	22/11/2024, 15:31:15.566	22/11/2024, 15:31:16.473	1	22/11/2024, 15:31:32.508	17	9503	22/11/2024, 15:31:45.546	30	22/11/2024, 15:31:46.897	22/11/2024, 15:32:06.830	
+e506e63c-8fe5-4388-b1c6-8a3393c50000	22/11/2024, 15:33:25.458	22/11/2024, 15:33:26.784	1	22/11/2024, 15:33:46.654	21	14011	22/11/2024, 15:34:01.769	36	22/11/2024, 15:34:04.754	22/11/2024, 15:34:29.483	
+ab108d07-c3a8-4290-a5cf-b6df358f0000	22/11/2024, 15:38:49.118	22/11/2024, 15:38:51.122	2	22/11/2024, 15:39:03.672	14	6476	22/11/2024, 15:39:17.142	28	22/11/2024, 15:39:17.655	22/11/2024, 15:39:35.027	
+4cb1ddcc-e440-45ef-a0ce-39b9b4b80100	22/11/2024, 15:55:49.797	22/11/2024, 15:57:52.830	123	22/11/2024, 15:57:56.179	127		22/11/2024, 15:58:07.613	138	22/11/2024, 15:58:07.675	22/11/2024, 15:58:51.644	
+95c6dd06-2eae-45da-b5bc-792487440000	22/11/2024, 16:03:04.141	22/11/2024, 16:03:04.765	0	22/11/2024, 16:03:17.564	13	9932	22/11/2024, 16:03:31.894	27	22/11/2024, 16:03:33.331	22/11/2024, 16:03:48.413	
+6781f329-0c42-49b1-8814-f385dfbf0000	22/11/2024, 16:02:07.494	22/11/2024, 16:02:09.467	2	22/11/2024, 16:02:17.826	10	6	22/11/2024, 16:02:33.009	26	22/11/2024, 16:02:35.256	22/11/2024, 16:03:02.330	
+81350079-719f-4ac9-b084-334c668d0000	22/11/2024, 16:05:50.184	22/11/2024, 16:05:50.683	0	22/11/2024, 16:05:54.461	4	4	22/11/2024, 16:06:11.123	21	22/11/2024, 16:06:13.736	22/11/2024, 16:06:36.948	
+d72a685d-f1c7-47f3-8a3e-a369e8dd0000	22/11/2024, 16:05:17.436	22/11/2024, 16:05:17.856	0	22/11/2024, 16:05:21.871	4	1489	22/11/2024, 16:05:34.987	17	22/11/2024, 16:05:36.740	22/11/2024, 16:06:11.131	
+211ebd0b-b64a-4a41-80b4-7365124e0000	22/11/2024, 16:07:02.973	22/11/2024, 16:07:04.004	2	22/11/2024, 16:07:20.644	18	11159	22/11/2024, 16:07:36.424	34	22/11/2024, 16:07:39.159	22/11/2024, 16:08:00.818	
+
