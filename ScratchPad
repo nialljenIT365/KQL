@@ -1,3 +1,18 @@
+        WVDConnections
+            | extend UserName = trim("" "", tolower(UserName))
+            | where State == ""Connected""
+            | project CorrelationId, UserName, ResourceAlias, StartDate = TimeGenerated
+            | join (
+                WVDConnections
+                | where State == ""Completed""
+                | project EndDate = TimeGenerated, CorrelationId
+            ) on CorrelationId
+            | extend StartTimekey = format_datetime(StartDate, 'HHmm')
+            | extend EndTimekey = format_datetime(EndDate, 'HHmm')
+            | project CorrelationId, StartDate, StartTimekey, EndDate, EndTimekey, UserName, DurationSeconds = (EndDate - StartDate) / 1s
+            | summarize arg_max(StartDate, *) by CorrelationId
+
+
 WVDConnections
 | where TimeGenerated > ago(24h)
 | where State == "Started"
