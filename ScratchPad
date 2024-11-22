@@ -81,9 +81,3 @@ WVDConnections
 | project-away CorrelationId1
 | where not(newSessions) or isnotnull(ProductiveTime)
 | where (datetime_diff("millisecond", UserRoute, TimeGenerated) - coalesce(ssotoken, 0)) >= 0
-
-
-
-
-
-Get-AzVM | Where-Object { $_.Name -match "SS|DV" }
