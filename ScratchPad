@@ -1,3 +1,8 @@
+
+
+'where' operator: Failed to resolve table or column expression named 'checkpoints'
+Request id: 13a52020-2c91-446c-aa53-1def6025ab1d
+
 WVDConnections
 | where State == "Started"
 | where ("no_host_selected" == "no_host_selected" or trim_end("[.].*", SessionHostName) == "no_host_selected")
