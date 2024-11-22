@@ -6,3 +6,7 @@ let Checkpoints = (name: string) {
     | project CorrelationId, bag = pack(name, TimeGenerated), Parameters
     | evaluate bag_unpack(bag)
 };
+
+Filters the checkpoints table to include only rows where Name matches the name parameter.
+Projects the CorrelationId, Parameters, and creates a dictionary (bag) where the key is name and the value is TimeGenerated.
+Unpacks the dictionary (bag) into individual columns for easy access.
