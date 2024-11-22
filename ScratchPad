@@ -4,6 +4,99 @@ let checkpoints =  WVDCheckpoints
 let Checkpoints = (name: string) {
     checkpoints
     | where Name == name 
+    | project CorrelationId, bag = pack(name, TimeGenerated, Parameters) // Include Parameters in the bag
+    | evaluate bag_unpack(bag)
+};
+let ChartInfo = datatable (Stage: string, label: string, stageOrder: int) [
+    "UserRoute", "User Route", 1,
+    "TransportConnected", "Stack Connected", 3,
+    "OnCredentialsAcquisitionCompleted", "creds", 4,
+    "RdpStackConnectionEstablished", "Stack Connected", 5,
+    "LogonDelay", "Logon", 6,
+    "ShellStart", "Shell Start", 7,
+    "ProductiveTime", "Shell Ready", 8
+];
+WVDConnections
+| where State == "Started"
+| where ("no_host_selected" == "no_host_selected" or trim_end("[.].*", SessionHostName) == "no_host_selected")
+| distinct TimeGenerated, CorrelationId, PredecessorConnectionId, SessionHostName
+| join kind = leftsemi
+    (
+    checkpoints
+    | where Source == "RDStack"
+        and Name == "RdpStackConnectionEstablished"
+    )
+    on CorrelationId
+| project CorrelationId, TimeGenerated, PredecessorConnectionId, SessionHostName
+| join kind = inner // UserRoute
+    (
+    checkpoints
+    | where Name == "LoadBalancedNewConnection"
+    | extend LoadBalanceOutcome = Parameters.LoadBalanceOutcome // Access Parameters
+    | where (newSessions and LoadBalanceOutcome == "NewSession") or (not(newSessions) and LoadBalanceOutcome in ('Disconnected', 'Active'))
+    | project CorrelationId, UserRoute=TimeGenerated, Parameters // Preserve Parameters
+    | distinct CorrelationId, UserRoute, Parameters
+    )
+    on CorrelationId
+| extend UserRouteDurationSecs = round(datetime_diff("second", UserRoute, TimeGenerated), 2)
+| project CorrelationId, TimeGenerated, UserRoute, UserRouteDurationSecs, PredecessorConnectionId, SessionHostName, Parameters
+| join kind=innerunique Checkpoints("RdpStackConnectionEstablished") on CorrelationId
+| extend RdpStackConnectionEstablishedDurationSecs = round(datetime_diff("second", RdpStackConnectionEstablished, TimeGenerated), 2)
+| project CorrelationId, TimeGenerated, UserRoute, UserRouteDurationSecs, RdpStackConnectionEstablished, RdpStackConnectionEstablishedDurationSecs, PredecessorConnectionId, SessionHostName, Parameters
+| join kind=leftouter 
+    (
+    checkpoints
+    | where Name =~ "OnCredentialsAcquisitionCompleted"
+    | project CorrelationId, credaquireDurationMilliSecs = tolong(Parameters.DurationMS), Parameters
+    )
+    on CorrelationId
+| project-away CorrelationId1
+| join kind=leftouter
+    (
+    checkpoints
+    | where Name =~ "SSOTokenRetrieval"
+    | project CorrelationId, ssotoken = tolong(Parameters.DurationMS), Parameters
+    )
+    on CorrelationId
+| project-away CorrelationId1
+| join kind=innerunique
+    (checkpoints
+    | where Name == "LogonDelay"
+    | extend LogonType = tostring(Parameters.LogonType)
+    | where (newSessions and LogonType == "DirectSession") or (not(newSessions) and LogonType == "TemporarySession")
+    | project LogonDelay=TimeGenerated, CorrelationId, Parameters
+    )
+    on CorrelationId
+| project-away CorrelationId1
+| join kind=leftouter Checkpoints("ShellStart") on CorrelationId
+| project-away CorrelationId1
+| join kind = leftouter
+    (
+    checkpoints
+    | where newSessions
+    | where Name =~ "ShellReady" or
+        (Name =~ "LaunchExecutable" and Parameters.connectionStage == "RdpShellAppExecuted" or Name =~ "RdpShellAppExecuted")
+    | project ProductiveTime=TimeGenerated, CorrelationId, Parameters
+    )
+    on CorrelationId
+| project-away CorrelationId1
+| where not(newSessions) or isnotnull(ProductiveTime)
+| extend LogonDelayDurationSeconds = round(datetime_diff("second", LogonDelay, TimeGenerated), 2)
+| extend ShellStartDurationSeconds = round(datetime_diff("second", ShellStart, TimeGenerated), 2)
+| extend ProductiveTimeDurationSeconds = round(datetime_diff("second", ProductiveTime, TimeGenerated), 2)
+| project CorrelationId, TimeGenerated, UserRoute, UserRouteDurationSecs, RdpStackConnectionEstablished, RdpStackConnectionEstablishedDurationSecs, credaquireDurationMilliSecs, ssotoken, LogonDelay, LogonDelayDurationSeconds, ShellStart, ShellStartDurationSeconds, ProductiveTime, ProductiveTimeDurationSeconds, PredecessorConnectionId, SessionHostName, Parameters
+| where (datetime_diff("millisecond", UserRoute, TimeGenerated) - coalesce(ssotoken, 0)) >= 0
+
+
+
+
+
+let newSessions = true;
+let checkpoints =  WVDCheckpoints
+    | summarize arg_min(TimeGenerated, *) by CorrelationId, Name;
+let Checkpoints = (name: string) {
+    checkpoints
+    | where Name == name 
     | project CorrelationId, bag = pack(name, TimeGenerated)
     | evaluate bag_unpack(bag)
 };
