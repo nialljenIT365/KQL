@@ -1,3 +1,5 @@
+| summarize arg_max(StartTime, *) by CorrelationId // Remove duplicate CorrelationId, keeping the row with the latest StartTime
+
 let
     // Define start and end date/time parameters
     strRangeStart = RangeStart,
