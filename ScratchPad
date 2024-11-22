@@ -1,3 +1,7 @@
+
+'where' operator: Failed to resolve scalar expression named 'ssotoken'
+Request id: 15cb6ff9-2adb-49eb-9e5a-55a800730999
+
 let newSessions = true;
 let checkpoints =  WVDCheckpoints
     | summarize arg_min(TimeGenerated, *) by CorrelationId, Name;
