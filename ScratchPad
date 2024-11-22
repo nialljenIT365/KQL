@@ -1,3 +1,6 @@
+Distinct group key 'Parameters' is of a 'dynamic' type. Please use an explicit cast as grouping by a 'dynamic' type is not supported.
+Request id: 4bd11ee5-840c-4f17-b1d8-12e747fa78cd
+
 let newSessions = true;
 let checkpoints =  WVDCheckpoints
     | summarize arg_min(TimeGenerated, *) by CorrelationId, Name;
