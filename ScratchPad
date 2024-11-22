@@ -1,90 +1,3 @@
-WVDConnections
-| where TimeGenerated > ago(24h)
-| where State == "Started"
-| project CorrelationId, UserName, ConnectionType, StartTime = TimeGenerated, _ResourceId
-| join (
-    WVDConnections
-    | where State == "Connected"
-    | project EndTime = TimeGenerated, CorrelationId, PredecessorConnectionId, SessionHostName
-) on CorrelationId
-| extend DurationSeconds = round((EndTime - StartTime) / 1s, 2) // Convert Duration to seconds and round to 2 decimal places
-| project CorrelationId, UserName, ConnectionType, StartTime, EndTime, _ResourceId, PredecessorConnectionId, SessionHostName, DurationSeconds
-| join kind=leftouter (
-    WVDCheckpoints
-    | where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
-    | project CorrelationId, Parameters
-) on CorrelationId
-| extend 
-    HostPoolName = extract(@"/([^/]+)$", 1, _ResourceId), // Extract the string after the last `/` in `_ResourceId`
-    LoginType = case(
-        isnotempty(Parameters), "StartVMOnConnect",
-        PredecessorConnectionId != "<>", "Reconnect",
-        isempty(Parameters) and PredecessorConnectionId == "<>", "Standard",
-        "Unknown" // Default case
-    )
-| project StartTime, EndTime, UserName, DurationSeconds, HostPoolName, SessionHostName, LoginType, Parameters, PredecessorConnectionId
-
-
-
-
-WVDConnections
-| where TimeGenerated > ago(24h)
-| where State == "Started"
-| project CorrelationId, UserName, ConnectionType, StartTime = TimeGenerated, _ResourceId
-| join (
-    WVDConnections
-    | where State == "Connected"
-    | project EndTime = TimeGenerated, CorrelationId, PredecessorConnectionId, SessionHostName
-) on CorrelationId
-| extend DurationSeconds = (EndTime - StartTime) / 1s // Convert Duration to seconds
-| project CorrelationId, UserName, ConnectionType, StartTime, EndTime, _ResourceId, PredecessorConnectionId, SessionHostName, DurationSeconds
-| join kind=leftouter (
-    WVDCheckpoints
-    | where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
-    | project CorrelationId, Parameters
-) on CorrelationId
-| extend 
-    HostPoolName = extract(@"/([^/]+)$", 1, _ResourceId), // Extract the string after the last `/` in `_ResourceId`
-    LoginType = case(
-        isnotempty(Parameters), "StartVMOnConnect",
-        PredecessorConnectionId != "<>", "Reconnect",
-        isempty(Parameters) and PredecessorConnectionId == "<>", "Standard",
-        "Unknown" // Default case
-    )
-| project StartTime, EndTime, UserName, DurationSeconds, HostPoolName, SessionHostName, LoginType, Parameters, PredecessorConnectionId
-| where UserName contains "niall"
-
-
-
-WVDConnections
-| where TimeGenerated > ago(24h)
-| where State == "Started"
-| project CorrelationId, UserName, ConnectionType, StartTime = TimeGenerated, _ResourceId
-| join (
-    WVDConnections
-    | where State == "Connected"
-    | project EndTime = TimeGenerated, CorrelationId, PredecessorConnectionId, SessionHostName
-) on CorrelationId
-| extend DurationSeconds = (EndTime - StartTime) / 1s // Convert Duration to seconds
-| project CorrelationId, UserName, ConnectionType, StartTime, EndTime, _ResourceId, PredecessorConnectionId, SessionHostName, DurationSeconds
-| join kind=leftouter (
-    WVDCheckpoints
-    | where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
-    | project CorrelationId, Parameters
-) on CorrelationId
-| extend 
-    HostPoolName = extract(@"/([^/]+)$", 1, _ResourceId), // Extract the string after the last `/` in `_ResourceId`
-    LoginType = case(
-        isnotempty(Parameters), "StartVMOnConnect",
-        PredecessorConnectionId != "<>", "Reconnect",
-        isempty(Parameters) and PredecessorConnectionId == "<>", "Standard",
-        "Unknown" // Default case
-    )
-| project StartTime, EndTime, UserName, DurationSeconds, HostPoolName, SessionHostName, LoginType, Parameters, PredecessorConnectionId
-
-
-
-
 let
     // Define start and end date/time parameters
     strRangeStart = RangeStart,
@@ -114,49 +27,18 @@ let
             | summarize arg_max(StartDate, *) by CorrelationId
         ",
         [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
-    ),
-
-    // Change data type of DurationSeconds column to number
-    #"Changed Type2" = Table.TransformColumnTypes(Source, {{"DurationSeconds", type number}}),
-
-    // Round DurationSeconds to 2 decimal places
-    #"Rounded Off" = Table.TransformColumns(#"Changed Type2", {{"DurationSeconds", each Number.Round(_, 2), type number}}),
-
-    // Duplicate StartDate column to extract StartTime
-    #"Duplicated Column" = Table.DuplicateColumn(#"Rounded Off", "StartDate", "StartDate - Copy"),
-    #"Changed Type" = Table.TransformColumnTypes(#"Duplicated Column", {{"StartDate - Copy", type text}}),
-    #"Extracted Text After Delimiter" = Table.TransformColumns(#"Changed Type", {{"StartDate - Copy", each Text.AfterDelimiter(_, "T"), type text}}),
-    #"Extracted First Characters" = Table.TransformColumns(#"Extracted Text After Delimiter", {{"StartDate - Copy", each Text.Start(_, 16), type text}}),
-    #"Changed Type1" = Table.TransformColumnTypes(#"Extracted First Characters", {{"StartDate - Copy", type time}}),
-    #"Renamed Columns" = Table.RenameColumns(#"Changed Type1", {{"StartDate - Copy", "StartTime"}}),
-
-    // Duplicate EndDate column to extract EndTime
-    #"Duplicated Column1" = Table.DuplicateColumn(#"Renamed Columns", "EndDate", "EndDate - Copy"),
-    #"Changed Type3" = Table.TransformColumnTypes(#"Duplicated Column1", {{"EndDate - Copy", type text}}),
-    #"Extracted Text After Delimiter1" = Table.TransformColumns(#"Changed Type3", {{"EndDate - Copy", each Text.AfterDelimiter(_, " "), type text}}),
-    #"Extracted Text Before Delimiter" = Table.TransformColumns(#"Extracted Text After Delimiter1", {{"EndDate - Copy", each Text.BeforeDelimiter(_, " ", {0, RelativePosition.FromEnd}), type text}}),
-    #"Renamed Columns1" = Table.RenameColumns(#"Extracted Text Before Delimiter", {{"EndDate - Copy", "EndTime"}}),
-    #"Changed Type4" = Table.TransformColumnTypes(#"Renamed Columns1", {{"EndTime", type time}}),
-
-    // Reorder columns for easier readability
-    #"Reordered Columns" = Table.ReorderColumns(#"Changed Type4", {"CorrelationId", "StartDate", "StartTime", "StartTimekey", "EndDate", "EndTime", "EndTimekey", "UserName", "DurationSeconds"}),
-
-    // Duplicate StartDate and EndDate columns to create short date columns
-    #"Duplicated Column2" = Table.DuplicateColumn(#"Reordered Columns", "StartDate", "StartDate - Copy"),
-    #"Duplicated Column3" = Table.DuplicateColumn(#"Duplicated Column2", "EndDate", "EndDate - Copy"),
-    #"Changed Type5" = Table.TransformColumnTypes(#"Duplicated Column3", {{"StartDate - Copy", type date}, {"EndDate - Copy", type date}}),
-    #"Renamed Columns2" = Table.RenameColumns(#"Changed Type5",{{"StartDate - Copy", "StartDate - Short"}, {"EndDate - Copy", "EndDate - Short"}, {"StartDate", "TimeGenerated -StartDate"}, {"EndDate", "TimeGenerated -EndDate"}})
-    
+    )
 in
-    #"Renamed Columns2"
+    Source
 
 
+Can you replace the KQL in the M Query above with the KQL Query below
 
-Arithmetic expression cannot be carried-out between R64 and TimeSpan
-Request id: 1b868319-2a76-4cd5-bc59-c596e11cacb0
+let paramRangeStart = todatetime('" & DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss") & "')
+let paramRangeEnd = todatetime('" & DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss") & "')
 
 WVDConnections
-| where TimeGenerated > ago(24h)
+| where TimeGenerated between (paramRangeStart .. paramRangeEnd)
 | where State == "Started"
 | project CorrelationId, UserName, ConnectionType, StartTime = TimeGenerated, _ResourceId
 | join (
@@ -164,8 +46,8 @@ WVDConnections
     | where State == "Connected"
     | project EndTime = TimeGenerated, CorrelationId, PredecessorConnectionId, SessionHostName
 ) on CorrelationId
-| extend Duration = EndTime - StartTime
-| project CorrelationId, UserName, ConnectionType, StartTime, EndTime, _ResourceId, PredecessorConnectionId, SessionHostName, Duration
+| extend LoginDurationSeconds = round((EndTime - StartTime) / 1s, 2) // Convert Duration to seconds and round to 2 decimal places
+| project CorrelationId, UserName, ConnectionType, StartTime, EndTime, _ResourceId, PredecessorConnectionId, SessionHostName, LoginDurationSeconds
 | join kind=leftouter (
     WVDCheckpoints
     | where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
@@ -173,257 +55,14 @@ WVDConnections
 ) on CorrelationId
 | extend 
     HostPoolName = extract(@"/([^/]+)$", 1, _ResourceId), // Extract the string after the last `/` in `_ResourceId`
-    LoginDurationSeconds = round(toreal(Duration) / 1s, 2), // Convert duration to seconds and round to two decimal places
     LoginType = case(
         isnotempty(Parameters), "StartVMOnConnect",
         PredecessorConnectionId != "<>", "Reconnect",
         isempty(Parameters) and PredecessorConnectionId == "<>", "Standard",
         "Unknown" // Default case
     )
-| project StartTime, EndTime, UserName, LoginDurationSeconds, HostPoolName, SessionHostName, LoginType, Parameters, PredecessorConnectionId
-
-
-
-
-WVDConnections
-| where TimeGenerated > ago(24h)
-| where State == "Started"
-| project CorrelationId, UserName, ConnectionType, StartTime = TimeGenerated, _ResourceId
-| join (
-    WVDConnections
-    | where State == "Connected"
-    | project EndTime = TimeGenerated, CorrelationId, PredecessorConnectionId, SessionHostName
-) on CorrelationId
-| project CorrelationId, UserName, Duration = EndTime - StartTime, ConnectionType, StartTime, EndTime, _ResourceId, PredecessorConnectionId, SessionHostName
-| join kind=leftouter (
-    WVDCheckpoints
-    | where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
-    | project CorrelationId, Parameters
-) on CorrelationId
-| project StartTime, EndTime, UserName, Duration, Parameters, _ResourceId, PredecessorConnectionId, SessionHostName
-| project StartTime, EndTime, UserName, Duration, _ResourceId, SessionHostName, Parameters, PredecessorConnectionId
-
-Returns
-
-
-StartTime [UTC]	EndTime [UTC]	UserName	Duration	_ResourceId	SessionHostName	Parameters	PredecessorConnectionId
-22/11/2024, 11:54:00.810	22/11/2024, 11:55:51.635	John.Morgan@abrdn.com	01:50.8	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0635.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"692","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0635"}	<>
-22/11/2024, 11:59:40.343	22/11/2024, 12:02:48.476	Aaron.Fong@abrdn.com	03:08.1	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0868.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"488","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0868"}	<>
-22/11/2024, 11:45:50.918	22/11/2024, 11:50:04.784	Timothy.Gibbens@abrdn.com	04:13.9	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0888.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"422","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0888"}	<>
-22/11/2024, 11:47:26.792	22/11/2024, 11:50:03.824	Nick.Hames@abrdn.com	02:37.0	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0569.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"643","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0569"}	<>
-22/11/2024, 11:45:50.918	22/11/2024, 11:50:04.784	Timothy.Gibbens@abrdn.com	04:13.9	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0888.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"706","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0888"}	<>
-22/11/2024, 10:18:58.256	22/11/2024, 10:21:16.678	Sudheer.Putta@abrdn.com	02:18.4	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0544.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"699","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0544"}	<>
-22/11/2024, 10:19:40.686	22/11/2024, 10:22:56.442	Jack.MacAulay@abrdn.com	03:15.8	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0026.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"396","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0026"}	<>
-22/11/2024, 10:18:58.256	22/11/2024, 10:21:16.678	Sudheer.Putta@abrdn.com	02:18.4	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0544.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"364","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0544"}	<>
-22/11/2024, 10:23:40.743	22/11/2024, 10:26:20.238	Viktor.Szabo@abrdn.com	02:39.5	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0687.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"1277","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0687"}	<>
-22/11/2024, 10:29:00.937	22/11/2024, 10:31:49.142	jane.anderson@abrdn.com	02:48.2	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0287.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"606","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0287"}	<>
-22/11/2024, 10:30:04.522	22/11/2024, 10:33:01.993	Santhanamullai.Mohan@abrdn.com	02:57.5	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_tst_mspooled	M01TMSNI0001.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"292","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-UATVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01TMSNI0001"}	<>
-22/11/2024, 10:30:24.409	22/11/2024, 10:32:52.722	Mubashira.Bukhari.Khwaja@abrdn.com	02:28.3	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0167.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"500","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0167"}	<>
-22/11/2024, 10:35:17.694	22/11/2024, 10:37:55.532	Fiona.Silva@abrdn.com	02:37.8	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0278.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"859","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0278"}	<>
-22/11/2024, 10:35:48.830	22/11/2024, 10:38:28.775	Gisele.Puchy@abrdn.com	02:39.9	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0023.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"350","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0023"}	<>
-22/11/2024, 10:36:28.222	22/11/2024, 10:37:43.667	Elizabeth.Hill@abrdn.com	01:15.4	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0024.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"554","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0024"}	<>
-22/11/2024, 10:37:44.071	22/11/2024, 10:39:01.438	Vincent.Behaghel@abrdn.com	01:17.4	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0297.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"608","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0297"}	<>
-22/11/2024, 10:41:34.781	22/11/2024, 10:44:02.104	Ankit.Chrungu@abrdn.com	02:27.3	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0518.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"1097","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0518"}	<>
-22/11/2024, 10:42:10.130	22/11/2024, 10:45:09.639	angus.shepherd@abrdn.com	02:59.5	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0224.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"507","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0224"}	<>
-22/11/2024, 10:46:54.771	22/11/2024, 10:48:44.637	charles.griffin@abrdn.com	01:49.9	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0029.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"786","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0029"}	<>
-22/11/2024, 11:04:11.502	22/11/2024, 11:06:34.464	Suresh.Racharla@abrdn.com	02:23.0	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0879.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"460","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0879"}	<>
-22/11/2024, 11:04:35.402	22/11/2024, 11:07:05.550	Danny.Begg@abrdn.com	02:30.1	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0619.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"387","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0619"}	<>
-22/11/2024, 11:07:23.214	22/11/2024, 11:11:09.743	Giridhar.Bandarupalli@abrdn.com	03:46.5	/subscriptions/23bcd608-7846-4fe2-a900-fd2220458d84/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-eus2-prd/providers/microsoft.desktopvirtualization/hostpools/eus2_uat_sspersistent	M06USSPG0020.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"668","SessionHostArmComputePath":"/subscriptions/23bcd608-7846-4fe2-a900-fd2220458d84/resourceGroups/rg-EUS-RemoteDesktopDevices-UATVirtualDesktop-EUS2-PRD/providers/Microsoft.Compute/virtualMachines/M06USSPG0020"}	<>
-22/11/2024, 11:08:24.099	22/11/2024, 11:12:23.713	Smitha.Ram@abrdn.com	03:59.6	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_uat_sspersistent	M01USSPI0024.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"471","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-UATVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01USSPI0024"}	<>
-22/11/2024, 11:20:07.986	22/11/2024, 11:22:36.876	cynthia.cardosa@abrdn.com	02:28.9	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0097.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"912","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0097"}	<>
-22/11/2024, 11:20:54.191	22/11/2024, 11:23:21.192	Nick.Robinson@abrdn.com	02:27.0	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0165.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"561","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0165"}	<>
-22/11/2024, 11:23:29.548	22/11/2024, 11:29:08.783	Jason.Akus@abrdn.com	05:39.2	/subscriptions/23bcd608-7846-4fe2-a900-fd2220458d84/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-eus2-prd/providers/microsoft.desktopvirtualization/hostpools/eus2_prd_sspersistent	M06PSSPG0072.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"527","SessionHostArmComputePath":"/subscriptions/23bcd608-7846-4fe2-a900-fd2220458d84/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-EUS2-PRD/providers/Microsoft.Compute/virtualMachines/M06PSSPG0072"}	<>
-22/11/2024, 11:24:05.102	22/11/2024, 11:26:52.646	Nick.Hames@abrdn.com	02:47.5	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0569.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"547","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0569"}	<>
-22/11/2024, 11:30:20.281	22/11/2024, 11:32:55.670	Mammad.Ibrahimli@abrdn.com	02:35.4	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	M01PSSPI0435.aberdeen.aberdeen-asset.com	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"592","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0435"}	bf341f5b-faa6-4c68-ab03-ece919030000
-
-
-I want to replace _ResourceId with a column called HostPoolName that contains the string after the last / example: neu_prd_sspersistent
-I want to replace Duration column with a column called LoginDurationSeconds that converts the value into seconds rounded to two decimal places
-I want a new column called LoginType that has a value of StartVMOnConnect IF Parameters is not blank, a value of Reconnect if PredecessorConnectionId is not equal to <> and a value of Standard if Parameters is blank AND PredecessorConnectionId is equal to <>
-They should be included in the final output
-
-
-
-
-
-
-
-WVDConnections
-| where TimeGenerated > ago(24h)
-| where State == "Started"
-| project CorrelationId, UserName, ConnectionType, StartTime = TimeGenerated, _ResourceId
-| join (
-    WVDConnections
-    | where State == "Connected"
-    | project EndTime = TimeGenerated, CorrelationId, PredecessorConnectionId
-) on CorrelationId
-| project CorrelationId, UserName, Duration = EndTime - StartTime, ConnectionType, StartTime, EndTime, _ResourceId, PredecessorConnectionId
-| join kind=leftouter (
-    WVDCheckpoints
-    | where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
-    | project CorrelationId, Parameters
-) on CorrelationId
-| project StartTime, EndTime, UserName, Duration, Parameters, _ResourceId, PredecessorConnectionId
-
-
-
-
-
-WVDConnections
-| where TimeGenerated > ago(24h)
-| where State == "Started"
-| project CorrelationId, UserName, ConnectionType, StartTime = TimeGenerated, _ResourceId
-| join (
-    WVDConnections
-    | where State == "Connected"
-    | project EndTime = TimeGenerated, CorrelationId, PredecessorConnectionId
-) on CorrelationId
-| project CorrelationId, UserName, Duration = EndTime - StartTime, ConnectionType, StartTime, EndTime, _ResourceId
-| join kind=leftouter (
-    WVDCheckpoints
-    | where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
-    | project CorrelationId, Parameters
-) on CorrelationId
-| project StartTime, EndTime, UserName, Duration, Parameters, _ResourceId, PredecessorConnectionId
-
-
-
-
-WVDConnections
-            | extend UserName = trim("" "", tolower(UserName))
-            | where State == ""Connected""
-            | project CorrelationId, UserName, ResourceAlias, StartDate = TimeGenerated
-            | join (
-                WVDConnections
-                | where State == ""Completed""
-                | project EndDate = TimeGenerated, CorrelationId
-            ) on CorrelationId
-            | extend StartTimekey = format_datetime(StartDate, 'HHmm')
-            | extend EndTimekey = format_datetime(EndDate, 'HHmm')
-            | project CorrelationId, StartDate, StartTimekey, EndDate, EndTimekey, UserName, DurationSeconds = (EndDate - StartDate) / 1s
-            | summarize arg_max(StartDate, *) by CorrelationId
-
-
-WVDConnections
-| where TimeGenerated > ago(24h)
-| where State == "Started"
-| project CorrelationId, UserName, ConnectionType, StartTime = TimeGenerated, _ResourceId
-| join (
-    WVDConnections
-    | where State == "Connected"
-    | project EndTime = TimeGenerated, CorrelationId
-) on CorrelationId
-| project CorrelationId, UserName, Duration = EndTime - StartTime, ConnectionType, StartTime, EndTime, _ResourceId
-| join kind=leftouter (
-    WVDCheckpoints
-    | where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
-    | project CorrelationId, Parameters
-) on CorrelationId
-| project CorrelationId, UserName, Duration, ConnectionType, StartTime, EndTime, _ResourceId, Parameters
-
-
-
-
-WVDConnections
-| where TimeGenerated > ago(24h)
-| where State == "Started"
-| project CorrelationId, UserName, ConnectionType, StartTime = TimeGenerated, _ResourceId
-| join (
-    WVDConnections
-    | where State == "Connected"
-    | project EndTime = TimeGenerated, CorrelationId
-) on CorrelationId
-| project CorrelationId, UserName, Duration = EndTime - StartTime, ConnectionType, StartTime, _ResourceId
-| join kind=leftouter (
-    WVDCheckpoints
-    | where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
-    | project CorrelationId, Parameters
-) on CorrelationId
-| project CorrelationId, UserName, Duration, ConnectionType, StartTime, _ResourceId, Parameters
-
-
-
-
-// Step 1: Inline calculation for session duration
-WVDConnections
-| where TimeGenerated > ago(24h)
-| where State == "Started"
-| project CorrelationId, UserName, ConnectionType, StartTime = TimeGenerated, _ResourceId
-| join (
-    WVDConnections
-    | where State == "Connected"
-    | project EndTime = TimeGenerated, CorrelationId
-) on CorrelationId
-| project CorrelationId, UserName, Duration = EndTime - StartTime, ConnectionType, StartTime, _ResourceId
-| join kind=leftouter (
-    WVDCheckpoints
-    | where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
-    | project CorrelationId, Parameters
-) on CorrelationId
-| project CorrelationId, UserName, Duration, ConnectionType, StartTime, _ResourceId, Parameters
-
-
-'join' operator: Failed to resolve table or column expression named 'WVDConnectionsData'
-Request id: 12153aee-114d-4174-84d1-545de2de11e3
-
-// Step 1: Calculate session duration from WVDConnections
-let WVDConnectionsData = WVDConnections
-| where TimeGenerated > ago(24h)
-| where State == "Started"
-| project CorrelationId, UserName, ConnectionType, StartTime = TimeGenerated, _ResourceId
-| join (
-    WVDConnections
-    | where State == "Connected"
-    | project EndTime = TimeGenerated, CorrelationId
-) on CorrelationId
-| project CorrelationId, UserName, Duration = EndTime - StartTime, ConnectionType, StartTime, _ResourceId;
-
-// Step 2: Filter WVDCheckpoints for VM start events
-let WVDCheckpointsData = WVDCheckpoints
-| where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
-| project CorrelationId, Parameters;
-
-// Step 3: Join WVDConnectionsData with WVDCheckpointsData
-WVDConnectionsData
-| join kind=leftouter WVDCheckpointsData on CorrelationId
-| project CorrelationId, UserName, Duration, ConnectionType, StartTime, _ResourceId, Parameters
-
-
-
-WVDConnections 
-| where TimeGenerated > ago(24h) 
-| where State == "Started" 
-| project CorrelationId , UserName, ConnectionType, 
-StartTime=TimeGenerated, _ResourceId   
-| join (WVDConnections 
-| where State == "Connected" 
-| project EndTime=TimeGenerated, CorrelationId) 
-on CorrelationId 
-| project CorrelationId, UserName, Duration = EndTime - StartTime
-
-WVDCheckpoints
-| where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
-
-
-
-// Query 1: WVDConnections for session duration
-let WVDConnectionsData = WVDConnections
-| where TimeGenerated > ago(24h)
-| where State == "Started"
-| project CorrelationId, UserName, ConnectionType, StartTime = TimeGenerated, _ResourceId
-| join (
-    WVDConnections
-    | where State == "Connected"
-    | project EndTime = TimeGenerated, CorrelationId
-) on CorrelationId
-| project CorrelationId, UserName, Duration = EndTime - StartTime;
-
-// Query 2: WVDCheckpoints for VM start events
-let WVDCheckpointsData = WVDCheckpoints
-| where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting";
-
-// Joining both queries on CorrelationId
-WVDConnectionsData
-| join WVDCheckpointsData on CorrelationId
-| project CorrelationId, UserName, Duration, Parameters, StartTime
-
+| extend StartTimekey = format_datetime(StartTime, 'HHmm')
+| extend ConnectedTimekey = format_datetime(EndTime, 'HHmm')
+| extend UserName = trim(' ', tolower(UserName))
+| extend SessionHostName = trim(' ', tolower(SessionHostName))
+| project CorrelationId, StartTimeGenerated = StartTime, StartTimekey, ConnectedTimeGenerated = EndTime, ConnectedTimekey, LoginDurationSeconds, UserName, HostPoolName, SessionHostName, LoginType
