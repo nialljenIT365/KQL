@@ -1,2 +1,8 @@
 WVDCheckpoints
 | summarize arg_min(TimeGenerated, *) by CorrelationId, Name;
+let Checkpoints = (name: string) {
+    checkpoints
+    | where Name == name 
+    | project CorrelationId, bag = pack(name, TimeGenerated), Parameters
+    | evaluate bag_unpack(bag)
+};
