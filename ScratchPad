@@ -1,5 +1,5 @@
 let newSessions = true;
-let checkpoints = WVDCheckpoints
+let checkpoints =  WVDCheckpoints
     | summarize arg_min(TimeGenerated, *) by CorrelationId, Name;
 let Checkpoints = (name: string) {
     checkpoints
@@ -7,84 +7,15 @@ let Checkpoints = (name: string) {
     | project CorrelationId, bag = pack(name, TimeGenerated)
     | evaluate bag_unpack(bag)
 };
-WVDConnections
-| where State == "Started"
-| where ("no_host_selected" == "no_host_selected" or trim_end("[.].*", SessionHostName) == "no_host_selected")
-| distinct TimeGenerated, CorrelationId
-| join kind = leftsemi
-    (
-    checkpoints
-    | where Source == "RDStack"
-        and Name == "RdpStackConnectionEstablished"
-    )
-    on CorrelationId
-| project CorrelationId, TimeGenerated
-| join kind = inner // UserRoute
-    (
-    checkpoints
-    | where Name == "LoadBalancedNewConnection"
-    | extend LoadBalanceOutcome = Parameters.LoadBalanceOutcome
-    | where (newSessions and LoadBalanceOutcome == "NewSession") or (not(newSessions) and LoadBalanceOutcome in ('Disconnected', 'Active'))
-    | project CorrelationId, UserRoute = TimeGenerated
-    | distinct CorrelationId, UserRoute
-    )
-    on CorrelationId
-| extend UserRouteDurationSecs = round(datetime_diff("second", UserRoute, TimeGenerated), 2) // Calculate and round UserRoute duration
-| project CorrelationId, TimeGenerated, UserRoute, UserRouteDurationSecs
-| join kind = innerunique Checkpoints("RdpStackConnectionEstablished") on CorrelationId
-| extend RdpStackConnectionEstablishedDurationSecs = round(datetime_diff("second", RdpStackConnectionEstablished, TimeGenerated), 2) // Calculate and round RDP Stack duration
-| project CorrelationId, TimeGenerated, UserRoute, UserRouteDurationSecs, RdpStackConnectionEstablished, RdpStackConnectionEstablishedDurationSecs
-| join kind = leftouter 
-    (
-    checkpoints
-    | where Name =~ "OnCredentialsAcquisitionCompleted"
-    | project CorrelationId, credaquireDurationMilliSecs = tolong(Parameters.DurationMS) // Renamed column
-    )
-    on CorrelationId
-| project-away CorrelationId1
-| join kind = leftouter // SSO token
-    (
-    checkpoints
-    | where Name =~ "SSOTokenRetrieval"
-    | project CorrelationId, ssotoken = tolong(Parameters.DurationMS)
-    )
-    on CorrelationId
-| project-away CorrelationId1
-| join kind = innerunique // Logon Delay
-    (
-    checkpoints
-    | where Name == "LogonDelay"
-    | extend LogonType = tostring(Parameters.LogonType)
-    | where (newSessions and LogonType == "DirectSession") or (not(newSessions) and LogonType == "TemporarySession")
-    | project LogonDelay = TimeGenerated, CorrelationId
-    )
-    on CorrelationId
-| project-away CorrelationId1
-| join kind = leftouter Checkpoints("ShellStart") on CorrelationId
-| extend ShellStartDurationSecs = round(datetime_diff("second", ShellStart, TimeGenerated), 2) // Calculate and round ShellStart duration
-| project-away CorrelationId1
-| join kind = leftouter
-    (
-    checkpoints
-    | where newSessions
-    | where Name =~ "ShellReady" or
-        (Name =~ "LaunchExecutable" and Parameters.connectionStage == "RdpShellAppExecuted" or Name =~ "RdpShellAppExecuted")
-    | project ProductiveTime = TimeGenerated, CorrelationId
-    )
-    on CorrelationId
-| extend ProductiveTimeDurationSecs = round(datetime_diff("second", ProductiveTime, TimeGenerated), 2) // Calculate and round ProductiveTime duration
-| project-away CorrelationId1
-| where not(newSessions) or isnotnull(ProductiveTime)
-| extend LogonDelayDurationSeconds = round(datetime_diff("second", LogonDelay, TimeGenerated), 2) // Calculate and round LogonDelay duration
-| project CorrelationId, TimeGenerated, UserRoute, UserRouteDurationSecs, RdpStackConnectionEstablished, RdpStackConnectionEstablishedDurationSecs, credaquireDurationMilliSecs, LogonDelay, LogonDelayDurationSeconds, ShellStart, ShellStartDurationSecs, ProductiveTime, ProductiveTimeDurationSecs
-| where (datetime_diff("millisecond", UserRoute, TimeGenerated) - coalesce(ssotoken, 0)) >= 0
-
-
-
-
-'where' operator: Failed to resolve table or column expression named 'checkpoints'
-Request id: 13a52020-2c91-446c-aa53-1def6025ab1d
-
+let ChartInfo = datatable (Stage: string, label: string, stageOrder: int) [
+    "UserRoute", "User Route", 1,
+    "TransportConnected", "Stack Connected", 3,
+    "OnCredentialsAcquisitionCompleted", "creds", 4,
+    "RdpStackConnectionEstablished", "Stack Connected", 5,
+    "LogonDelay", "Logon", 6,
+    "ShellStart", "Shell Start", 7,
+    "ProductiveTime", "Shell Ready", 8
+];
 WVDConnections
 | where State == "Started"
 | where ("no_host_selected" == "no_host_selected" or trim_end("[.].*", SessionHostName) == "no_host_selected")
@@ -138,7 +69,6 @@ WVDConnections
     on CorrelationId
 | project-away CorrelationId1
 | join kind=leftouter Checkpoints("ShellStart") on CorrelationId
-| extend ShellStartDurationSecs = round(datetime_diff("second", ShellStart, TimeGenerated), 2) // Calculate and round ShellStart duration
 | project-away CorrelationId1
 | join kind = leftouter
     (
@@ -149,9 +79,9 @@ WVDConnections
     | project ProductiveTime=TimeGenerated, CorrelationId
     )
     on CorrelationId
-| extend ProductiveTimeDurationSecs = round(datetime_diff("second", ProductiveTime, TimeGenerated), 2) // Calculate and round ProductiveTime duration
 | project-away CorrelationId1
 | where not(newSessions) or isnotnull(ProductiveTime)
+//| where (datetime_diff("millisecond", UserRoute, TimeGenerated) - coalesce(ssotoken, 0)) >= 0
 | extend LogonDelayDurationSeconds = round(datetime_diff("second", LogonDelay, TimeGenerated), 2) // Calculate and round LogonDelay duration
-| project CorrelationId, TimeGenerated, UserRoute, UserRouteDurationSecs, RdpStackConnectionEstablished, RdpStackConnectionEstablishedDurationSecs, credaquireDurationMilliSecs, LogonDelay, LogonDelayDurationSeconds, ShellStart, ShellStartDurationSecs, ProductiveTime, ProductiveTimeDurationSecs
+| project CorrelationId, TimeGenerated, UserRoute, UserRouteDurationSecs, RdpStackConnectionEstablished, RdpStackConnectionEstablishedDurationSecs, credaquireDurationMilliSecs, ssotoken, LogonDelay, LogonDelayDurationSeconds, ShellStart, ProductiveTime
 | where (datetime_diff("millisecond", UserRoute, TimeGenerated) - coalesce(ssotoken, 0)) >= 0
