@@ -1,5 +1,3 @@
-| summarize arg_max(StartTime, *) by CorrelationId // Remove duplicate CorrelationId, keeping the row with the latest StartTime
-
 let
     // Define start and end date/time parameters
     strRangeStart = RangeStart,
@@ -41,6 +39,7 @@ let
         | extend ConnectedTimekey = format_datetime(EndTime, 'HHmm')
         | extend UserName = trim(' ', tolower(UserName))
         | extend SessionHostName = trim(' ', tolower(SessionHostName))
+        | summarize arg_max(StartTime, *) by CorrelationId // Remove duplicate CorrelationId, keeping the row with the latest StartTime
         | project CorrelationId, StartTimeGenerated = StartTime, StartTimekey, ConnectedTimeGenerated = EndTime, ConnectedTimekey, LoginDurationSeconds, UserName, HostPoolName, SessionHostName, LoginType
         ",
         [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
