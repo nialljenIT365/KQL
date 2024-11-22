@@ -1,3 +1,16 @@
+| project CorrelationId, TimeGenerated, PredecessorConnectionId, SessionHostName, _ResourceId
+| join kind = inner // UserRoute
+    (
+    checkpoints
+    | where Name == "LoadBalancedNewConnection"
+    | extend LoadBalanceOutcome = Parameters.LoadBalanceOutcome // Access Parameters column
+    | where (newSessions and LoadBalanceOutcome == "NewSession") or (not(newSessions) and LoadBalanceOutcome in ('Disconnected', 'Active'))
+    | project CorrelationId, UserRoute=TimeGenerated, LoadBalanceOutcome, Parameters // Include LoadBalanceOutcome if needed
+    | distinct CorrelationId, UserRoute
+    )
+    on CorrelationId
+
+
 | join kind = inner
 
 
