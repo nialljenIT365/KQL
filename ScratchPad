@@ -7,6 +7,27 @@ WVDConnections
     | where State == "Connected"
     | project EndTime = TimeGenerated, CorrelationId, PredecessorConnectionId
 ) on CorrelationId
+| project CorrelationId, UserName, Duration = EndTime - StartTime, ConnectionType, StartTime, EndTime, _ResourceId, PredecessorConnectionId
+| join kind=leftouter (
+    WVDCheckpoints
+    | where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
+    | project CorrelationId, Parameters
+) on CorrelationId
+| project StartTime, EndTime, UserName, Duration, Parameters, _ResourceId, PredecessorConnectionId
+
+
+
+
+
+WVDConnections
+| where TimeGenerated > ago(24h)
+| where State == "Started"
+| project CorrelationId, UserName, ConnectionType, StartTime = TimeGenerated, _ResourceId
+| join (
+    WVDConnections
+    | where State == "Connected"
+    | project EndTime = TimeGenerated, CorrelationId, PredecessorConnectionId
+) on CorrelationId
 | project CorrelationId, UserName, Duration = EndTime - StartTime, ConnectionType, StartTime, EndTime, _ResourceId
 | join kind=leftouter (
     WVDCheckpoints
