@@ -23,6 +23,35 @@ WVDConnections
         "Unknown" // Default case
     )
 | project StartTime, EndTime, UserName, DurationSeconds, HostPoolName, SessionHostName, LoginType, Parameters, PredecessorConnectionId
+| where UserName contains "niall"
+
+
+
+WVDConnections
+| where TimeGenerated > ago(24h)
+| where State == "Started"
+| project CorrelationId, UserName, ConnectionType, StartTime = TimeGenerated, _ResourceId
+| join (
+    WVDConnections
+    | where State == "Connected"
+    | project EndTime = TimeGenerated, CorrelationId, PredecessorConnectionId, SessionHostName
+) on CorrelationId
+| extend DurationSeconds = (EndTime - StartTime) / 1s // Convert Duration to seconds
+| project CorrelationId, UserName, ConnectionType, StartTime, EndTime, _ResourceId, PredecessorConnectionId, SessionHostName, DurationSeconds
+| join kind=leftouter (
+    WVDCheckpoints
+    | where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
+    | project CorrelationId, Parameters
+) on CorrelationId
+| extend 
+    HostPoolName = extract(@"/([^/]+)$", 1, _ResourceId), // Extract the string after the last `/` in `_ResourceId`
+    LoginType = case(
+        isnotempty(Parameters), "StartVMOnConnect",
+        PredecessorConnectionId != "<>", "Reconnect",
+        isempty(Parameters) and PredecessorConnectionId == "<>", "Standard",
+        "Unknown" // Default case
+    )
+| project StartTime, EndTime, UserName, DurationSeconds, HostPoolName, SessionHostName, LoginType, Parameters, PredecessorConnectionId
 
 
 
