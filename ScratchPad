@@ -1,5 +1,11 @@
 WVDCheckpoints
 | where CorrelationId == "3b6a7c12-5b24-43b3-bdc7-70b113bd3600"
+| top 1 by TimeGenerated desc
+| project Name, Source, Parameters
+
+
+WVDCheckpoints
+| where CorrelationId == "3b6a7c12-5b24-43b3-bdc7-70b113bd3600"
 
 
 
