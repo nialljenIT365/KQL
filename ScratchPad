@@ -22,6 +22,38 @@ WVDConnections
 | project TimeGenerated, CorrelationId, UserName, SessionHostName, PredecessorConnectionId, _ResourceId
 | join kind=leftouter (
     WVDErrors
+      | project CorrelationId, Code, CodeSymbolic, Message, Operation
+) on CorrelationId
+//| extend PCorrelationIdText = tostring(CorrelationId)
+| project TimeGenerated, CorrelationId, UserName, SessionHostName, PredecessorConnectionId, _ResourceId, Code, CodeSymbolic, Message, Operation;
+
+
+
+
+let newSessions = true;
+let checkpoints = WVDCheckpoints
+    | summarize arg_min(TimeGenerated, *) by CorrelationId, Name;
+let Checkpoints = (name: string) {
+    checkpoints
+    | where Name == name 
+    | project CorrelationId, bag = pack(name, TimeGenerated)
+    | evaluate bag_unpack(bag)
+};
+let ChartInfo = datatable(Stage: string, label: string, stageOrder: int) [
+    "UserRoute", "User Route", 1,
+    "TransportConnected", "Stack Connected", 3,
+    "OnCredentialsAcquisitionCompleted", "creds", 4,
+    "RdpStackConnectionEstablished", "Stack Connected", 5,
+    "LogonDelay", "Logon", 6,
+    "ShellStart", "Shell Start", 7,
+    "ProductiveTime", "Shell Ready", 8
+];
+WVDConnections
+| where State == "Started"
+| where ("no_host_selected" == "no_host_selected" or trim_end("[.].*", SessionHostName) == "no_host_selected")
+| project TimeGenerated, CorrelationId, UserName, SessionHostName, PredecessorConnectionId, _ResourceId
+| join kind=leftouter (
+    WVDErrors
     | project CorrelationId, ErrorMessage, ErrorDetails, ErrorTimeGenerated=TimeGenerated
 ) on CorrelationId
 | project TimeGenerated, CorrelationId, UserName, SessionHostName, PredecessorConnectionId, _ResourceId, ErrorMessage, ErrorDetails, ErrorTimeGenerated;
