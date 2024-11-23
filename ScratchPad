@@ -1,3 +1,8 @@
+
+'toscalar' operator: Failed to resolve table or scalar expression named 'CorrelationId'
+Request id: 101a2d4a-1158-469a-8211-58ca91f010d7
+
+
 let newSessions=true;
 let checkpoints=WVDCheckpoints
 | summarize arg_min(TimeGenerated,*) by CorrelationId,Name;
