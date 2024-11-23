@@ -1,31 +1,154 @@
-| project CorrelationId, TimeGenerated, PredecessorConnectionId, SessionHostName, _ResourceId
+ORIGINAL KQL
+
+let newSessions = true;
+let checkpoints =  WVDCheckpoints
+    | summarize arg_min(TimeGenerated, *) by CorrelationId, Name;
+let Checkpoints = (name: string) {
+    checkpoints
+    | where Name == name 
+    | project CorrelationId, bag = pack(name, TimeGenerated)
+    | evaluate bag_unpack(bag)
+};
+let ChartInfo = datatable (Stage: string, label: string, stageOrder: int) [
+    "UserRoute", "User Route", 1,
+    "TransportConnected", "Stack Connected", 3,
+    "OnCredentialsAcquisitionCompleted", "creds", 4,
+    "RdpStackConnectionEstablished", "Stack Connected", 5,
+    "LogonDelay", "Logon", 6,
+    "ShellStart", "Shell Start", 7,
+    "ProductiveTime", "Shell Ready", 8
+];
+WVDConnections
+| where State == "Started"
+| where ("no_host_selected" == "no_host_selected" or trim_end("[.].*", SessionHostName) == "no_host_selected")
+| distinct TimeGenerated, CorrelationId
+| join kind = leftsemi
+    (
+    // Only include connections that actually reached the host to prevent short (failed) attempts from skewing the data
+    checkpoints
+    | where Source == "RDStack"
+        and Name == "RdpStackConnectionEstablished"
+    )
+    on CorrelationId
+| project CorrelationId, TimeGenerated
 | join kind = inner // UserRoute
     (
     checkpoints
     | where Name == "LoadBalancedNewConnection"
-    | extend LoadBalanceOutcome = Parameters.LoadBalanceOutcome // Access Parameters column
+    | extend LoadBalanceOutcome=Parameters.LoadBalanceOutcome
     | where (newSessions and LoadBalanceOutcome == "NewSession") or (not(newSessions) and LoadBalanceOutcome in ('Disconnected', 'Active'))
-    | project CorrelationId, UserRoute=TimeGenerated, LoadBalanceOutcome, Parameters // Include LoadBalanceOutcome if needed
+    | project CorrelationId, UserRoute=TimeGenerated
     | distinct CorrelationId, UserRoute
     )
     on CorrelationId
+| project-away CorrelationId1
+| join kind=innerunique Checkpoints("RdpStackConnectionEstablished") on CorrelationId
+| project-away CorrelationId1
+| join kind=leftouter 
+    (
+    checkpoints
+    | where Name =~ "OnCredentialsAcquisitionCompleted"
+    | project CorrelationId, credaquire = tolong(Parameters.DurationMS)
+    )
+    on CorrelationId
+| project-away CorrelationId1
+| join kind=leftouter //SSO token
+    (
+    checkpoints
+    | where Name =~ "SSOTokenRetrieval"
+    | project CorrelationId, ssotoken = tolong(Parameters.DurationMS)
+    )
+    on CorrelationId
+| project-away CorrelationId1
+| join kind=innerunique // Logon Delay
+    (checkpoints
+    | where Name == "LogonDelay"
+    | extend LogonType = tostring(Parameters.LogonType)
+    | where (newSessions and LogonType == "DirectSession") or (not(newSessions) and LogonType == "TemporarySession")
+    | project LogonDelay=TimeGenerated, CorrelationId
+    )
+    on CorrelationId
+| project-away CorrelationId1
+| join kind=leftouter Checkpoints("ShellStart") on CorrelationId
+| project-away CorrelationId1
+| join kind = leftouter
+    (
+    checkpoints // new session
+    | where newSessions
+    | where Name =~ "ShellReady" or
+        (Name =~ "LaunchExecutable" and Parameters.connectionStage == "RdpShellAppExecuted" or Name =~ "RdpShellAppExecuted")
+    | project ProductiveTime=TimeGenerated, CorrelationId
+    )
+    on CorrelationId
+| project-away CorrelationId1
+| where not(newSessions) or isnotnull(ProductiveTime)
+| where (datetime_diff("millisecond", UserRoute, TimeGenerated) - coalesce(ssotoken, 0)) >= 0
 
 
-| join kind = inner
 
 
+Modified KQL
+let newSessions = true;
+let checkpoints =  WVDCheckpoints
+    | summarize arg_min(TimeGenerated, *) by CorrelationId, Name;
+let Checkpoints = (name: string) {
+    checkpoints
+    | where Name == name 
+    | project CorrelationId, bag = pack(name, TimeGenerated), Parameters
+    | evaluate bag_unpack(bag)
+};
+let ChartInfo = datatable (Stage: string, label: string, stageOrder: int) [
+    "UserRoute", "User Route", 1,
+    "TransportConnected", "Stack Connected", 3,
+    "OnCredentialsAcquisitionCompleted", "creds", 4,
+    "RdpStackConnectionEstablished", "Stack Connected", 5,
+    "LogonDelay", "Logon", 6,
+    "ShellStart", "Shell Start", 7,
+    "ProductiveTime", "Shell Ready", 8
+];
 WVDConnections
+| where TimeGenerated >= ago(1d)
 | where State == "Started"
 | where ("no_host_selected" == "no_host_selected" or trim_end("[.].*", SessionHostName) == "no_host_selected")
-| distinct TimeGenerated, CorrelationId, PredecessorConnectionId, SessionHostName, _ResourceId // Include PredecessorConnectionId and SessionHostName
+| join kind=leftouter (
+    WVDCheckpoints
+    | where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
+    //| project CorrelationId, Parameters
+) on CorrelationId
+| extend PowerOnConnect = tostring(Parameters)
+| distinct TimeGenerated, CorrelationId, UserName, PredecessorConnectionId, SessionHostName, _ResourceId, PowerOnConnect
+//A leftsemi join keeps only rows from the left table (WVDConnections) where there is a match in the right table (checkpoints) based on the on condition.
 | join kind = leftsemi
     (
     checkpoints
-    | where Source == "RDStack"
-        and Name == "RdpStackConnectionEstablished"
+    // Only include connections that reached the host AND Power On Connect Events to prevent short (failed) attempts from skewing the data
+    | where Source == "RDStack" or Source == "Client"
+        and Name == "RdpStackConnectionEstablished" or Name contains "" "StartOrchestration::WVDOrchestrationLauncher"
         |project CorrelationId, Parameters
     )
     on CorrelationId
+| project CorrelationId, TimeGenerated, UserName, PredecessorConnectionId, SessionHostName, _ResourceId, PowerOnConnect
 
 
-A leftsemi join keeps only rows from the left table (WVDConnections) where there is a match in the right table (checkpoints) based on the on condition.
+//NEED TO FIGURE OUT WHAT TO PUT IN HERE TO GRAB POWER ON CONNECT INTERVAL AS PART OF LOGIN PERFORMANCE 
+| where UserName contains "niall.jenning"
+
+
+CorrelationId	TimeGenerated [UTC]	UserName	PredecessorConnectionId	SessionHostName	_ResourceId	PowerOnConnect
+9b17d4c2-239b-45f2-bec9-f91804070000	22/11/2024, 10:13:20.162	Niall.Jennings@abrdn.com	<>	M01PSSPI0101.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	
+d00f7f8a-a2ad-44cb-a487-b84a007b0000	22/11/2024, 08:59:27.221	Niall.Jennings@abrdn.com	<>	M01PMSNI0020.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_mspooled	
+024e6a26-4558-4764-9d9d-69f75fff0000	22/11/2024, 14:26:37.071	Niall.Jennings@abrdn.com	<>	M01DVLDT0014	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_dev_sspersistent	
+40546e22-e2b2-4246-b10e-3a58f6270000	22/11/2024, 09:53:54.171	Niall.Jennings@abrdn.com	<>	M01PSSPI0101.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	
+be0fa42e-4f2b-4c0d-ae09-3b226dcd0400	23/11/2024, 00:02:07.215	Niall.Jennings@abrdn.com	be0fa42e-4f2b-4c0d-ae09-3b226dcd0300	M01PSSPI0101.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	
+be0fa42e-4f2b-4c0d-ae09-3b226dcd0100	22/11/2024, 21:37:57.596	Niall.Jennings@abrdn.com	be0fa42e-4f2b-4c0d-ae09-3b226dcd0000	M01PSSPI0101.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	
+be0fa42e-4f2b-4c0d-ae09-3b226dcd0000	22/11/2024, 21:34:51.726	Niall.Jennings@abrdn.com	<>	M01PSSPI0101.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"587","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0101"}
+1010175e-959e-46d8-b87b-eda6a2f60000	22/11/2024, 11:46:46.340	Niall.Jennings@abrdn.com	<>	M01DVLDT0014	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_dev_sspersistent	{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"798","SessionHostArmComputePath":"/subscriptions/031f411c-34a6-49ea-a4fe-0be328271783/resourceGroups/rg-EUS-RemoteDesktopDeveloperDevices-WorkspaceAndStorage-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01DVLDT0014"}
+ed525dfd-a27f-48b4-9716-044a08f90000	22/11/2024, 10:29:51.294	Niall.Jennings@abrdn.com	<>	M01PSSPI0101.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	
+21d5a108-6669-4be1-bbf2-423553950000	22/11/2024, 10:12:56.867	Niall.Jennings@abrdn.com	<>	M01PSSPI0101.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	
+1010175e-959e-46d8-b87b-eda6a2f60100	22/11/2024, 11:50:49.664	Niall.Jennings@abrdn.com	1010175e-959e-46d8-b87b-eda6a2f60000	M01DVLDT0014	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_dev_sspersistent	
+be84250d-2dc9-4a85-9f28-fcc459ef0100	22/11/2024, 12:41:25.343	Niall.Jennings@abrdn.com	be84250d-2dc9-4a85-9f28-fcc459ef0000	M01PMSNI0020.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_mspooled	
+be84250d-2dc9-4a85-9f28-fcc459ef0000	22/11/2024, 12:41:04.489	Niall.Jennings@abrdn.com	<>	M01PMSNI0020.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_mspooled	
+
+
+
+
