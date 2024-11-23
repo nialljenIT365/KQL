@@ -2,6 +2,75 @@ let newSessions = true;
 let checkpoints =  WVDCheckpoints
     | summarize arg_min(TimeGenerated, *) by CorrelationId, Name;
 let Checkpoints = (name: string) {
+    let RowsWithPowerOnConnect = ProcessedConnections
+    | where isnotempty(PowerOnConnect)
+    | project CorrelationId, PowerOnConnectTime = TimeGenerated;
+
+    checkpoints
+    | where Name == name 
+    | join kind=leftouter (RowsWithPowerOnConnect) on CorrelationId
+    | where isnotempty(PowerOnConnectTime) or Name == name // Include rows with PowerOnConnectTime or matching Name
+    | project CorrelationId, bag = pack(name, TimeGenerated), PowerOnConnectTime, Parameters
+    | evaluate bag_unpack(bag)
+};
+let ChartInfo = datatable (Stage: string, label: string, stageOrder: int) [
+    "UserRoute", "User Route", 1,
+    "TransportConnected", "Stack Connected", 3,
+    "OnCredentialsAcquisitionCompleted", "creds", 4,
+    "RdpStackConnectionEstablished", "Stack Connected", 5,
+    "LogonDelay", "Logon", 6,
+    "ShellStart", "Shell Start", 7,
+    "ProductiveTime", "Shell Ready", 8
+];
+let ProcessedConnections = WVDConnections
+| where TimeGenerated >= ago(1d)
+| where State == "Started"
+| where ("no_host_selected" == "no_host_selected" or trim_end("[.].*", SessionHostName) == "no_host_selected")
+| join kind=leftouter (
+    WVDCheckpoints
+    | where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
+) on CorrelationId
+| extend PowerOnConnect = tostring(Parameters)
+| distinct TimeGenerated, CorrelationId, UserName, PredecessorConnectionId, SessionHostName, _ResourceId, PowerOnConnect
+| join kind = leftsemi
+    (
+    checkpoints
+    | where Source == "RDStack" or Source == "Client"
+        and Name == "RdpStackConnectionEstablished" or Name contains "StartOrchestration::WVDOrchestrationLauncher"
+        | project CorrelationId, Parameters
+    )
+    on CorrelationId
+| project CorrelationId, TimeGenerated, UserName, PredecessorConnectionId, SessionHostName, _ResourceId, PowerOnConnect;
+// Propagate TimeGenerated for PowerOnConnect
+let RowsWithPowerOnConnect = ProcessedConnections
+| where isnotempty(PowerOnConnect)
+| project CorrelationId, PowerOnConnectTime = TimeGenerated;
+ProcessedConnections
+| join kind=leftouter (RowsWithPowerOnConnect) on $left.PredecessorConnectionId == $right.CorrelationId
+| project CorrelationId, PredecessorConnectionId, PowerOnConnectTime, TimeGenerated, UserName, SessionHostName, _ResourceId, PowerOnConnect
+| join kind = inner // UserRoute
+    (
+    checkpoints
+    | where Name == "LoadBalancedNewConnection"
+    | extend LoadBalanceOutcome = Parameters.LoadBalanceOutcome
+    | where (newSessions and LoadBalanceOutcome == "NewSession") or (not(newSessions) and LoadBalanceOutcome in ('Disconnected', 'Active'))
+    | project CorrelationId, UserRoute = TimeGenerated
+    | distinct CorrelationId, UserRoute
+    )
+    on CorrelationId
+| project-away CorrelationId1
+| where UserName contains "niall.jennings"
+
+
+
+
+
+
+
+let newSessions = true;
+let checkpoints =  WVDCheckpoints
+    | summarize arg_min(TimeGenerated, *) by CorrelationId, Name;
+let Checkpoints = (name: string) {
     checkpoints
     | where Name == name 
     | project CorrelationId, bag = pack(name, TimeGenerated), Parameters
