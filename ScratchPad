@@ -1,3 +1,6 @@
+No tabular expression statement found
+Request id: 1ed921fb-b450-480a-98c0-17ab7111a71c
+
 let newSessions = true;
 
 let checkpoints = WVDCheckpoints
