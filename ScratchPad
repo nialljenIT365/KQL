@@ -18,6 +18,53 @@ let ChartInfo = datatable(Stage: string, label: string, stageOrder: int) [
 ];
 let GetDurations = WVDCheckpoints
 | summarize EarliestTime = min(TimeGenerated), LatestTime = max(TimeGenerated), LatestParameters = arg_max(TimeGenerated, Parameters) by CorrelationId
+| project CorrelationId, EarliestTime, LatestTime, DurationInSeconds = datetime_diff('second', LatestTime, EarliestTime), LatestParametersTime = LatestTime, LatestParameters;
+let ProcessedConnections = WVDConnections
+| where TimeGenerated >= ago(2d)
+| where State == "Started"
+| where ("no_host_selected" == "no_host_selected" or trim_end("[.].*", SessionHostName) == "no_host_selected")
+| join kind=leftouter (
+    WVDCheckpoints
+    | where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
+) on CorrelationId
+| extend PowerOnConnect = tostring(Parameters)
+| project CorrelationId, TimeGenerated, UserName, PredecessorConnectionId, SessionHostName, _ResourceId, PowerOnConnect;
+let RowsWithPowerOnConnect = ProcessedConnections
+| where isnotempty(PowerOnConnect)
+| project CorrelationId, PowerOnConnectTime = TimeGenerated;
+ProcessedConnections
+| join kind=leftouter (RowsWithPowerOnConnect) on $left.PredecessorConnectionId == $right.CorrelationId
+| project CorrelationId, PredecessorConnectionId, PowerOnConnectTime, TimeGenerated, UserName, SessionHostName, _ResourceId, PowerOnConnect
+| join kind=leftsemi (
+    checkpoints
+    | where Source == "RDStack" and Name == "RdpStackConnectionEstablished"
+) on CorrelationId
+| join kind=leftouter(GetDurations) on CorrelationId
+| project CorrelationId, UserName, SessionHostName, EarliestTime, LatestTime, DurationInSeconds, LatestParametersTime, LatestParameters;
+
+
+
+
+let newSessions = true;
+let checkpoints = WVDCheckpoints
+| summarize arg_min(TimeGenerated,*) by CorrelationId, Name;
+let Checkpoints = (name: string) {
+    checkpoints
+    | where Name == name
+    | project CorrelationId, bag = pack(name, TimeGenerated), Parameters
+    | evaluate bag_unpack(bag)
+};
+let ChartInfo = datatable(Stage: string, label: string, stageOrder: int) [
+    "UserRoute", "User Route", 1,
+    "TransportConnected", "Stack Connected", 3,
+    "OnCredentialsAcquisitionCompleted", "creds", 4,
+    "RdpStackConnectionEstablished", "Stack Connected", 5,
+    "LogonDelay", "Logon", 6,
+    "ShellStart", "Shell Start", 7,
+    "ProductiveTime", "Shell Ready", 8
+];
+let GetDurations = WVDCheckpoints
+| summarize EarliestTime = min(TimeGenerated), LatestTime = max(TimeGenerated), LatestParameters = arg_max(TimeGenerated, Parameters) by CorrelationId
 | extend DurationInSeconds = datetime_diff('second', LatestTime, EarliestTime)
 | project CorrelationId, EarliestTime, LatestTime, DurationInSeconds, LatestParameters;
 let ProcessedConnections = WVDConnections
