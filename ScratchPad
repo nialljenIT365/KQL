@@ -1,3 +1,8 @@
+
+'table' operator: Failed to resolve table expression named 'FinalResult'
+Request id: 15653c07-26ef-46f2-a77f-4993e0141868
+
+
 let newSessions = true;
 
 let checkpoints = WVDCheckpoints
