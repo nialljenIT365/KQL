@@ -1,5 +1,14 @@
 WVDCheckpoints
 | where CorrelationId == "be0fa42e-4f2b-4c0d-ae09-3b226dcd0600"
+| summarize EarliestTime = min(TimeGenerated), LatestTime = max(TimeGenerated) by CorrelationId
+| extend DurationInSeconds = datetime_diff('second', LatestTime, EarliestTime)
+
+
+
+
+
+WVDCheckpoints
+| where CorrelationId == "be0fa42e-4f2b-4c0d-ae09-3b226dcd0600"
 
 returns
 
