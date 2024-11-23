@@ -1,70 +1,4 @@
-let newSessions = true;
-let checkpoints =  WVDCheckpoints
-    | summarize arg_min(TimeGenerated, *) by CorrelationId, Name;
-let Checkpoints = (name: string) {
-    let RowsWithPowerOnConnect = ProcessedConnections
-    | where isnotempty(PowerOnConnect)
-    | project CorrelationId, PowerOnConnectTime = TimeGenerated;
-
-    checkpoints
-    | where Name == name 
-    | join kind=leftouter (RowsWithPowerOnConnect) on CorrelationId
-    | where isnotempty(PowerOnConnectTime) or Name == name // Include rows with PowerOnConnectTime or matching Name
-    | project CorrelationId, bag = pack(name, TimeGenerated), PowerOnConnectTime, Parameters
-    | evaluate bag_unpack(bag)
-};
-let ChartInfo = datatable (Stage: string, label: string, stageOrder: int) [
-    "UserRoute", "User Route", 1,
-    "TransportConnected", "Stack Connected", 3,
-    "OnCredentialsAcquisitionCompleted", "creds", 4,
-    "RdpStackConnectionEstablished", "Stack Connected", 5,
-    "LogonDelay", "Logon", 6,
-    "ShellStart", "Shell Start", 7,
-    "ProductiveTime", "Shell Ready", 8
-];
-let ProcessedConnections = WVDConnections
-| where TimeGenerated >= ago(1d)
-| where State == "Started"
-| where ("no_host_selected" == "no_host_selected" or trim_end("[.].*", SessionHostName) == "no_host_selected")
-| join kind=leftouter (
-    WVDCheckpoints
-    | where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
-) on CorrelationId
-| extend PowerOnConnect = tostring(Parameters)
-| distinct TimeGenerated, CorrelationId, UserName, PredecessorConnectionId, SessionHostName, _ResourceId, PowerOnConnect
-| join kind = leftsemi
-    (
-    checkpoints
-    | where Source == "RDStack" or Source == "Client"
-        and Name == "RdpStackConnectionEstablished" or Name contains "StartOrchestration::WVDOrchestrationLauncher"
-        | project CorrelationId, Parameters
-    )
-    on CorrelationId
-| project CorrelationId, TimeGenerated, UserName, PredecessorConnectionId, SessionHostName, _ResourceId, PowerOnConnect;
-// Propagate TimeGenerated for PowerOnConnect
-let RowsWithPowerOnConnect = ProcessedConnections
-| where isnotempty(PowerOnConnect)
-| project CorrelationId, PowerOnConnectTime = TimeGenerated;
-ProcessedConnections
-| join kind=leftouter (RowsWithPowerOnConnect) on $left.PredecessorConnectionId == $right.CorrelationId
-| project CorrelationId, PredecessorConnectionId, PowerOnConnectTime, TimeGenerated, UserName, SessionHostName, _ResourceId, PowerOnConnect
-| join kind = inner // UserRoute
-    (
-    checkpoints
-    | where Name == "LoadBalancedNewConnection"
-    | extend LoadBalanceOutcome = Parameters.LoadBalanceOutcome
-    | where (newSessions and LoadBalanceOutcome == "NewSession") or (not(newSessions) and LoadBalanceOutcome in ('Disconnected', 'Active'))
-    | project CorrelationId, UserRoute = TimeGenerated
-    | distinct CorrelationId, UserRoute
-    )
-    on CorrelationId
-| project-away CorrelationId1
-| where UserName contains "niall.jennings"
-
-
-
-
-
+## Logon delay metrics for Power On COnnect Sessions need to be fixed
 
 
 let newSessions = true;
@@ -113,15 +47,69 @@ ProcessedConnections
 | project CorrelationId,PredecessorConnectionId, PowerOnConnectTime, TimeGenerated, UserName, SessionHostName, _ResourceId, PowerOnConnect
 | join kind = inner // UserRoute
     (
-    //NEED TO FIGURE OUT A WAY FOR CHECKPOINTS TO INCLUDE Rows with PowerOnConnectTime
+    //NEED TO FIGURE OUT A WAY FOR CHECKPOINTS TO INCLUDE Rows with PowerOnConnectTime but not everything else
     checkpoints
     | where Name == "LoadBalancedNewConnection"
     | extend LoadBalanceOutcome=Parameters.LoadBalanceOutcome
-    | where (newSessions and LoadBalanceOutcome == "NewSession") or (not(newSessions) and LoadBalanceOutcome in ('Disconnected', 'Active'))
+    | where (newSessions and LoadBalanceOutcome == "NewSession") or (not(newSessions) and LoadBalanceOutcome in ('Disconnected', 'Active') or LoadBalanceOutcome == "Pending")
     | project CorrelationId, UserRoute=TimeGenerated
     | distinct CorrelationId, UserRoute
     )
     on CorrelationId
+| where PowerOnConnect !contains "StartVMOnConnect"
+| project-away CorrelationId1, PowerOnConnect
+| project  CorrelationId, PredecessorConnectionId, PowerOnConnectTime, TimeGenerated, UserName, SessionHostName, _ResourceId, UserRoute
+| join kind = leftsemi
+    (
+    // Only include connections that actually reached the host to prevent short (failed) attempts from skewing the data
+    checkpoints
+    | where Source == "RDStack"
+        and Name == "RdpStackConnectionEstablished"
+    )
+    on CorrelationId
+| project CorrelationId, PredecessorConnectionId, PowerOnConnectTime, TimeGenerated, UserName, SessionHostName, _ResourceId, UserRoute
+| join kind=innerunique Checkpoints("RdpStackConnectionEstablished") on CorrelationId
 | project-away CorrelationId1
+| project CorrelationId, PredecessorConnectionId, PowerOnConnectTime, TimeGenerated, UserName, SessionHostName, _ResourceId, UserRoute, RdpStackConnectionEstablished
+| join kind=leftouter 
+    (
+    checkpoints
+    | where Name =~ "OnCredentialsAcquisitionCompleted"
+    | project CorrelationId, credaquire_ms = tolong(Parameters.DurationMS)
+    )
+    on CorrelationId
+| project-away CorrelationId1
+| project CorrelationId, PredecessorConnectionId, PowerOnConnectTime, TimeGenerated, UserName, SessionHostName, _ResourceId, UserRoute, RdpStackConnectionEstablished, credaquire_ms
+| join kind=leftouter //SSO token
+    (
+    checkpoints
+    | where Name =~ "SSOTokenRetrieval"
+    | project CorrelationId, ssotoken = tolong(Parameters.DurationMS)
+    )
+    on CorrelationId
+| project-away CorrelationId1
+| join kind=innerunique // Logon Delay
+    (checkpoints
+    | where Name == "LogonDelay"
+    | extend LogonType = tostring(Parameters.LogonType)
+    | where (newSessions and LogonType == "DirectSession") or (not(newSessions) and LogonType == "TemporarySession") or LogonType == "TemporarySession"
+    | project LogonDelay=TimeGenerated, CorrelationId
+    )
+    on CorrelationId
+| project-away CorrelationId1
+| join kind=leftouter Checkpoints("ShellStart") on CorrelationId
+| project-away CorrelationId1
+| join kind = leftouter
+    (
+    checkpoints // new session
+    | where newSessions
+    | where Name =~ "ShellReady" or
+        (Name =~ "LaunchExecutable" and Parameters.connectionStage == "RdpShellAppExecuted" or Name =~ "RdpShellAppExecuted")
+    | project ProductiveTime=TimeGenerated, CorrelationId
+    )
+    on CorrelationId
+| project-away CorrelationId1, Parameters
+| where not(newSessions) or isnotnull(ProductiveTime)
+| where (datetime_diff("millisecond", UserRoute, TimeGenerated) - coalesce(ssotoken, 0)) >= 0
+| summarize arg_max(TimeGenerated, *) by CorrelationId // Remove duplicate CorrelationId, keeping the row with the latest StartTime
 | where UserName contains "niall.jennings"
-
