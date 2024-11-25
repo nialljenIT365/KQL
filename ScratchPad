@@ -1,3 +1,129 @@
+let
+    // Define start and end date/time parameters
+    strRangeStart = RangeStart,
+    strRangeEnd = RangeEnd,
+
+    // Connect to Azure Data Explorer and retrieve WVDConnections data with dynamic date range
+    Source = AzureDataExplorer.Contents(
+        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg",
+        "nmw-app-law-fwjv4wn75m4qg",
+        "
+        let paramRangeStart = todatetime('" & DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss") & "');
+        let paramRangeEnd = todatetime('" & DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss") & "');
+        let newSessions = true;
+        let checkpoints =  WVDCheckpoints
+            | summarize arg_min(TimeGenerated, *) by CorrelationId, Name;
+        let Checkpoints = (name: string) {
+            checkpoints
+            | where Name == name 
+            | project CorrelationId, bag = pack(name, TimeGenerated)
+            | evaluate bag_unpack(bag)
+        };
+        let ChartInfo = datatable (Stage: string, label: string, stageOrder: int) [
+            'UserRoute', 'User Route', 1,
+            'TransportConnected', 'Stack Connected', 3,
+            'OnCredentialsAcquisitionCompleted', 'creds', 4,
+            'RdpStackConnectionEstablished', 'Stack Connected', 5,
+            'LogonDelay', 'Logon', 6,
+            'ShellStart', 'Shell Start', 7,
+            'ProductiveTime', 'Shell Ready', 8
+        ];
+        WVDConnections
+        | where State == 'Started'
+        | where TimeGenerated between (paramRangeStart .. paramRangeEnd)
+        | where ('no_host_selected' == 'no_host_selected' or trim_end('[.].*', SessionHostName) == 'no_host_selected')
+        | distinct TimeGenerated, CorrelationId, UserName, _ResourceId, SessionHostName, GatewayRegion
+        | join kind = leftsemi
+            (
+            checkpoints
+            | where Source == 'RDStack'
+                and Name == 'RdpStackConnectionEstablished'
+            )
+            on CorrelationId
+        | project CorrelationId, TimeGenerated, UserName, _ResourceId, SessionHostName, GatewayRegion
+        | join kind = inner
+            (
+            checkpoints
+            | where Name == 'LoadBalancedNewConnection'
+            | extend LoadBalanceOutcome=Parameters.LoadBalanceOutcome
+            | where (newSessions and LoadBalanceOutcome == 'NewSession') or (not(newSessions) and LoadBalanceOutcome in ('Disconnected', 'Active'))
+            | project CorrelationId, UserRoute=TimeGenerated
+            | distinct CorrelationId, UserRoute
+            )
+            on CorrelationId
+        | project-away CorrelationId1
+        | join kind=innerunique Checkpoints('RdpStackConnectionEstablished') on CorrelationId
+        | project-away CorrelationId1
+        | join kind=leftouter 
+            (
+            checkpoints
+            | where Name =~ 'OnCredentialsAcquisitionCompleted'
+            | project CorrelationId, credaquire = tolong(Parameters.DurationMS)
+            )
+            on CorrelationId
+        | project-away CorrelationId1
+        | join kind=leftouter
+            (
+            checkpoints
+            | where Name =~ 'SSOTokenRetrieval'
+            | project CorrelationId, ssotoken = tolong(Parameters.DurationMS)
+            )
+            on CorrelationId
+        | project-away CorrelationId1
+        | join kind=innerunique
+            (checkpoints
+            | where Name == 'LogonDelay'
+            | extend LogonType = tostring(Parameters.LogonType)
+            | where (newSessions and LogonType == 'DirectSession') or (not(newSessions) and LogonType == 'TemporarySession')
+            | project LogonDelay=TimeGenerated, CorrelationId, UserName
+            )
+            on CorrelationId
+        | project-away CorrelationId1
+        | join kind=leftouter Checkpoints('ShellStart') on CorrelationId
+        | project-away CorrelationId1
+        | join kind = leftouter
+            (
+            checkpoints
+            | where newSessions
+            | where Name =~ 'ShellReady' or
+                (Name =~ 'LaunchExecutable' and Parameters.connectionStage == 'RdpShellAppExecuted' or Name =~ 'RdpShellAppExecuted')
+            | project ProductiveTime=TimeGenerated, CorrelationId
+            )
+            on CorrelationId
+        | project-away CorrelationId1
+        | where not(newSessions) or isnotnull(ProductiveTime)
+        | where (datetime_diff('millisecond', UserRoute, TimeGenerated) - coalesce(ssotoken, 0)) >= 0
+        | extend SessionHostName = trim(' ', tolower(SessionHostName))
+        | extend UserName = trim(' ', tolower(UserName))
+        | extend HostPoolName = extract(@'/([^/]+)$', 1, _ResourceId)
+        | project-away _ResourceId, UserName1
+        | project 
+            CorrelationId, 
+            UserName, 
+            SessionHostName, 
+            HostPoolName,
+            GatewayRegion, 
+            TimeGenerated, 
+            UserRoute, 
+            UserRouteDuration = round((UserRoute - TimeGenerated) / 1s, 2), 
+            RdpStackConnectionEstablished, 
+            StackConnectedDuration = round((RdpStackConnectionEstablished - TimeGenerated) / 1s, 2), 
+            LogonDelay, 
+            LogonDelayDuration = round((LogonDelay - TimeGenerated) / 1s, 2), 
+            ShellStart, 
+            ShellStartDuration = round((ShellStart - TimeGenerated) / 1s, 2), 
+            ProductiveTime, 
+            ProductiveTimeDuration = round((ProductiveTime - TimeGenerated) / 1s, 2), 
+            credaquire
+        ",
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    )
+in
+    Source
+
+
+
+
 let paramRangeStart = todatetime('" & DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss") & "');
 let paramRangeEnd = todatetime('" & DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss") & "');
 let newSessions = true;
