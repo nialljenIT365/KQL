@@ -1,25 +1,3 @@
-| project-away _ResourceId, UserName1
-| project 
-    CorrelationId, 
-    UserName, 
-    SessionHostName, 
-    HostPoolName, 
-    TimeGenerated, 
-    UserRoute, 
-    UserRouteDuration = round((UserRoute - TimeGenerated) / 1s, 2), 
-    RdpStackConnectionEstablished, 
-    StackConnectedDuration = round((RdpStackConnectionEstablished - TimeGenerated) / 1s, 2), 
-    LogonDelay, 
-    LogonDelayDuration = round((LogonDelay - TimeGenerated) / 1s, 2), 
-    ShellStart, 
-    ShellStartDuration = round((ShellStart - TimeGenerated) / 1s, 2), 
-    ProductiveTime, 
-    ProductiveTimeDuration = round((ProductiveTime - TimeGenerated) / 1s, 2), 
-    credaquire
-
-
-
-
 let paramRangeStart = todatetime('" & DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss") & "');
 let paramRangeEnd = todatetime('" & DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss") & "');
 let newSessions = true;
@@ -42,9 +20,9 @@ let ChartInfo = datatable (Stage: string, label: string, stageOrder: int) [
 ];
 WVDConnections
 | where State == "Started"
-//| where TimeGenerated between (paramRangeStart .. paramRangeEnd)
+| where TimeGenerated between (paramRangeStart .. paramRangeEnd)
 | where ("no_host_selected" == "no_host_selected" or trim_end("[.].*", SessionHostName) == "no_host_selected")
-| distinct TimeGenerated, CorrelationId, UserName, _ResourceId, SessionHostName
+| distinct TimeGenerated, CorrelationId, UserName, _ResourceId, SessionHostName, GatewayRegion
 | join kind = leftsemi
     (
     // Only include connections that actually reached the host to prevent short (failed) attempts from skewing the data
@@ -53,7 +31,7 @@ WVDConnections
         and Name == "RdpStackConnectionEstablished"
     )
     on CorrelationId
-| project CorrelationId, TimeGenerated, UserName, _ResourceId, SessionHostName
+| project CorrelationId, TimeGenerated, UserName, _ResourceId, SessionHostName, GatewayRegion
 | join kind = inner // UserRoute
     (
     checkpoints
@@ -110,94 +88,88 @@ WVDConnections
 | extend UserName = trim(' ', tolower(UserName))
 | extend HostPoolName = extract(@"/([^/]+)$", 1, _ResourceId) // Extract the string after the last `/` in `_ResourceId`
 | project-away _ResourceId, UserName1
-| project CorrelationId, UserName, SessionHostName, HostPoolName, TimeGenerated, UserRoute, UserRouteDuration = (UserRoute - TimeGenerated) /1s, RdpStackConnectionEstablished, StackConnectedDuration = (RdpStackConnectionEstablished - TimeGenerated) /1s, LogonDelay, LogonDelayDuration = (LogonDelay - TimeGenerated) /1s, ShellStart, ShellStartDuration = (ShellStart - TimeGenerated) /1s, ProductiveTime, ProductiveTimeDuration = (ProductiveTime - TimeGenerated) /1s, credaquire
+| project 
+    CorrelationId, 
+    UserName, 
+    SessionHostName, 
+    HostPoolName,
+    GatewayRegion, 
+    TimeGenerated, 
+    UserRoute, 
+    UserRouteDuration = round((UserRoute - TimeGenerated) / 1s, 2), 
+    RdpStackConnectionEstablished, 
+    StackConnectedDuration = round((RdpStackConnectionEstablished - TimeGenerated) / 1s, 2), 
+    LogonDelay, 
+    LogonDelayDuration = round((LogonDelay - TimeGenerated) / 1s, 2), 
+    ShellStart, 
+    ShellStartDuration = round((ShellStart - TimeGenerated) / 1s, 2), 
+    ProductiveTime, 
+    ProductiveTimeDuration = round((ProductiveTime - TimeGenerated) / 1s, 2), 
+    credaquire
 
+Can you replace the KQL in the M-Query below with the KQL from above?
 
+let
+    // Define start and end date/time parameters
+    strRangeStart = RangeStart,
+    strRangeEnd = RangeEnd,
 
-Working Version:
+    // Connect to Azure Data Explorer and retrieve WVDConnections data with dynamic date range
+    Source = AzureDataExplorer.Contents(
+        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg",
+        "nmw-app-law-fwjv4wn75m4qg",
+        "
+        let paramRangeStart = todatetime('" & DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss") & "');
+        let paramRangeEnd = todatetime('" & DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss") & "');
+        
+        WVDConnections
+            | where TimeGenerated between (paramRangeStart .. paramRangeEnd)
+            | extend UserName = trim("" "", tolower(UserName))
+            | where State == ""Connected""
+            | project CorrelationId, UserName, ResourceAlias, StartDate = TimeGenerated
+            | join (
+                WVDConnections
+                | where State == ""Completed""
+                | project EndDate = TimeGenerated, CorrelationId
+            ) on CorrelationId
+            | extend StartTimekey = format_datetime(StartDate, 'HHmm')
+            | extend EndTimekey = format_datetime(EndDate, 'HHmm')
+            | project CorrelationId, StartDate, StartTimekey, EndDate, EndTimekey, UserName, DurationSeconds = (EndDate - StartDate) / 1s
+            | summarize arg_max(StartDate, *) by CorrelationId
+        ",
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    ),
 
-let newSessions = true;
-let checkpoints =  WVDCheckpoints
-    | summarize arg_min(TimeGenerated, *) by CorrelationId, Name;
-let Checkpoints = (name: string) {
-    checkpoints
-    | where Name == name 
-    | project CorrelationId, bag = pack(name, TimeGenerated)
-    | evaluate bag_unpack(bag)
-};
-let ChartInfo = datatable (Stage: string, label: string, stageOrder: int) [
-    "UserRoute", "User Route", 1,
-    "TransportConnected", "Stack Connected", 3,
-    "OnCredentialsAcquisitionCompleted", "creds", 4,
-    "RdpStackConnectionEstablished", "Stack Connected", 5,
-    "LogonDelay", "Logon", 6,
-    "ShellStart", "Shell Start", 7,
-    "ProductiveTime", "Shell Ready", 8
-];
-WVDConnections
-| where State == "Started"
-| where ("no_host_selected" == "no_host_selected" or trim_end("[.].*", SessionHostName) == "no_host_selected")
-| distinct TimeGenerated, CorrelationId, UserName, PredecessorConnectionId
-| join kind = leftsemi
-    (
-    // Only include connections that actually reached the host to prevent short (failed) attempts from skewing the data
-    checkpoints
-    | where Source == "RDStack"
-        and Name == "RdpStackConnectionEstablished"
-    )
-    on CorrelationId
-| project CorrelationId, TimeGenerated, UserName, PredecessorConnectionId
-| join kind = inner // UserRoute
-    (
-    checkpoints
-    | where Name == "LoadBalancedNewConnection"
-    | extend LoadBalanceOutcome=Parameters.LoadBalanceOutcome
-    | where (newSessions and LoadBalanceOutcome == "NewSession") or (not(newSessions) and LoadBalanceOutcome in ('Disconnected', 'Active'))
-    | project CorrelationId, UserRoute=TimeGenerated
-    | distinct CorrelationId, UserRoute
-    )
-    on CorrelationId
-| project-away CorrelationId1
-| join kind=innerunique Checkpoints("RdpStackConnectionEstablished") on CorrelationId
-| project-away CorrelationId1
-| join kind=leftouter 
-    (
-    checkpoints
-    | where Name =~ "OnCredentialsAcquisitionCompleted"
-    | project CorrelationId, credaquire = tolong(Parameters.DurationMS)
-    )
-    on CorrelationId
-| project-away CorrelationId1
-| join kind=leftouter //SSO token
-    (
-    checkpoints
-    | where Name =~ "SSOTokenRetrieval"
-    | project CorrelationId, ssotoken = tolong(Parameters.DurationMS)
-    )
-    on CorrelationId
-| project-away CorrelationId1
-| join kind=innerunique // Logon Delay
-    (checkpoints
-    | where Name == "LogonDelay"
-    | extend LogonType = tostring(Parameters.LogonType)
-    | where (newSessions and LogonType == "DirectSession") or (not(newSessions) and LogonType == "TemporarySession")
-    | project LogonDelay=TimeGenerated, CorrelationId, UserName
-    )
-    on CorrelationId
-| project-away CorrelationId1
-| join kind=leftouter Checkpoints("ShellStart") on CorrelationId
-| project-away CorrelationId1
-| join kind = leftouter
-    (
-    checkpoints // new session
-    | where newSessions
-    | where Name =~ "ShellReady" or
-        (Name =~ "LaunchExecutable" and Parameters.connectionStage == "RdpShellAppExecuted" or Name =~ "RdpShellAppExecuted")
-    | project ProductiveTime=TimeGenerated, CorrelationId
-    )
-    on CorrelationId
-| project-away CorrelationId1
-| where not(newSessions) or isnotnull(ProductiveTime)
-| where (datetime_diff("millisecond", UserRoute, TimeGenerated) - coalesce(ssotoken, 0)) >= 0
+    // Change data type of DurationSeconds column to number
+    #"Changed Type2" = Table.TransformColumnTypes(Source, {{"DurationSeconds", type number}}),
 
-//| where UserName contains "niall.jennings"
+    // Round DurationSeconds to 2 decimal places
+    #"Rounded Off" = Table.TransformColumns(#"Changed Type2", {{"DurationSeconds", each Number.Round(_, 2), type number}}),
+
+    // Duplicate StartDate column to extract StartTime
+    #"Duplicated Column" = Table.DuplicateColumn(#"Rounded Off", "StartDate", "StartDate - Copy"),
+    #"Changed Type" = Table.TransformColumnTypes(#"Duplicated Column", {{"StartDate - Copy", type text}}),
+    #"Extracted Text After Delimiter" = Table.TransformColumns(#"Changed Type", {{"StartDate - Copy", each Text.AfterDelimiter(_, "T"), type text}}),
+    #"Extracted First Characters" = Table.TransformColumns(#"Extracted Text After Delimiter", {{"StartDate - Copy", each Text.Start(_, 16), type text}}),
+    #"Changed Type1" = Table.TransformColumnTypes(#"Extracted First Characters", {{"StartDate - Copy", type time}}),
+    #"Renamed Columns" = Table.RenameColumns(#"Changed Type1", {{"StartDate - Copy", "StartTime"}}),
+
+    // Duplicate EndDate column to extract EndTime
+    #"Duplicated Column1" = Table.DuplicateColumn(#"Renamed Columns", "EndDate", "EndDate - Copy"),
+    #"Changed Type3" = Table.TransformColumnTypes(#"Duplicated Column1", {{"EndDate - Copy", type text}}),
+    #"Extracted Text After Delimiter1" = Table.TransformColumns(#"Changed Type3", {{"EndDate - Copy", each Text.AfterDelimiter(_, " "), type text}}),
+    #"Extracted Text Before Delimiter" = Table.TransformColumns(#"Extracted Text After Delimiter1", {{"EndDate - Copy", each Text.BeforeDelimiter(_, " ", {0, RelativePosition.FromEnd}), type text}}),
+    #"Renamed Columns1" = Table.RenameColumns(#"Extracted Text Before Delimiter", {{"EndDate - Copy", "EndTime"}}),
+    #"Changed Type4" = Table.TransformColumnTypes(#"Renamed Columns1", {{"EndTime", type time}}),
+
+    // Reorder columns for easier readability
+    #"Reordered Columns" = Table.ReorderColumns(#"Changed Type4", {"CorrelationId", "StartDate", "StartTime", "StartTimekey", "EndDate", "EndTime", "EndTimekey", "UserName", "DurationSeconds"}),
+
+    // Duplicate StartDate and EndDate columns to create short date columns
+    #"Duplicated Column2" = Table.DuplicateColumn(#"Reordered Columns", "StartDate", "StartDate - Copy"),
+    #"Duplicated Column3" = Table.DuplicateColumn(#"Duplicated Column2", "EndDate", "EndDate - Copy"),
+    #"Changed Type5" = Table.TransformColumnTypes(#"Duplicated Column3", {{"StartDate - Copy", type date}, {"EndDate - Copy", type date}}),
+    #"Renamed Columns2" = Table.RenameColumns(#"Changed Type5",{{"StartDate - Copy", "StartDate - Short"}, {"EndDate - Copy", "EndDate - Short"}, {"StartDate", "TimeGenerated -StartDate"}, {"EndDate", "TimeGenerated -EndDate"}})
+    
+in
+    #"Renamed Columns2"
