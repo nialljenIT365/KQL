@@ -1,3 +1,18 @@
+$ResourceGroupName = "rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD"
+$VMName = "M01PSSPI0001"
+
+$hibernationStatus = (Get-AzVM -ResourceGroupName $ResourceGroupName -Name $VMName).HibernationEnabled
+
+if ($hibernationStatus -eq $True) {
+    Write-Output "Hibernation is enabled on VM: $VMName"
+} elseif ($hibernationStatus -eq $False) {
+    Write-Output "Hibernation is not enabled on VM: $VMName"
+} else {
+    Write-Output "Hibernation status is unknown for VM: $VMName"
+}
+
+
+
 Connect-AzAccount -Subscription RemoteDesktopDevices-EMEA-NEU-PRD
 $VMs = Get-AzVM -ResourceGroupName rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD | Where-Object { $_.Name -match "SS|DV" } 
 
