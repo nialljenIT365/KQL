@@ -1,3 +1,31 @@
+let binSize = 15m;
+let timeRangeStart = now(-30d);
+let timeRangeEnd = now();
+let filterSubstring = "M01PSS"; // Replace with the desired substring, or set to "ALL" for all computers
+Perf
+| where TimeGenerated between (timeRangeStart..timeRangeEnd)
+| where ObjectName == "Processor Information" and CounterName == "% Processor Time"
+| where filterSubstring == "ALL" or tostring(Computer) contains filterSubstring
+| extend DayOfWeek = format_datetime(TimeGenerated, "ddd"), HourOfDay = format_datetime(TimeGenerated, "HH")
+| where DayOfWeek in ("Mon", "Tue", "Wed", "Thu", "Fri") // Only include Monday to Friday
+| where toint(HourOfDay) between 8 and 17 // Only include 8 AM to 5:59 PM
+| summarize AVG_CPU = round(avg(CounterValue), 2), 
+            MAX_CPU = round(max(CounterValue), 2), 
+            MIN_CPU = round(min(CounterValue), 2),
+            MED_CPU = round(percentile(CounterValue, 50), 2),
+            ItemsPerTimeBin = count() // Counting the number of entries per time bin
+  by BinnedTime = bin(TimeGenerated, binSize), Computer
+| project Date = BinnedTime,
+          Time = BinnedTime,
+          Computer,
+          AVG_CPU,
+          MED_CPU,
+          MAX_CPU,
+          MIN_CPU,
+          ItemsPerTimeBin
+
+
+
 
 datetime_part(): argument #1 must be one of next options: [Year, Quarter, Month, WeekOfYear, Week_Of_Year, DayOfYear, Day, Hour, Minute, Second, Millisecond, Microsecond, Nanosecond]
 Request id: 15fc8af3-2a27-4c41-9f4b-7d2e880618db
