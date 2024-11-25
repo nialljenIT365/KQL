@@ -1,3 +1,61 @@
+let binSize = 15m;
+        let timeRangeStart = now(-30d);
+        let timeRangeEnd = now();
+        let filterSubstring = "M01PSS"; // Replace with the desired substring, or set to "ALL" for all computers
+        Perf
+        | where TimeGenerated between (timeRangeStart..timeRangeEnd)
+        | where ObjectName == "Processor Information" and CounterName == "% Processor Time"
+        | where filterSubstring == "ALL" or tostring(Computer) contains filterSubstring
+        | summarize AVG_CPU = round(avg(CounterValue), 2), 
+                  MAX_CPU = round(max(CounterValue), 2), 
+                  MIN_CPU = round(min(CounterValue), 2),
+                  MED_CPU = round(percentile(CounterValue, 50), 2),
+                  ItemsPerTimeBin = count() // Counting the number of entries per time bin
+          by BinnedTime = bin(TimeGenerated, binSize), Computer
+        | project Date = BinnedTime,
+                  Time = BinnedTime,
+                  Computer,
+                  AVG_CPU,
+                  MED_CPU,
+                  MAX_CPU,
+                  MIN_CPU,
+                  ItemsPerTimeBin
+
+
+
+
+
+
+
+
+
+
+let binSize = 15m;
+        let timeRangeStart = now(-30d);
+        let timeRangeEnd = now();
+        let filterSubstring = "M01"; // Replace with the desired substring, or set to "ALL" for all computers
+        Perf
+        | where TimeGenerated between (timeRangeStart..timeRangeEnd)
+        | where ObjectName == "Processor Information" and CounterName == "% Processor Time"
+        | where filterSubstring == "ALL" or tostring(Computer) contains filterSubstring
+        | summarize AVG_CPU = round(avg(CounterValue), 2), 
+                  MAX_CPU = round(max(CounterValue), 2), 
+                  MIN_CPU = round(min(CounterValue), 2),
+                  MED_CPU = round(percentile(CounterValue, 50), 2),
+                  ItemsPerTimeBin = count() // Counting the number of entries per time bin
+          by BinnedTime = bin(TimeGenerated, binSize), Computer
+        | project Date = BinnedTime,
+                  Time = BinnedTime,
+                  Computer,
+                  AVG_CPU,
+                  MED_CPU,
+                  MAX_CPU,
+                  MIN_CPU,
+                  ItemsPerTimeBin
+        
+
+
+
 let binSize = 5m;
 //let paramRangeStart = todatetime('<ReplaceWithStartDateTime>'); // Replace with actual start time
 //let paramRangeEnd = todatetime('<ReplaceWithEndDateTime>');     // Replace with actual end time
