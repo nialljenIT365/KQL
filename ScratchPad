@@ -1,3 +1,25 @@
+| project-away _ResourceId, UserName1
+| project 
+    CorrelationId, 
+    UserName, 
+    SessionHostName, 
+    HostPoolName, 
+    TimeGenerated, 
+    UserRoute, 
+    UserRouteDuration = round((UserRoute - TimeGenerated) / 1s, 2), 
+    RdpStackConnectionEstablished, 
+    StackConnectedDuration = round((RdpStackConnectionEstablished - TimeGenerated) / 1s, 2), 
+    LogonDelay, 
+    LogonDelayDuration = round((LogonDelay - TimeGenerated) / 1s, 2), 
+    ShellStart, 
+    ShellStartDuration = round((ShellStart - TimeGenerated) / 1s, 2), 
+    ProductiveTime, 
+    ProductiveTimeDuration = round((ProductiveTime - TimeGenerated) / 1s, 2), 
+    credaquire
+
+
+
+
 let paramRangeStart = todatetime('" & DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss") & "');
 let paramRangeEnd = todatetime('" & DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss") & "');
 let newSessions = true;
