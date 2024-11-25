@@ -1,3 +1,5 @@
+
+| where hour between (4 .. 11) // Core hours: 4 AM to 12 PM UTC-5
 | where (hour between (17 .. 23)) or (hour between (0 .. 1)) // Core hours: 5 PM to 1 AM UTC+8
 
 
