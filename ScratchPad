@@ -1,3 +1,14 @@
+$hibernationStatus = (Get-AzVM -ResourceGroupName $ResourceGroupName -Name $VMName).HibernationEnabled
+
+if ($hibernationStatus.HibernationEnabled -eq $True) {
+    Write-Output "Hibernation is enabled on VM: $VMName"
+} elseif ($hibernationStatus.HibernationEnabled -eq $False) {
+    Write-Output "Hibernation is not enabled on VM: $VMName"
+} else {
+    Write-Output "Hibernation status is unknown for VM: $VMName"
+}
+
+
 $ResourceGroupName = "rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD"
 $VMName = "M01PSSPI0001"
 
