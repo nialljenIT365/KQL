@@ -1,3 +1,15 @@
+# Check installed modules
+Get-Module -ListAvailable Az.*
+
+# Import modules explicitly (optional)
+Import-Module Az.Accounts
+Import-Module Az.Compute
+Import-Module Az.Resources
+Import-Module Az.Disk
+
+
+
+
 function Enable-VMHibernation {
     param (
         [Parameter(Mandatory=$true)]
