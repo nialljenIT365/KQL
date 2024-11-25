@@ -1,3 +1,9 @@
+Install-Module -Name Az -AllowClobber -Scope CurrentUser -Force
+
+
+
+
+
 IF(
     'PERF-CPU-Utilization-5MinBin'[Timekey] > 1700,
     2,
