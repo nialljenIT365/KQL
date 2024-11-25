@@ -1,3 +1,96 @@
+function Enable-VMHibernation {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$Subscription,
+
+        [Parameter(Mandatory=$true)]
+        [string]$ResourceGroupName,
+
+        [string]$NameMatch = "SS|DV", # Default match string
+
+        [switch]$ExcludePoweredOnVMs # Switch to exclude powered-on VMs
+    )
+
+    # Connect to the Azure subscription
+    Connect-AzAccount -Subscription $Subscription
+
+    # Retrieve VMs in the specified resource group and filter based on Name match
+    $VMs = Get-AzVM -ResourceGroupName $ResourceGroupName | Where-Object { $_.Name -match $NameMatch }
+
+    foreach ($vm in $VMs) {
+        $RG = $ResourceGroupName
+        $VM = $vm.Name
+
+        try {
+            # Check the current hibernation status
+            Write-Output "Checking hibernation status for VM: $VM"
+            $hibernationStatus = (Get-AzVM -ResourceGroupName $RG -Name $VM).HibernationEnabled
+
+            if ($hibernationStatus -eq $True) {
+                Write-Output "Hibernation is already enabled on VM: $VM. Skipping..."
+                continue
+            } elseif ($hibernationStatus -eq $False) {
+                Write-Output "Hibernation is not enabled on VM: $VM. Proceeding to enable..."
+            } else {
+                Write-Output "Hibernation status is unknown for VM: $VM. Proceeding to enable..."
+            }
+
+            # Check the power state of the VM
+            Write-Output "Checking power state for VM: $VM"
+            $powerState = (Get-AzVM -ResourceGroupName $RG -Name $VM -Status).Statuses | Where-Object { $_.Code -like 'PowerState/*' } | Select-Object -ExpandProperty Code
+
+            if ($ExcludePoweredOnVMs) {
+                if ($powerState -ne "PowerState/deallocated" -and $powerState -ne "PowerState/stopped") {
+                    Write-Output "VM: $VM is powered on. Skipping due to ExcludePoweredOnVMs switch..."
+                    continue
+                }
+            }
+
+            if ($powerState -eq "PowerState/running") {
+                # Stop the VM if it's running
+                Write-Output "Stopping VM: $VM in Resource Group: $RG"
+                Stop-AzVM -ResourceGroupName $RG -Name $VM -Force
+            } else {
+                Write-Output "VM: $VM is already stopped or deallocated. Proceeding with hibernation setup..."
+            }
+
+            # Get VM details and disk name
+            Write-Output "Fetching VM details for: $VM"
+            $vmdetails = Get-AzVM -Name $VM -ResourceGroupName $RG
+            $diskname = $vmdetails.StorageProfile.OsDisk.Name
+
+            # Enable hibernation on the OS disk
+            Write-Output "Enabling hibernation on disk: $diskname"
+            $disk = Get-AzDisk -ResourceGroupName $RG -DiskName $diskname
+            $disk.SupportsHibernation = $True
+            Update-AzDisk -ResourceGroupName $RG -DiskName $diskname -Disk $disk
+
+            # Enable hibernation on the VM
+            Write-Output "Enabling hibernation on VM: $VM"
+            $vm = Get-AzVM -ResourceGroupName $RG -Name $VM
+            $vm.HibernationEnabled = $True
+            Update-AzVM -ResourceGroupName $RG -VM $vm
+
+            Write-Output "Hibernation enabled successfully for VM: $VM"
+        }
+        catch {
+            Write-Error "An error occurred while processing VM: $VM. Error: $_"
+        }
+    }
+}
+
+Enable-VMHibernation -Subscription "RemoteDesktopDevices-EMEA-NEU-PRD" -ResourceGroupName "rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD"
+
+Enable-VMHibernation -Subscription "RemoteDesktopDevices-EMEA-NEU-PRD" -ResourceGroupName "rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD" -ExcludePoweredOnVMs
+
+
+
+
+
+
+
+
+
 $hibernationStatus = (Get-AzVM -ResourceGroupName $ResourceGroupName -Name $VMName).HibernationEnabled
 
 if ($hibernationStatus.HibernationEnabled -eq $True) {
