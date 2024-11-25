@@ -1,3 +1,6 @@
+| where (hour between (17 .. 23)) or (hour between (0 .. 1)) // Core hours: 5 PM to 1 AM UTC+8
+
+
 let binSize = 24h;
 let timeRangeStart = now(-5d);
 let timeRangeEnd = now();
