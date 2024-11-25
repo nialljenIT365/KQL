@@ -1,4 +1,59 @@
 let binSize = 24h;
+let timeRangeStart = now(-5d);
+let timeRangeEnd = now();
+let filterSubstring = "M01"; // Replace with the desired substring, or set to "ALL" for all computers
+Perf
+| where TimeGenerated between (timeRangeStart..timeRangeEnd)
+| where dayofweek(TimeGenerated) between (1d .. 5d)
+| extend hour = datetime_part("hour", TimeGenerated)
+| where hour between (08 .. 16)
+| where ObjectName == "Processor Information" and CounterName == "% Processor Time"
+| where filterSubstring == "ALL" or tostring(Computer) contains filterSubstring
+| extend 
+    Region = case(
+        Computer startswith "M01" or Computer startswith "M04", "EMEA",
+        Computer startswith "M13" or Computer startswith "M14", "APAC",
+        Computer startswith "M06" or Computer startswith "M09", "AMRS",
+        "Other"
+    ),
+    Environment = case(
+        Computer contains "T", "TST",
+        Computer contains "U", "UAT",
+        Computer contains "P", "PROD",
+        "Other"
+    ),
+    SessionHostPoolType = case(
+        Computer contains "MSN", "MultiSession",
+        Computer contains "SSP", "Personal",
+        "Other"
+    ),
+    Management = case(
+        Computer contains "I", "Intune",
+        Computer contains "G", "GPO",
+        "Other"
+    )
+| summarize AVG_CPU = round(avg(CounterValue), 2), 
+            MAX_CPU = round(max(CounterValue), 2), 
+            MIN_CPU = round(min(CounterValue), 2),
+            MED_CPU = round(percentile(CounterValue, 50), 2),
+            ItemsPerTimeBin = count() // Counting the number of entries per time bin
+  by BinnedTime = bin(TimeGenerated, binSize), Computer, Region, Environment, SessionHostPoolType, Management
+| project 
+    TimeGenerated = BinnedTime,
+    SessionHostName = Computer,
+    Region,
+    Environment,
+    SessionHostPoolType,
+    Management,
+    AVG_CPU,
+    MED_CPU,
+    MAX_CPU,
+    MIN_CPU,
+    ItemsPerTimeBin
+
+
+
+let binSize = 24h;
 let timeRangeStart = now(-30d);
 let timeRangeEnd = now();
 let filterSubstring = "M01"; // Replace with the desired substring, or set to "ALL" for all computers
