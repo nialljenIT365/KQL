@@ -1,3 +1,8 @@
+
+datetime_part(): argument #1 must be one of next options: [Year, Quarter, Month, WeekOfYear, Week_Of_Year, DayOfYear, Day, Hour, Minute, Second, Millisecond, Microsecond, Nanosecond]
+Request id: 15fc8af3-2a27-4c41-9f4b-7d2e880618db
+
+
 let binSize = 15m;
 let timeRangeStart = now(-30d);
 let timeRangeEnd = now();
