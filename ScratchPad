@@ -1,36 +1,95 @@
-let paramRangeStart = todatetime('RangeStartPlaceholder'); 
-let paramRangeEnd = todatetime('RangeEndPlaceholder'); 
-
+let paramRangeStart = todatetime('" & DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss") & "');
+let paramRangeEnd = todatetime('" & DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss") & "');
+let newSessions = true;
+let checkpoints =  WVDCheckpoints
+    | summarize arg_min(TimeGenerated, *) by CorrelationId, Name;
+let Checkpoints = (name: string) {
+    checkpoints
+    | where Name == name 
+    | project CorrelationId, bag = pack(name, TimeGenerated)
+    | evaluate bag_unpack(bag)
+};
+let ChartInfo = datatable (Stage: string, label: string, stageOrder: int) [
+    "UserRoute", "User Route", 1,
+    "TransportConnected", "Stack Connected", 3,
+    "OnCredentialsAcquisitionCompleted", "creds", 4,
+    "RdpStackConnectionEstablished", "Stack Connected", 5,
+    "LogonDelay", "Logon", 6,
+    "ShellStart", "Shell Start", 7,
+    "ProductiveTime", "Shell Ready", 8
+];
 WVDConnections
-| where TimeGenerated between (paramRangeStart .. paramRangeEnd)
 | where State == "Started"
-| project CorrelationId, UserName, ConnectionType, StartTime = TimeGenerated, _ResourceId
-| join (
-    WVDConnections
-    | where State == "Connected"
-    | project EndTime = TimeGenerated, CorrelationId, PredecessorConnectionId, SessionHostName
-) on CorrelationId
-| extend LoginDurationSeconds = round((EndTime - StartTime) / 1s, 2)
-| project CorrelationId, UserName, ConnectionType, StartTime, EndTime, _ResourceId, PredecessorConnectionId, SessionHostName, LoginDurationSeconds
-| join kind=leftouter (
-    WVDCheckpoints
-    | where Parameters contains "StartVMOnConnect" and Parameters contains "VMStarting"
-    | project CorrelationId, Parameters
-) on CorrelationId
-| extend 
-    HostPoolName = extract(@"/([^/]+)$", 1, _ResourceId),
-    LoginType = case(
-        isnotempty(Parameters), "StartVMOnConnect",
-        PredecessorConnectionId != "<>", "Reconnect",
-        isempty(Parameters) and PredecessorConnectionId == "<>", "Standard",
-        "Unknown"
+//| where TimeGenerated between (paramRangeStart .. paramRangeEnd)
+| where ("no_host_selected" == "no_host_selected" or trim_end("[.].*", SessionHostName) == "no_host_selected")
+| distinct TimeGenerated, CorrelationId, UserName, _ResourceId, SessionHostName
+| join kind = leftsemi
+    (
+    // Only include connections that actually reached the host to prevent short (failed) attempts from skewing the data
+    checkpoints
+    | where Source == "RDStack"
+        and Name == "RdpStackConnectionEstablished"
     )
-| extend StartTimekey = format_datetime(StartTime, 'HHmm')
-| extend ConnectedTimekey = format_datetime(EndTime, 'HHmm')
-| extend UserName = trim(' ', tolower(UserName))
+    on CorrelationId
+| project CorrelationId, TimeGenerated, UserName, _ResourceId, SessionHostName
+| join kind = inner // UserRoute
+    (
+    checkpoints
+    | where Name == "LoadBalancedNewConnection"
+    | extend LoadBalanceOutcome=Parameters.LoadBalanceOutcome
+    | where (newSessions and LoadBalanceOutcome == "NewSession") or (not(newSessions) and LoadBalanceOutcome in ('Disconnected', 'Active'))
+    | project CorrelationId, UserRoute=TimeGenerated
+    | distinct CorrelationId, UserRoute
+    )
+    on CorrelationId
+| project-away CorrelationId1
+| join kind=innerunique Checkpoints("RdpStackConnectionEstablished") on CorrelationId
+| project-away CorrelationId1
+| join kind=leftouter 
+    (
+    checkpoints
+    | where Name =~ "OnCredentialsAcquisitionCompleted"
+    | project CorrelationId, credaquire = tolong(Parameters.DurationMS)
+    )
+    on CorrelationId
+| project-away CorrelationId1
+| join kind=leftouter //SSO token
+    (
+    checkpoints
+    | where Name =~ "SSOTokenRetrieval"
+    | project CorrelationId, ssotoken = tolong(Parameters.DurationMS)
+    )
+    on CorrelationId
+| project-away CorrelationId1
+| join kind=innerunique // Logon Delay
+    (checkpoints
+    | where Name == "LogonDelay"
+    | extend LogonType = tostring(Parameters.LogonType)
+    | where (newSessions and LogonType == "DirectSession") or (not(newSessions) and LogonType == "TemporarySession")
+    | project LogonDelay=TimeGenerated, CorrelationId, UserName
+    )
+    on CorrelationId
+| project-away CorrelationId1
+| join kind=leftouter Checkpoints("ShellStart") on CorrelationId
+| project-away CorrelationId1
+| join kind = leftouter
+    (
+    checkpoints // new session
+    | where newSessions
+    | where Name =~ "ShellReady" or
+        (Name =~ "LaunchExecutable" and Parameters.connectionStage == "RdpShellAppExecuted" or Name =~ "RdpShellAppExecuted")
+    | project ProductiveTime=TimeGenerated, CorrelationId
+    )
+    on CorrelationId
+| project-away CorrelationId1
+| where not(newSessions) or isnotnull(ProductiveTime)
+| where (datetime_diff("millisecond", UserRoute, TimeGenerated) - coalesce(ssotoken, 0)) >= 0
 | extend SessionHostName = trim(' ', tolower(SessionHostName))
-| summarize arg_max(StartTime, *) by CorrelationId
-| project CorrelationId, StartTimeGenerated = StartTime, StartTimekey, ConnectedTimeGenerated = EndTime, ConnectedTimekey, LoginDurationSeconds, UserName, HostPoolName, SessionHostName, LoginType
+| extend UserName = trim(' ', tolower(UserName))
+| extend HostPoolName = extract(@"/([^/]+)$", 1, _ResourceId) // Extract the string after the last `/` in `_ResourceId`
+| project-away _ResourceId, UserName1
+| project CorrelationId, UserName, SessionHostName, HostPoolName, TimeGenerated, UserRoute, UserRouteDuration = (UserRoute - TimeGenerated) /1s, RdpStackConnectionEstablished, StackConnectedDuration = (RdpStackConnectionEstablished - TimeGenerated) /1s, LogonDelay, LogonDelayDuration = (LogonDelay - TimeGenerated) /1s, ShellStart, ShellStartDuration = (ShellStart - TimeGenerated) /1s, ProductiveTime, ProductiveTimeDuration = (ProductiveTime - TimeGenerated) /1s, credaquire
+
 
 
 Working Version:
