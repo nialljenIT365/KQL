@@ -2,11 +2,13 @@ let binSize = 24h;
 let timeRangeStart = now(-30d);
 let timeRangeEnd = now();
 let filterSubstring = "M14"; // Replace with the desired substring, or set to "ALL" for all computers
+let timezoneOffsetHours = 8; // Offset for UTC+8
 Perf
 | where TimeGenerated between (timeRangeStart..timeRangeEnd)
-| where dayofweek(TimeGenerated) between (1d .. 5d)
-| extend hour = datetime_part("hour", TimeGenerated)
-| where (hour between (17 .. 23)) or (hour between (0 .. 1)) // Core hours: 5 PM to 1 AM UTC+8
+| extend LocalTime = datetime_add('hour', timezoneOffsetHours, TimeGenerated) // Adjust to UTC+8
+| where dayofweek(LocalTime) between (1d .. 5d) // Monday to Friday in LocalTime
+| extend hour = datetime_part("hour", LocalTime)
+| where hour between (8 .. 17) // Core hours: 8 AM to 5 PM in UTC+8
 | where ObjectName == "Processor Information" and CounterName == "% Processor Time"
 | where filterSubstring == "ALL" or tostring(Computer) contains filterSubstring
 | extend 
