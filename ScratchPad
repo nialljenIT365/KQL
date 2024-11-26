@@ -1,17 +1,12 @@
-
-| where hour between (4 .. 11) // Core hours: 4 AM to 12 PM UTC-5
-| where (hour between (17 .. 23)) or (hour between (0 .. 1)) // Core hours: 5 PM to 1 AM UTC+8
-
-
 let binSize = 24h;
-let timeRangeStart = now(-5d);
+let timeRangeStart = now(-30d);
 let timeRangeEnd = now();
-let filterSubstring = "M01"; // Replace with the desired substring, or set to "ALL" for all computers
+let filterSubstring = "M14"; // Replace with the desired substring, or set to "ALL" for all computers
 Perf
 | where TimeGenerated between (timeRangeStart..timeRangeEnd)
 | where dayofweek(TimeGenerated) between (1d .. 5d)
 | extend hour = datetime_part("hour", TimeGenerated)
-| where hour between (08 .. 16)
+| where (hour between (17 .. 23)) or (hour between (0 .. 1)) // Core hours: 5 PM to 1 AM UTC+8
 | where ObjectName == "Processor Information" and CounterName == "% Processor Time"
 | where filterSubstring == "ALL" or tostring(Computer) contains filterSubstring
 | extend 
@@ -24,17 +19,34 @@ Perf
     Environment = case(
         substring(Computer, 3, 1) == "T", "TST", // 4th character indicates TST
         substring(Computer, 3, 1) == "U", "UAT", // 4th character indicates UAT
-        substring(Computer, 3, 1) == "P", "PROD", // 4th character indicates PROD
+        substring(Computer, 3, 1) == "D", "DEV", // 4th character indicates DEV
+        Computer contains "NACR", "CRIMS NonProdA",
+        Computer contains "NBCR", "CRIMS NonProdB",
+        Computer contains "OHCR", "OAT CRIMS High",
+        Computer contains "OMCR", "OAT CRIMS Medium",
+        Computer contains "OLCR", "OAT CRIMS Low",
+        Computer contains "PHCR", "PRD CRIMS High",
+        Computer contains "PMCR", "PRD CRIMS High",
+        Computer contains "PLCR", "PRD CRIMS Low",
+        substring(Computer, 3, 1) == "P", "PRD", // 4th character indicates PROD
         "Other"
     ),
     SessionHostPoolType = case(
         Computer contains "MSN", "MultiSession",
         Computer contains "SSP", "Personal",
+        Computer contains "NACR", "MultiSession",
+        Computer contains "NBCR", "MultiSession",
+        Computer contains "OHCR", "MultiSession",
+        Computer contains "OMCR", "MultiSession",
+        Computer contains "OLCR", "MultiSession",
+        Computer contains "PHCR", "MultiSession",
+        Computer contains "PMCR", "MultiSession",
+        Computer contains "PLCR", "MultiSession",
         "Other"
     ),
     Management = case(
-        Computer contains "I", "Intune",
-        Computer contains "G", "GPO",
+        substring(Computer, 7, 1) == "I", "Intune",
+        substring(Computer, 7, 1) == "G", "GPO",
         "Other"
     )
 | summarize AVG_CPU = round(avg(CounterValue), 2), 
@@ -43,6 +55,7 @@ Perf
             MED_CPU = round(percentile(CounterValue, 50), 2),
             ItemsPerTimeBin = count() // Counting the number of entries per time bin
   by BinnedTime = bin(TimeGenerated, binSize), Computer, Region, Environment, SessionHostPoolType, Management
+| extend Computer = trim(' ', tolower(Computer))
 | project 
     TimeGenerated = BinnedTime,
     SessionHostName = Computer,
@@ -55,173 +68,3 @@ Perf
     MAX_CPU,
     MIN_CPU,
     ItemsPerTimeBin
-
-
-
-
-
-
-
-
-
-
-let binSize = 24h;
-let timeRangeStart = now(-5d);
-let timeRangeEnd = now();
-let filterSubstring = "M01"; // Replace with the desired substring, or set to "ALL" for all computers
-Perf
-| where TimeGenerated between (timeRangeStart..timeRangeEnd)
-| where dayofweek(TimeGenerated) between (1d .. 5d)
-| extend hour = datetime_part("hour", TimeGenerated)
-| where hour between (08 .. 16)
-| where ObjectName == "Processor Information" and CounterName == "% Processor Time"
-| where filterSubstring == "ALL" or tostring(Computer) contains filterSubstring
-| extend 
-    Region = case(
-        Computer startswith "M01" or Computer startswith "M04", "EMEA",
-        Computer startswith "M13" or Computer startswith "M14", "APAC",
-        Computer startswith "M06" or Computer startswith "M09", "AMRS",
-        "Other"
-    ),
-    Environment = case(
-        Computer contains "T", "TST",
-        Computer contains "U", "UAT",
-        Computer contains "P", "PROD",
-        "Other"
-    ),
-    SessionHostPoolType = case(
-        Computer contains "MSN", "MultiSession",
-        Computer contains "SSP", "Personal",
-        "Other"
-    ),
-    Management = case(
-        Computer contains "I", "Intune",
-        Computer contains "G", "GPO",
-        "Other"
-    )
-| summarize AVG_CPU = round(avg(CounterValue), 2), 
-            MAX_CPU = round(max(CounterValue), 2), 
-            MIN_CPU = round(min(CounterValue), 2),
-            MED_CPU = round(percentile(CounterValue, 50), 2),
-            ItemsPerTimeBin = count() // Counting the number of entries per time bin
-  by BinnedTime = bin(TimeGenerated, binSize), Computer, Region, Environment, SessionHostPoolType, Management
-| project 
-    TimeGenerated = BinnedTime,
-    SessionHostName = Computer,
-    Region,
-    Environment,
-    SessionHostPoolType,
-    Management,
-    AVG_CPU,
-    MED_CPU,
-    MAX_CPU,
-    MIN_CPU,
-    ItemsPerTimeBin
-
-
-
-let binSize = 24h;
-let timeRangeStart = now(-30d);
-let timeRangeEnd = now();
-let filterSubstring = "M01"; // Replace with the desired substring, or set to "ALL" for all computers
-Perf
-| where TimeGenerated between (timeRangeStart..timeRangeEnd)
-| where dayofweek(TimeGenerated) between (1d .. 5d)
-| extend hour = datetime_part("hour", TimeGenerated)
-| where hour between (08 .. 16)
-| where ObjectName == "Processor Information" and CounterName == "% Processor Time"
-| where filterSubstring == "ALL" or tostring(Computer) contains filterSubstring
-| extend 
-    Region = case(
-        Computer startswith "M01" or Computer startswith "M04", "EMEA",
-        Computer startswith "M13" or Computer startswith "M4", "APAC",
-        Computer startswith "M06" or Computer startswith "M09", "AMRS",
-        "Other"
-    ),
-    Environment = case(
-        Computer contains "T", "TST",
-        Computer contains "U", "UAT",
-        Computer contains "P", "PROD",
-        "Other"
-    ),
-    SessionHostPoolType = case(
-        Computer contains "MSN", "MultiSession",
-        Computer contains "SSP", "Personal",
-        "Other"
-    ),
-    Management = case(
-        Computer contains "I", "Intune",
-        Computer contains "G", "GPO",
-        "Other"
-    )
-| summarize AVG_CPU = round(avg(CounterValue), 2), 
-            MAX_CPU = round(max(CounterValue), 2), 
-            MIN_CPU = round(min(CounterValue), 2),
-            MED_CPU = round(percentile(CounterValue, 50), 2),
-            ItemsPerTimeBin = count() // Counting the number of entries per time bin
-  by BinnedTime = bin(TimeGenerated, binSize), Computer, Region, Environment, SessionHostPoolType, Management
-| project 
-    TimeGenerated = BinnedTime,
-    SessionHostName = Computer,
-    Region,
-    Environment,
-    SessionHostPoolType,
-    Management,
-    AVG_CPU,
-    MED_CPU,
-    MAX_CPU,
-    MIN_CPU,
-    ItemsPerTimeBin
-
-
-
-
-
-
-let binSize = 24h;
-let timeRangeStart = now(-30d);
-let timeRangeEnd = now();
-let filterSubstring = "M01"; // Replace with the desired substring, or set to "ALL" for all computers
-Perf
-| where TimeGenerated between (timeRangeStart..timeRangeEnd)
-| where dayofweek(TimeGenerated) between (1d .. 5d)
-| extend hour = datetime_part("hour", TimeGenerated)
-| where hour between (08 .. 16)
-| where ObjectName == "Processor Information" and CounterName == "% Processor Time"
-| where filterSubstring == "ALL" or tostring(Computer) contains filterSubstring
-| summarize AVG_CPU = round(avg(CounterValue), 2), 
-            MAX_CPU = round(max(CounterValue), 2), 
-            MIN_CPU = round(min(CounterValue), 2),
-            MED_CPU = round(percentile(CounterValue, 50), 2),
-            ItemsPerTimeBin = count() // Counting the number of entries per time bin
-  by BinnedTime = bin(TimeGenerated, binSize), Computer
-| project 
-          TimeGenerated = BinnedTime,
-          SessionHostName = Computer,
-          AVG_CPU,
-          MED_CPU,
-          MAX_CPU,
-          MIN_CPU,
-          ItemsPerTimeBin
-
-
-
-I want to add four columns based on the naming convention of SessionHostName based on below
-
-Column: Region (Option: EMEA, APAC or AMRS, Other) - (Begins with M01 or M04, M13 or M4, M06 or M09)
-Column: Environment (Option: TST, UAT or PROD, Other) (followed by T, U or P)
-Column: SessionHostPoolType (Option: Personal or MultiSession, Other) (Followed by SSP or MSN(
-Column: Management (Option:Intune or GPO, Other) (Followed by I or G)
-
-Naming convention below
-MultiSession-TST - M01TMSNI{####}
-SingleSessionPersistent-TST - M01PSSPI{####}
-MultiSession-UAT - M01UMSNI{####}
-SingleSessionPersistent-UAT - M01USSPI{####}
-MultiSession-PRD - M01PMSNI{####}
-SingleSessionPersistent-PRD - M01PSSPI{####}
-
-
-
-
-
