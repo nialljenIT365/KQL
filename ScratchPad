@@ -1,3 +1,6 @@
+https://techcommunity.microsoft.com/blog/coreinfrastructureandsecurityblog/unmasking-dns-timeouts-the-hidden-culprit-in-azure-virtual-networks/4250444
+
+
 let binSize = 24h;
 let timeRangeStart = now(-1d);
 let timeRangeEnd = now();
