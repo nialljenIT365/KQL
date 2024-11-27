@@ -53,6 +53,92 @@ Perf
         "Other"
     )
 | extend 
+    DayOfWeek = toint(format_datetime(LocalTime, 'dddd')) - 1,  // Extract day of the week as 0 (Sunday) to 6 (Saturday)
+    HourOfDay = datetime_part("hour", LocalTime) // Get the hour of the day
+| where DayOfWeek >= 1 and DayOfWeek <= 5 // Filter for Monday to Friday
+| where HourOfDay >= 8 and HourOfDay <= 17 // Filter for core hours: 8 AM to 5 PM
+| summarize 
+    AVG_CPU = round(avg(CounterValue), 2), 
+    MAX_CPU = round(max(CounterValue), 2), 
+    MIN_CPU = round(min(CounterValue), 2),
+    MED_CPU = round(percentile(CounterValue, 50), 2),
+    ItemsPerTimeBin = count() 
+  by bin(LocalTime, binSize), Computer, Region, Environment, SessionHostPoolType, Management, DayOfWeek, HourOfDay
+| extend Computer = trim(' ', tolower(Computer))
+| project 
+    TimeGenerated = bin(LocalTime, binSize),
+    SessionHostName = Computer,
+    Region,
+    Environment,
+    SessionHostPoolType,
+    Management,
+    AVG_CPU,
+    MED_CPU,
+    MAX_CPU,
+    MIN_CPU,
+    ItemsPerTimeBin,
+    HourOfDay,
+    DayOfWeek
+
+
+
+
+
+let binSize = 24h;
+let timeRangeStart = now(-1d);
+let timeRangeEnd = now();
+Perf
+| where TimeGenerated between (timeRangeStart..timeRangeEnd)
+| extend 
+    LocalTime = case(
+        Computer startswith "M01" or Computer startswith "M04", datetime_add('hour', 0, TimeGenerated),  // EMEA (UTC+0)
+        Computer startswith "M13" or Computer startswith "M14", datetime_add('hour', 8, TimeGenerated),  // APAC (UTC+8)
+        Computer startswith "M06" or Computer startswith "M09", datetime_add('hour', -5, TimeGenerated), // AMRS (UTC-5)
+        datetime_add('hour', 0, TimeGenerated) // Default fallback
+    ),
+    Region = case(
+        Computer startswith "M01" or Computer startswith "M04", "EMEA",
+        Computer startswith "M13" or Computer startswith "M14", "APAC",
+        Computer startswith "M06" or Computer startswith "M09", "AMRS",
+        "Other"
+    )
+| where Region in ("EMEA", "APAC", "AMRS") // Filter for relevant regions
+| where ObjectName == "Processor Information" and CounterName == "% Processor Time"
+| extend 
+    Environment = case(
+        substring(Computer, 3, 1) == "T", "TST", 
+        substring(Computer, 3, 1) == "U", "UAT", 
+        substring(Computer, 3, 1) == "D", "DEV", 
+        Computer contains "NACR", "CRIMS NonProdA",
+        Computer contains "NBCR", "CRIMS NonProdB",
+        Computer contains "OHCR", "OAT CRIMS High",
+        Computer contains "OMCR", "OAT CRIMS Medium",
+        Computer contains "OLCR", "OAT CRIMS Low",
+        Computer contains "PHCR", "PRD CRIMS High",
+        Computer contains "PMCR", "PRD CRIMS High",
+        Computer contains "PLCR", "PRD CRIMS Low",
+        substring(Computer, 3, 1) == "P", "PRD", 
+        "Other"
+    ),
+    SessionHostPoolType = case(
+        Computer contains "MSN", "MultiSession",
+        Computer contains "SSP", "Personal",
+        Computer contains "NACR", "MultiSession",
+        Computer contains "NBCR", "MultiSession",
+        Computer contains "OHCR", "MultiSession",
+        Computer contains "OMCR", "MultiSession",
+        Computer contains "OLCR", "MultiSession",
+        Computer contains "PHCR", "MultiSession",
+        Computer contains "PMCR", "MultiSession",
+        Computer contains "PLCR", "MultiSession",
+        "Other"
+    ),
+    Management = case(
+        substring(Computer, 7, 1) == "I", "Intune",
+        substring(Computer, 7, 1) == "G", "GPO",
+        "Other"
+    )
+| extend 
     DayOfWeek = toint(dayofweek(LocalTime)),  // Cast dayofweek(LocalTime) to integer
     HourOfDay = datetime_part("hour", LocalTime) // Get the hour of the day
 //| where DayOfWeek >= 1 and DayOfWeek <= 5 // Filter for Monday to Friday
