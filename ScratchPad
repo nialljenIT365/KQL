@@ -1,3 +1,8 @@
+
+'extend' operator: Failed to resolve scalar expression named 'TimezoneOffsetHours'
+Request id: 11be4789-1b8b-4ce2-8c13-8eaefdc52fe9
+
+
 let binSize = 24h;
 let timeRangeStart = now(-1d);
 let timeRangeEnd = now();
