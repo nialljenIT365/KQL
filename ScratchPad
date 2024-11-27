@@ -1,3 +1,7 @@
+
+'extend' operator: Failed to resolve column or scalar expression named 'Region'
+Request id: 10deac76-12a2-48fc-aa28-6bed88518266
+
 let binSize = 24h;
 let timeRangeStart = now(-1d);
 let timeRangeEnd = now();
