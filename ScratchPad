@@ -1,3 +1,6 @@
+Cannot compare values of types timespan and long. Try adding explicit casts
+Request id: 3f4bb0bc-35c2-496f-8214-838e33205935
+
 let binSize = 24h;
 let timeRangeStart = now(-1d);
 let timeRangeEnd = now();
