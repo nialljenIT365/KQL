@@ -1,3 +1,6 @@
+between(): all arguments are expected to have the same type 'timespan'
+
+
 let binSize = 24h;
 let timeRangeStart = now(-1d);
 let timeRangeEnd = now();
