@@ -1,3 +1,12 @@
+Bad request: failed to query Draft resource name: nmw-app-law-fwjv4wn75m4qg, resource id: ce4e1e84-3765-4cfe-ac40-5de8d7633df4; (inner error: {"code":"Bad Request","message":"{\"error\":{\"message\":\"The request had some invalid properties\",\"code\":\"BadArgumentError\",\"correlationId\":\"7ff7deea-a8c4-4098-9d38-b76bd807801d\",\"innererror\":{\"code\":\"SyntaxError\",\"message\":\"A recognition error occurred in the query.\",\"innererror\":{\"code\":\"SYN0002\",\"message\":\"Query could not be parsed at '|' on line [1,266]\",\"line\":1,\"pos\":266,\"token\":\"|\"}}}}"})
+Details:
+    Error=failed to query Draft resource name: nmw-app-law-fwjv4wn75m4qg, resource id: ce4e1e84-3765-4cfe-ac40-5de8d7633df4; (inner error: {"code":"Bad Request","message":"{\"error\":{\"message\":\"The request had some invalid properties\",\"code\":\"BadArgumentError\",\"correlationId\":\"7ff7deea-a8c4-4098-9d38-b76bd807801d\",\"innererror\":{\"code\":\"SyntaxError\",\"message\":\"A recognition error occurred in the query.\",\"innererror\":{\"code\":\"SYN0002\",\"message\":\"Query could not be parsed at '|' on line [1,266]\",\"line\":1,\"pos\":266,\"token\":\"|\"}}}}"})
+    Code=FailedToQueryDraft
+    Type=adxproxy.Exceptions.FailedToQueryDraft
+    x-ms-activity-id=199ee653-000f-44ff-97be-54fca39c7635
+    x-ms-client-request-id=KPBI;e6331fce-ce11-4ce9-a408-9685530bbf39;be7b8aae-b8a9-4dd8-849b-ec8032e0c229;fc900b6e-25ab-4c46-87c9-bab44e3b5387
+
+
 let
     // Define start and end date/time parameters
     strRangeStart = RangeStart,
