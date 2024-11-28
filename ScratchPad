@@ -76,7 +76,6 @@ Perf
             ItemsPerTimeBin = count() // Counting the number of entries per time bin
   by BinnedTime = bin(LocalTime, binSize), SessionHostName, Geo, Region, Environment, ManagementPlane, SessionHostPoolType
   | project TimeGenerated = BinnedTime, SessionHostName, SessionHostPoolType, Geo, Region, Environment, ManagementPlane, AVG_RAM_CommittedBytesInUse, MAX_RAM_CommittedBytesInUse, MIN_RAM_CommittedBytesInUse, MED_RAM_CommittedBytesInUse, ItemsPerTimeBin
-
 Swap out the KQL below for the one above
 
 let
