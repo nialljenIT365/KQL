@@ -1,3 +1,32 @@
+let
+    // Define start and end date/time parameters
+    strRangeStart = RangeStart,
+    strRangeEnd = RangeEnd,
+
+    // Connect to Azure Data Explorer and retrieve data with dynamic date range
+    Source = AzureDataExplorer.Contents(
+        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg",
+        "nmw-app-law-fwjv4wn75m4qg",
+        Text.Combine({
+            "let paramRangeStart = todatetime('", DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss"), "');",
+            "let paramRangeEnd = todatetime('", DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss"), "');",
+            "WVDConnections",
+            "| where TimeGenerated between (paramRangeStart..paramRangeEnd)",
+            "| extend HostPoolName = tostring(split(_ResourceId, '/')[-1])",
+            "| extend HostpoolName = trim(' ', tolower(HostPoolName))",
+            "| where not(isempty(SessionHostName)) and SessionHostName != '<>'",
+            "| extend SessionHostName = trim(' ', tolower(SessionHostName))",
+            "| extend SessionHostKey = substring(SessionHostName, 0, 8)",
+            "| summarize arg_max(TimeGenerated, *) by HostPoolName",
+            "| project TimeGenerated, HostPoolName, SessionHostKey"
+        }),
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    ),
+    #"Removed Duplicates" = Table.Distinct(Source)
+in
+    #"Removed Duplicates"
+
+
 let paramRangeStart = todatetime('", DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss"), "');
 let paramRangeEnd = todatetime('", DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss"), "');
 WVDConnections
