@@ -25,6 +25,60 @@ Heartbeat
         substring(Computer, 3, 1) == "T", "TST", 
         substring(Computer, 3, 1) == "U", "UAT", 
         substring(Computer, 3, 1) == "D", "DEV", 
+        substring(Computer, 3, 1) == "P", "PRD", 
+        "Other"
+    ),
+    SessionHostPoolType = case(
+        Computer contains "MSN", "MultiSession",
+        Computer contains "SSP", "Personal",
+        "Other"
+    )
+| summarize 
+    CountComputers_EMEA = dcountif(Computer, Geo == "EMEA"),
+    CountComputers_APAC = dcountif(Computer, Geo == "APAC"),
+    CountComputers_AMRS = dcountif(Computer, Geo == "AMRS"),
+    CountComputers_NEU = dcountif(Computer, Region == "NEU"),
+    CountComputers_SEA = dcountif(Computer, Region == "SEA"),
+    CountComputers_EUS2 = dcountif(Computer, Region == "EUS2"),
+    CountComputers_PRD = dcountif(Computer, Environment == "PRD"),
+    CountComputers_UAT = dcountif(Computer, Environment == "UAT"),
+    CountComputers_DEV = dcountif(Computer, Environment == "DEV"),
+    CountComputers_Personal = dcountif(Computer, SessionHostPoolType == "Personal"),
+    CountComputers_MultiSession = dcountif(Computer, SessionHostPoolType == "MultiSession")
+    by bin(LocalTime, 1h)
+| sort by LocalTime desc
+
+
+
+
+
+Heartbeat
+| extend 
+    LocalTime = case(
+        Computer startswith "M01" or Computer startswith "M04", datetime_add('hour', 0, TimeGenerated),  // EMEA (UTC+0)
+        Computer startswith "M13" or Computer startswith "M14", datetime_add('hour', 8, TimeGenerated),  // APAC (UTC+8)
+        Computer startswith "M06" or Computer startswith "M09", datetime_add('hour', -5, TimeGenerated), // AMRS (UTC-5)
+        datetime_add('hour', 0, TimeGenerated) // Default fallback
+    ),
+    Geo = case(
+        Computer startswith "M01" or Computer startswith "M04", "EMEA",
+        Computer startswith "M13" or Computer startswith "M14", "APAC",
+        Computer startswith "M06" or Computer startswith "M09", "AMRS",
+        "Other"
+    ),
+    Region = case(
+        Computer startswith "M01", "NEU",
+        Computer startswith "M04", "WEU",
+        Computer startswith "M13", "EAS",
+        Computer startswith "M14", "SEA",
+        Computer startswith "M06", "EUS2",
+        Computer startswith "M09", "CUS",
+        "Other"
+    ), 
+    Environment = case(
+        substring(Computer, 3, 1) == "T", "TST", 
+        substring(Computer, 3, 1) == "U", "UAT", 
+        substring(Computer, 3, 1) == "D", "DEV", 
         Computer contains "NACR", "CRIMS NonProdA",
         Computer contains "NBCR", "CRIMS NonProdB",
         Computer contains "OHCR", "OAT CRIMS High",
