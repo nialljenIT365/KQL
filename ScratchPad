@@ -58,6 +58,136 @@ Heartbeat
         Computer contains "DVLDT", "Intune",
         "Other"
     )
+| extend SessionHostName = trim(' ', tolower(Computer))
+| project-away Computer
+| project LocalTime, Geo, Region, Environment, SessionHostPoolType, ManagementPlane, SessionHostName, ResourceGroup
+
+returns
+LocalTime [UTC]	Geo	Region	Environment	SessionHostPoolType	ManagementPlane	SessionHostName	ResourceGroup
+28/11/2024, 10:04:42.629	EMEA	NEU	PRD	Personal	Intune	m01psspi0227.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 10:05:12.905	EMEA	NEU	PRD	Personal	Intune	m01psspi0180.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 18:12:49.421	APAC	SEA	PRD	Personal	Intune	m14psspi0152.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-SEA-PRD
+28/11/2024, 10:19:01.015	EMEA	NEU	PRD	Personal	Intune	m01psspi0353.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 11:34:33.011	EMEA	NEU	PRD	Personal	Intune	m01psspi0310.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:36:22.379	EMEA	NEU	PRD	Personal	Intune	m01psspi0878.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:41:28.323	EMEA	NEU	PRD	Personal	Intune	m01psspi0300.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:42:28.321	EMEA	NEU	PRD	Personal	Intune	m01psspi0300.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:43:28.335	EMEA	NEU	PRD	Personal	Intune	m01psspi0300.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:44:28.338	EMEA	NEU	PRD	Personal	Intune	m01psspi0300.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:45:28.360	EMEA	NEU	PRD	Personal	Intune	m01psspi0300.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 21:45:49.451	APAC	SEA	PRD	Personal	Intune	m14psspi0121.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-SEA-PRD
+28/11/2024, 13:46:28.378	EMEA	NEU	PRD	Personal	Intune	m01psspi0300.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:47:28.398	EMEA	NEU	PRD	Personal	Intune	m01psspi0300.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:48:28.409	EMEA	NEU	PRD	Personal	Intune	m01psspi0300.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:49:28.412	EMEA	NEU	PRD	Personal	Intune	m01psspi0300.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:50:00.333	EMEA	NEU	PRD	Personal	Intune	m01psspi0678.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 08:50:00.461	AMRS	EUS2	PRD	Personal	GPO	m06psspg0090.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-EUS2-PRD
+28/11/2024, 08:50:00.561	AMRS	EUS2	UAT	Personal	GPO	m06usspg0012.aberdeen.aberdeen-asset.com	RG-EUS-REMOTEDESKTOPDEVICES-UATVIRTUALDESKTOP-EUS2-PRD
+28/11/2024, 13:50:01.065	EMEA	NEU	PRD	Personal	Intune	m01psspi0736.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:50:01.122	EMEA	NEU	PRD	Personal	Intune	m01psspi0167.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:50:01.407	EMEA	NEU	PRD	Personal	Intune	m01psspi0886.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:50:01.455	EMEA	NEU	PRD	Personal	Intune	m01psspi0346.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 21:50:01.538	APAC	SEA	PRD	Personal	Intune	m14psspi0017.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-SEA-PRD
+28/11/2024, 13:50:01.615	EMEA	NEU	PRD	Personal	Intune	m01psspi0712.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:50:01.806	EMEA	NEU	PRD	Personal	Intune	m01psspi0679.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:50:02.242	EMEA	NEU	PRD	Personal	Intune	m01psspi0443.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:50:02.423	EMEA	NEU	PRD	Personal	Intune	m01psspi0318.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 21:50:03.280	APAC	SEA	PRD	Personal	Intune	m14psspi0038.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-SEA-PRD
+28/11/2024, 13:50:04.538	EMEA	NEU	PRD	Personal	Intune	m01psspi0729.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 08:50:04.768	AMRS	EUS2	PRD	Personal	GPO	m06psspg0014.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-EUS2-PRD
+28/11/2024, 13:50:04.860	EMEA	NEU	PRD	MultiSession	Intune	m01pmsni0021.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-NonPersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:50:04.939	EMEA	NEU	UAT	Personal	Intune	m01usspi0017.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-UATVirtualDesktop-NEU-PRD
+28/11/2024, 21:50:05.394	APAC	SEA	PRD	Personal	Intune	m14psspi0053.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-SEA-PRD
+28/11/2024, 08:50:05.669	AMRS	EUS2	PRD	Personal	GPO	m06psspg0042.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-EUS2-PRD
+28/11/2024, 13:50:05.740	EMEA	NEU	PRD	Personal	Intune	m01psspi0465.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:50:05.810	EMEA	NEU	UAT	Personal	Intune	m01usspi0002.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-UATVirtualDesktop-NEU-PRD
+28/11/2024, 13:50:05.828	EMEA	NEU	PRD	Personal	Intune	m01psspi0563.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:50:05.980	EMEA	NEU	UAT	Personal	Intune	m01usspi0028.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-UATVirtualDesktop-NEU-PRD
+28/11/2024, 13:50:06.259	EMEA	NEU	PRD	Personal	Intune	m01psspi0026.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 08:50:06.430	AMRS	EUS2	UAT	Personal	GPO	m06usspg0010.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-UATVirtualDesktop-EUS2-PRD
+28/11/2024, 13:50:06.436	EMEA	NEU	PRD	MultiSession	Intune	m01pmsni0019.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-NonPersistentVirtualDesktop-NEU-PRD
+28/11/2024, 08:50:06.728	AMRS	EUS2	PRD	Personal	GPO	m06psspg0005.aberdeen.aberdeen-asset.com	RG-EUS-REMOTEDESKTOPDEVICES-PERSISTENTVIRTUALDESKTOP-EUS2-PRD
+28/11/2024, 13:50:07.417	EMEA	NEU	PRD	Personal	Intune	m01psspi0034.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:50:07.671	EMEA	NEU	PRD	Personal	Intune	m01psspi0730.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:50:08.487	EMEA	NEU	PRD	Personal	Intune	m01psspi0665.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:50:08.721	EMEA	NEU	PRD	Personal	Intune	m01psspi0580.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:50:09.248	EMEA	NEU	PRD	Personal	Intune	m01psspi0030.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 21:50:09.388	APAC	SEA	PRD	Personal	Intune	m14psspi0122.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-SEA-PRD
+28/11/2024, 13:50:09.802	EMEA	NEU	PRD	Personal	Intune	m01psspi0028.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:50:09.942	EMEA	NEU	PRD	Personal	Intune	m01psspi0293.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:50:10.139	EMEA	NEU	PRD	Personal	Intune	m01psspi0692.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 21:50:10.225	APAC	SEA	PRD	Personal	Intune	m14psspi0094.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-SEA-PRD
+28/11/2024, 08:50:10.595	AMRS	EUS2	UAT	Personal	GPO	m06usspg0017.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-UATVirtualDesktop-EUS2-PRD
+28/11/2024, 13:50:10.637	EMEA	NEU	PRD	Personal	Intune	m01psspi0695.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 13:50:10.685	EMEA	NEU	PRD	Personal	Intune	m01psspi0597.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD
+28/11/2024, 21:50:10.846	APAC	SEA	PRD	Personal	Intune	m14psspi0097.aberdeen.aberdeen-asset.com	RG-EUS-REMOTEDESKTOPDEVICES-PERSISTENTVIRTUALDESKTOP-SEA-PRD
+28/11/2024, 13:50:11.087	EMEA	NEU	PRD	MultiSession	Intune	m01pmsni0070.aberdeen.aberdeen-asset.com	rg-EUS-RemoteDesktopDevices-NonPersistentVirtualDesktop-NEU-PRD
+
+
+
+
+
+
+//let paramRangeStart = todatetime('", DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss"), "');
+//let paramRangeEnd = todatetime('", DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss"), "');
+Heartbeat
+| extend 
+    LocalTime = case(
+        Computer startswith "M01" or Computer startswith "M04", datetime_add('hour', 0, TimeGenerated),  // EMEA (UTC+0)
+        Computer startswith "M13" or Computer startswith "M14", datetime_add('hour', 8, TimeGenerated),  // APAC (UTC+8)
+        Computer startswith "M06" or Computer startswith "M09", datetime_add('hour', -5, TimeGenerated), // AMRS (UTC-5)
+        datetime_add('hour', 0, TimeGenerated) // Default fallback
+    ),
+    Geo = case(
+        Computer startswith "M01" or Computer startswith "M04", "EMEA",
+        Computer startswith "M13" or Computer startswith "M14", "APAC",
+        Computer startswith "M06" or Computer startswith "M09", "AMRS",
+        "Other"
+    ),
+    Region = case(
+        Computer startswith "M01", "NEU",
+        Computer startswith "M04", "WEU",
+        Computer startswith "M13", "EAS",
+        Computer startswith "M14", "SEA",
+        Computer startswith "M06", "EUS2",
+        Computer startswith "M09", "CUS",
+        "Other"
+    ), 
+    Environment = case(
+        substring(Computer, 3, 1) == "T", "TST", 
+        substring(Computer, 3, 1) == "U", "UAT", 
+        substring(Computer, 3, 1) == "D", "DEV", 
+        Computer contains "NACR", "CRIMS NonProdA",
+        Computer contains "NBCR", "CRIMS NonProdB",
+        Computer contains "OHCR", "OAT CRIMS High",
+        Computer contains "OMCR", "OAT CRIMS Medium",
+        Computer contains "OLCR", "OAT CRIMS Low",
+        Computer contains "PHCR", "PRD CRIMS High",
+        Computer contains "PMCR", "PRD CRIMS High",
+        Computer contains "PLCR", "PRD CRIMS Low",
+        substring(Computer, 3, 1) == "P", "PRD", 
+        "Other"
+    ),
+    SessionHostPoolType = case(
+        Computer contains "MSN", "MultiSession",
+        Computer contains "SSP", "Personal",
+        Computer contains "NACR", "MultiSession",
+        Computer contains "NBCR", "MultiSession",
+        Computer contains "OHCR", "MultiSession",
+        Computer contains "OMCR", "MultiSession",
+        Computer contains "OLCR", "MultiSession",
+        Computer contains "PHCR", "MultiSession",
+        Computer contains "PMCR", "MultiSession",
+        Computer contains "PLCR", "MultiSession",
+        Computer contains "DVLDT", "Personal",
+        "Other"
+    ),
+    ManagementPlane = case(
+        substring(Computer, 7, 1) == "I", "Intune",
+        substring(Computer, 7, 1) == "G", "GPO",
+        Computer contains "DVLDT", "Intune",
+        "Other"
+    )
 | extend DayOfWeek = dayofweek (LocalTime)
 | extend HourOfDay = hourofday(LocalTime)
 | extend SessionHostName = trim(' ', tolower(Computer))
