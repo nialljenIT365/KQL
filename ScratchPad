@@ -1,3 +1,7 @@
+
+'summarize' operator: Failed to resolve scalar expression named 'SessionHostName'
+Request id: 21739e04-8fcc-4535-b158-c221450d4704
+
 Heartbeat
 | extend 
     LocalTime = case(
