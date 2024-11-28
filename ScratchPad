@@ -1,5 +1,12 @@
 Heartbeat
+| summarize UniqueComputers = dcount(Computer) by bin(TimeGenerated, 1h)
+| sort by TimeGenerated desc
+
+
+Heartbeat
 | sort by TimeGenerated desc 
+
+returns
 
 TimeGenerated [UTC]	SourceComputerId	ComputerIP	Computer	Category	OSType	OSName	OSMajorVersion	OSMinorVersion	Version	SCAgentChannel	RemoteIPLongitude	RemoteIPLatitude	RemoteIPCountry	SubscriptionId	ResourceGroup	ResourceProvider	Resource	ResourceId	ResourceType
 28/11/2024, 16:05:29.561	dea86eb8-ca5b-4f64-9e97-a235e8e353c5	148.64.15.38	M01PSSPI0460.aberdeen.aberdeen-asset.com	Azure Monitor Agent	Windows	Windows 10 Enterprise	10	0	1.30.0.0	Direct	-6.24	53.35	Ireland	01f03a19-5500-482a-b480-3bb664e0ebc2	rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD	Microsoft.Compute	M01PSSPI0460	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0460	virtualMachines
