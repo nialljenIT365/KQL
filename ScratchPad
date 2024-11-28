@@ -1,3 +1,103 @@
+let
+    // Define start and end date/time parameters
+    strRangeStart = RangeStart,
+    strRangeEnd = RangeEnd,
+
+    // Connect to Azure Data Explorer and retrieve data with dynamic date range
+    Source = AzureDataExplorer.Contents(
+        "https://ade.loganalytics.io/subscriptions/58cb357e-51af-4f62-8982-a8c2b9059362/resourcegroups/rg-eus-desktopmanagement-nerdio-weu-prd/providers/microsoft.operationalinsights/workspaces/nmw-app-law-fwjv4wn75m4qg",
+        "nmw-app-law-fwjv4wn75m4qg",
+        Text.Combine({
+            "let paramRangeStart = todatetime('", 
+            DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss"), "');",
+            "let paramRangeEnd = todatetime('", 
+            DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss"), "');",
+            "let binSize = 24h;",
+            "Perf",
+            "| extend LocalTime = case(",
+            "        Computer startswith 'M01' or Computer startswith 'M04', datetime_add('hour', 0, TimeGenerated),  // EMEA (UTC+0)",
+            "        Computer startswith 'M13' or Computer startswith 'M14', datetime_add('hour', 8, TimeGenerated),  // APAC (UTC+8)",
+            "        Computer startswith 'M06' or Computer startswith 'M09', datetime_add('hour', -5, TimeGenerated), // AMRS (UTC-5)",
+            "        datetime_add('hour', 0, TimeGenerated) // Default fallback",
+            "    ),",
+            "    Geo = case(",
+            "        Computer startswith 'M01' or Computer startswith 'M04', 'EMEA',",
+            "        Computer startswith 'M13' or Computer startswith 'M14', 'APAC',",
+            "        Computer startswith 'M06' or Computer startswith 'M09', 'AMRS',",
+            "        'Other'",
+            "    ),",
+            "    Region = case(",
+            "        Computer startswith 'M01', 'NEU',",
+            "        Computer startswith 'M04', 'WEU',",
+            "        Computer startswith 'M13', 'EAS',",
+            "        Computer startswith 'M14', 'SEA',",
+            "        Computer startswith 'M06', 'EUS2',",
+            "        Computer startswith 'M09', 'CUS',",
+            "        'Other'",
+            "    ),",
+            "    Environment = case(",
+            "        substring(Computer, 3, 1) == 'T', 'TST',",
+            "        substring(Computer, 3, 1) == 'U', 'UAT',",
+            "        substring(Computer, 3, 1) == 'D', 'DEV',",
+            "        Computer contains 'NACR', 'CRIMS NonProdA',",
+            "        Computer contains 'NBCR', 'CRIMS NonProdB',",
+            "        Computer contains 'OHCR', 'OAT CRIMS High',",
+            "        Computer contains 'OMCR', 'OAT CRIMS Medium',",
+            "        Computer contains 'OLCR', 'OAT CRIMS Low',",
+            "        Computer contains 'PHCR', 'PRD CRIMS High',",
+            "        Computer contains 'PMCR', 'PRD CRIMS High',",
+            "        Computer contains 'PLCR', 'PRD CRIMS Low',",
+            "        substring(Computer, 3, 1) == 'P', 'PRD',",
+            "        'Other'",
+            "    ),",
+            "    SessionHostPoolType = case(",
+            "        Computer contains 'MSN', 'MultiSession',",
+            "        Computer contains 'SSP', 'Personal',",
+            "        Computer contains 'NACR', 'MultiSession',",
+            "        Computer contains 'NBCR', 'MultiSession',",
+            "        Computer contains 'OHCR', 'MultiSession',",
+            "        Computer contains 'OMCR', 'MultiSession',",
+            "        Computer contains 'OLCR', 'MultiSession',",
+            "        Computer contains 'PHCR', 'MultiSession',",
+            "        Computer contains 'PMCR', 'MultiSession',",
+            "        Computer contains 'PLCR', 'MultiSession',",
+            "        Computer contains 'DVLDT', 'Personal',",
+            "        'Other'",
+            "    ),",
+            "    ManagementPlane = case(",
+            "        substring(Computer, 7, 1) == 'I', 'Intune',",
+            "        substring(Computer, 7, 1) == 'G', 'GPO',",
+            "        Computer contains 'DVLDT', 'Intune',",
+            "        'Other'",
+            "    )",
+            "| extend DayOfWeek = dayofweek(LocalTime)",
+            "| extend HourOfDay = hourofday(LocalTime)",
+            "| extend SessionHostName = trim(' ', tolower(Computer))",
+            "| project-away Computer",
+            "| where LocalTime between (paramRangeStart .. paramRangeEnd)",
+            "| where ObjectName == 'Memory' and CounterName == '% Committed Bytes In Use'",
+            "| where dayofweek(LocalTime) between (1d .. 5d)",
+            "| where hourofday(LocalTime) between (8 .. 17)",
+            "| summarize AVG_RAM_CommittedBytesInUse = round(avg(CounterValue), 2),",
+            "          MAX_RAM_CommittedBytesInUse = round(max(CounterValue), 2),",
+            "          MIN_RAM_CommittedBytesInUse = round(min(CounterValue), 2),",
+            "          MED_RAM_CommittedBytesInUse = round(percentile(CounterValue, 50), 2),",
+            "          ItemsPerTimeBin = count()",
+            "  by BinnedTime = bin(LocalTime, binSize), SessionHostName, Geo, Region, Environment, ManagementPlane, SessionHostPoolType",
+            "| project TimeGenerated = BinnedTime, SessionHostName, SessionHostPoolType, Geo, Region, Environment, ManagementPlane, AVG_RAM_CommittedBytesInUse, MAX_RAM_CommittedBytesInUse, MIN_RAM_CommittedBytesInUse, MED_RAM_CommittedBytesInUse, ItemsPerTimeBin"
+        }),
+        [MaxRows=null, MaxSize=null, NoTruncate=null, AdditionalSetStatements=null]
+    )
+in
+    Source
+
+
+
+
+
+
+
+
 let paramRangeStart = todatetime('", DateTime.ToText(strRangeStart, "yyyy-MM-ddTHH:mm:ss"), "');
 let paramRangeEnd = todatetime('", DateTime.ToText(strRangeEnd, "yyyy-MM-ddTHH:mm:ss"), "');
 let binSize = 24h;
