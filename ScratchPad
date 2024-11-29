@@ -1,3 +1,92 @@
+let paramRangeStart = todatetime('<replace_with_actual_start_datetime>');
+let paramRangeEnd = todatetime('<replace_with_actual_end_datetime>');
+let binSize = 24h;
+
+Perf
+| extend 
+    LocalTime = case(
+        Computer startswith "M01" or Computer startswith "M04", datetime_add('hour', 0, TimeGenerated), // EMEA (UTC+0)
+        Computer startswith "M13" or Computer startswith "M14", datetime_add('hour', 8, TimeGenerated), // APAC (UTC+8)
+        Computer startswith "M06" or Computer startswith "M09", datetime_add('hour', -5, TimeGenerated), // AMRS (UTC-5)
+        datetime_add('hour', 0, TimeGenerated) // Default fallback
+    ),
+    Geo = case(
+        Computer startswith "M01" or Computer startswith "M04", "EMEA",
+        Computer startswith "M13" or Computer startswith "M14", "APAC",
+        Computer startswith "M06" or Computer startswith "M09", "AMRS",
+        "Other"
+    ),
+    Region = case(
+        Computer startswith "M01", "NEU",
+        Computer startswith "M04", "WEU",
+        Computer startswith "M13", "EAS",
+        Computer startswith "M14", "SEA",
+        Computer startswith "M06", "EUS2",
+        Computer startswith "M09", "CUS",
+        "Other"
+    ),
+    Environment = case(
+        substring(Computer, 3, 1) == "T", "TST", 
+        substring(Computer, 3, 1) == "U", "UAT", 
+        substring(Computer, 3, 1) == "D", "DEV", 
+        Computer contains "NACR", "CRIMS NonProdA",
+        Computer contains "NBCR", "CRIMS NonProdB",
+        Computer contains "OHCR", "OAT CRIMS High",
+        Computer contains "OMCR", "OAT CRIMS Medium",
+        Computer contains "OLCR", "OAT CRIMS Low",
+        Computer contains "PHCR", "PRD CRIMS High",
+        Computer contains "PMCR", "PRD CRIMS High",
+        Computer contains "PLCR", "PRD CRIMS Low",
+        substring(Computer, 3, 1) == "P", "PRD", 
+        "Other"
+    ),
+    SessionHostPoolType = case(
+        Computer contains "MSN", "MultiSession",
+        Computer contains "SSP", "Personal",
+        "Other"
+    ),
+    ManagementPlane = case(
+        substring(Computer, 7, 1) == "I", "Intune",
+        substring(Computer, 7, 1) == "G", "GPO",
+        "Other"
+    )
+| extend 
+    DayOfWeek = dayofweek(LocalTime),
+    HourOfDay = hourofday(LocalTime),
+    SessionHostName = trim(" ", tolower(Computer))
+| project-away Computer
+| where LocalTime between (paramRangeStart .. paramRangeEnd)
+| where ObjectName == "Memory" and CounterName == "% Committed Bytes In Use"
+| where dayofweek(LocalTime) between (1d .. 5d) // Only weekdays
+| where hourofday(LocalTime) between (8 .. 17) // Business hours
+| summarize 
+    AVG_RAM_CommittedBytesInUse = round(avg(CounterValue), 2),
+    MAX_RAM_CommittedBytesInUse = round(max(CounterValue), 2),
+    MIN_RAM_CommittedBytesInUse = round(min(CounterValue), 2),
+    MED_RAM_CommittedBytesInUse = round(percentile(CounterValue, 50), 2),
+    ItemsPerTimeBin = count()
+    by bin(LocalTime, binSize), SessionHostName, Geo, Region, Environment, SessionHostPoolType, ManagementPlane
+| extend SessionHostKey = substring(SessionHostName, 0, 8)
+| project 
+    TimeGenerated = LocalTime,
+    SessionHostName, 
+    SessionHostPoolType, 
+    SessionHostKey, 
+    Geo, 
+    Region, 
+    Environment, 
+    ManagementPlane, 
+    AVG_RAM_CommittedBytesInUse, 
+    MAX_RAM_CommittedBytesInUse, 
+    MED_RAM_CommittedBytesInUse, 
+    MIN_RAM_CommittedBytesInUse, 
+    ItemsPerTimeBin
+
+
+
+
+
+
 let
     // Define start and end date/time parameters
     strRangeStart = RangeStart,
