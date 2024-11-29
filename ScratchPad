@@ -1,3 +1,15 @@
+Processor Information(_Total)\% Processor Time
+Memory(*)\% Committed Bytes In Use
+Memory(*)\Page Faults/sec
+Memory(*)\Pages/sec
+LogicalDisk(C:)\% Free Space
+LogicalDisk(C:)\Current Disk Queue Length
+PhysicalDisk(*)\Avg. Disk sec/Read
+PhysicalDisk(*)\Avg. Disk sec/Write
+PhysicalDisk(*)\Avg. Disk sec/Transfer
+
+
+
 Heartbeat
 | extend 
     Geo = case(
