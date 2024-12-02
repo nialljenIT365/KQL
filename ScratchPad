@@ -1,3 +1,89 @@
+        "HivePath" = "HKCU:\Control Panel\Desktop"
+ 
+        "KeyName" = "MenuShowDelay"
+ 
+        "PropertyType" = "STRING"
+ 
+        "PropertyValue" = "0"
+ 
+ 
+        "HivePath" = "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+ 
+        "KeyName" = "SubscribedContent-338393Enabled"
+ 
+        "PropertyType" = "DWORD"
+ 
+        "PropertyValue" = "0"
+ 
+ 
+        "HivePath" = "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+ 
+        "KeyName" = "SubscribedContent-353696Enabled"
+ 
+        "PropertyType" = "DWORD"
+ 
+        "PropertyValue" = "0"
+ 
+ 
+        "HivePath" = "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+ 
+        "KeyName" = "SubscribedContent-338388Enabled"
+ 
+        "PropertyType" = "DWORD"
+ 
+        "PropertyValue" = "0"
+ 
+ 
+
+       "HivePath" = "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+ 
+        "KeyName" = "SubscribedContent-338389Enabled"
+ 
+        "PropertyType" = "DWORD"
+ 
+        "PropertyValue" = "0"
+ 
+ 
+        "HivePath" = "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+ 
+        "KeyName" = "SystemPaneSuggestionsEnabled"
+ 
+        "PropertyType" = "DWORD"
+ 
+        "PropertyValue" = "0"
+ 
+ 
+         
+	"HivePath" = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search"
+ 
+        "KeyName" = "BingSearchEnabled"
+ 
+        "PropertyType" = "DWORD"
+ 
+        "PropertyValue" = "0"
+ 
+ 
+       
+	"HivePath" = "HKCU:\Software\Microsoft\Windows\CurrentVersion\SearchSettings"
+ 
+        "KeyName" = "IsAADCloudSearchEnabled"
+ 
+        "PropertyType" = "DWORD"
+ 
+        "PropertyValue" = "0"
+
+# Removes the "New" tag on Start menu apps
+$regEntry = [PSCustomObject]@{
+Path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
+ValueName = "Start_NotifyNewApps"
+ValueType = "DWord"
+ValueData = "0"
+}
+$regEntries += $regEntry
+
+
+
+
 let paramRangeStart = todatetime('<replace_with_actual_start_datetime>');
 let paramRangeEnd = todatetime('<replace_with_actual_end_datetime>');
 let binSize = 24h;
