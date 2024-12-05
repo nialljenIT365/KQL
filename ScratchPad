@@ -1,3 +1,41 @@
+# Sign in to your Azure account
+Connect-AzAccount
+
+# Define parameters
+$ResourceGroupName = "YourResourceGroupName"   # Replace with your resource group name
+$VmName = "YourVMName"                         # Replace with your VM name
+$UserEmail = "user@example.com"                # Replace with the email of the user to assign the role
+
+# Get the VM resource
+$vm = Get-AzResource -ResourceGroupName $ResourceGroupName -ResourceType "Microsoft.Compute/virtualMachines" -ResourceName $VmName
+
+# Validate the VM was retrieved successfully
+if (-not $vm) {
+    Write-Error "VM $VmName not found in resource group $ResourceGroupName."
+    return
+}
+
+# Role definition ID for "Virtual Machine Administrator Login"
+$RoleDefinitionId = "b2a65916-879d-4a5d-93e5-87a5d9d5c1c3"
+
+# Get the user object ID
+$user = Get-AzADUser -UserPrincipalName $UserEmail
+
+# Validate the user was found
+if (-not $user) {
+    Write-Error "User $UserEmail not found in Azure AD."
+    return
+}
+
+# Create the role assignment
+New-AzRoleAssignment -ObjectId $user.Id -RoleDefinitionId $RoleDefinitionId -Scope $vm.Id
+
+Write-Host "Role 'Virtual Machine Administrator Login' successfully assigned to user $UserEmail for VM $VmName."
+
+
+
+
+
 https://learn.microsoft.com/en-us/entra/identity/devices/howto-vm-sign-in-azure-ad-windows
 
 https://apps.microsoft.com/detail/9wzdncrfj3ps?rtc=1&hl=en-gb&gl=GB
