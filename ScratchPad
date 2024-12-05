@@ -1,3 +1,25 @@
+Operation returned an invalid status code 'Forbidden'
+Code: Forbidden
+Message: Client address is not authorized and caller was ignored because bypass is set to None
+Client address: 108.141.18.87
+Caller: appid=eb605535-c9fe-4771-bd01-458f4ce9f627;oid=41a4ba88-e620-416e-9b9f-33b9f34b45f8
+Vault: nmw-app-kv-fwjv4wn75m4qg;location=westeurope
+Operation returned an invalid status code 'Forbidden'
+Code: Forbidden
+Message: Client address is not authorized and caller was ignored because bypass is set to None
+Client address: 108.141.18.87
+Caller: appid=eb605535-c9fe-4771-bd01-458f4ce9f627;oid=41a4ba88-e620-416e-9b9f-33b9f34b45f8
+Vault: nmw-app-kv-fwjv4wn75m4qg;location=westeurope
+The remote server returned an error: (403) Forbidden.
+System.Management.Automation.CommandNotFoundException: The term 'C:\Users\ContainerAdministrator\AppData\Local\Temp\fde5216d-3ef1-4037-956d-dc72fe4a1207.ps1' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+   at System.Management.Automation.CommandDiscovery.LookupCommandInfo(String commandName, CommandTypes commandTypes, SearchResolutionOptions searchResolutionOptions, CommandOrigin commandOrigin, ExecutionContext context)
+   at System.Management.Automation.CommandDiscovery.LookupCommandProcessor(String commandName, CommandOrigin commandOrigin, Nullable`1 useLocalScope)
+   at System.Management.Automation.ExecutionContext.CreateCommand(String command, Boolean dotSource)
+   at System.Management.Automation.PipelineOps.AddCommand(PipelineProcessor pipe, CommandParameterInternal[] commandElements, CommandBaseAst commandBaseAst, CommandRedirection[] redirections, ExecutionContext context)
+   at System.Management.Automation.PipelineOps.InvokePipeline(Object input, Boolean ignoreInput, CommandParameterInternal[][] pipeElements, CommandBaseAst[] pipeElementAsts, CommandRedirection[][] commandRedirections, FunctionContext funcContext)
+   at System.Management.Automation.Interpreter.ActionCallInstruction`6.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)
+
 # Sign in to your Azure account
 Connect-AzAccount
 
