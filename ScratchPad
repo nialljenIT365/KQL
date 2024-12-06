@@ -1,3 +1,6 @@
+Add-WindowsCapability -Online -Name Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0
+
+
 nmw-app-kv-fwjv4wn75m4qg
 
 
