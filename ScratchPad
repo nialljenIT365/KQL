@@ -1,3 +1,92 @@
+#description: Installs RSAT Active Directory DS-LDS Tools
+#tags: Nerdio, RSAT, ActiveDirectory
+
+<#
+Notes:
+This script installs the RSAT Active Directory DS-LDS Tools capability using the Add-WindowsCapability command.
+Ensure that the system has internet access for downloading the feature.
+#>
+
+# Define the capability name
+$CapabilityName = "Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0"
+
+# Attempt to add the Windows capability
+Write-Output "Adding Windows capability: $CapabilityName..."
+try {
+    Add-WindowsCapability -Online -Name $CapabilityName
+    Write-Output "Windows capability $CapabilityName added successfully."
+} catch {
+    Write-Output "Failed to add Windows capability $CapabilityName: $_"
+    Exit 1
+}
+
+### End Script ###
+
+
+
+
+
+
+
+
+
+
+#description: Updates the fDisabledAllowList registry key to 1
+#tags: Nerdio, Registry, TerminalServices
+
+<#
+Notes:
+This script changes the `fDisabledAllowList` registry key value in 
+`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Terminal Server\TSAppAllowList` 
+from `0` to `1`.
+#>
+
+# Define registry key details
+$RegistryPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Terminal Server\TSAppAllowList"
+$ValueName = "fDisabledAllowList"
+$DesiredValue = 1  # New value to set
+
+# Check if the registry path exists
+Write-Output "Checking registry path: $RegistryPath"
+if (-not (Test-Path $RegistryPath)) {
+    Write-Output "Registry path not found: $RegistryPath. Exiting."
+    Exit 1
+}
+
+# Check the current value of the registry key
+try {
+    $CurrentValue = Get-ItemProperty -Path $RegistryPath -Name $ValueName -ErrorAction Stop | Select-Object -ExpandProperty $ValueName
+    Write-Output "Current value of $ValueName: $CurrentValue"
+} catch {
+    Write-Output "Registry key $ValueName not found. Exiting."
+    Exit 1
+}
+
+# Update the value if it is not already set to the desired value
+if ($CurrentValue -ne $DesiredValue) {
+    Write-Output "Updating $ValueName to $DesiredValue..."
+    try {
+        Set-ItemProperty -Path $RegistryPath -Name $ValueName -Value $DesiredValue
+        Write-Output "$ValueName updated successfully to $DesiredValue."
+    } catch {
+        Write-Output "Failed to update $ValueName: $_"
+        Exit 1
+    }
+} else {
+    Write-Output "$ValueName is already set to $DesiredValue. No action needed."
+}
+
+### End Script ###
+
+
+
+
+
+
+
+
+
+
 https://icofx.ro/
 
 
