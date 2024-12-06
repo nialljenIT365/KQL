@@ -1,3 +1,7 @@
+dism /online /add-capability /capabilityname:Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0 /source:C:\FoDPackages /limitaccess
+
+
+
 dism /online /get-capabilities | findstr "Rsat.ActiveDirectory.DS-LDS.Tools"
 
 
