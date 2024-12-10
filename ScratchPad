@@ -1,3 +1,10 @@
+The value of the following registry key:
+
+Key: HKLM\Software\Microsoft\MSRDC\Policies
+Type: REG_DWORD
+Name: AutomaticUpdates
+
+
 #description: Installs RSAT Active Directory DS-LDS Tools
 #tags: Nerdio, RSAT, ActiveDirectory
 
