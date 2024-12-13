@@ -1,3 +1,80 @@
+# Set "MenuShowDelay" to "0"
+$regEntry = [PSCustomObject]@{
+    Path = "HKCU:\Control Panel\Desktop"
+    ValueName = "MenuShowDelay"
+    ValueType = "String"
+    ValueData = "0"
+}
+$regEntries += $regEntry
+
+# Disable "SubscribedContent-338393Enabled"
+$regEntry = [PSCustomObject]@{
+    Path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+    ValueName = "SubscribedContent-338393Enabled"
+    ValueType = "DWord"
+    ValueData = "0"
+}
+$regEntries += $regEntry
+
+# Disable "SubscribedContent-353696Enabled"
+$regEntry = [PSCustomObject]@{
+    Path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+    ValueName = "SubscribedContent-353696Enabled"
+    ValueType = "DWord"
+    ValueData = "0"
+}
+$regEntries += $regEntry
+
+# Disable "SubscribedContent-338388Enabled"
+$regEntry = [PSCustomObject]@{
+    Path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+    ValueName = "SubscribedContent-338388Enabled"
+    ValueType = "DWord"
+    ValueData = "0"
+}
+$regEntries += $regEntry
+
+# Disable "SubscribedContent-338389Enabled"
+$regEntry = [PSCustomObject]@{
+    Path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+    ValueName = "SubscribedContent-338389Enabled"
+    ValueType = "DWord"
+    ValueData = "0"
+}
+$regEntries += $regEntry
+
+# Disable "SystemPaneSuggestionsEnabled"
+$regEntry = [PSCustomObject]@{
+    Path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+    ValueName = "SystemPaneSuggestionsEnabled"
+    ValueType = "DWord"
+    ValueData = "0"
+}
+$regEntries += $regEntry
+
+# Disable "BingSearchEnabled"
+$regEntry = [PSCustomObject]@{
+    Path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search"
+    ValueName = "BingSearchEnabled"
+    ValueType = "DWord"
+    ValueData = "0"
+}
+$regEntries += $regEntry
+
+# Disable "IsAADCloudSearchEnabled"
+$regEntry = [PSCustomObject]@{
+    Path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\SearchSettings"
+    ValueName = "IsAADCloudSearchEnabled"
+    ValueType = "DWord"
+    ValueData = "0"
+}
+$regEntries += $regEntry
+
+
+
+
+
+
 # Removes the "New" tag on Start menu apps
 $regEntry = [PSCustomObject]@{
 Path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
