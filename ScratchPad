@@ -1,3 +1,96 @@
+# Removes the "New" tag on Start menu apps
+$regEntry = [PSCustomObject]@{
+Path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
+ValueName = "Start_NotifyNewApps"
+ValueType = "DWord"
+ValueData = "0"
+}
+$regEntries += $regEntry
+
+
+
+check if these are showing on your SSP.
+ 
+        "HivePath" = "HKCU:\Control Panel\Desktop"
+ 
+        "KeyName" = "MenuShowDelay"
+ 
+        "PropertyType" = "STRING"
+ 
+        "PropertyValue" = "0"
+ 
+ 
+        "HivePath" = "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+ 
+        "KeyName" = "SubscribedContent-338393Enabled"
+ 
+        "PropertyType" = "DWORD"
+ 
+        "PropertyValue" = "0"
+ 
+ 
+        "HivePath" = "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+ 
+        "KeyName" = "SubscribedContent-353696Enabled"
+ 
+        "PropertyType" = "DWORD"
+ 
+        "PropertyValue" = "0"
+ 
+ 
+        "HivePath" = "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+ 
+        "KeyName" = "SubscribedContent-338388Enabled"
+ 
+        "PropertyType" = "DWORD"
+ 
+        "PropertyValue" = "0"
+ 
+ 
+
+       "HivePath" = "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+ 
+        "KeyName" = "SubscribedContent-338389Enabled"
+ 
+        "PropertyType" = "DWORD"
+ 
+        "PropertyValue" = "0"
+ 
+ 
+        "HivePath" = "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+ 
+        "KeyName" = "SystemPaneSuggestionsEnabled"
+ 
+        "PropertyType" = "DWORD"
+ 
+        "PropertyValue" = "0"
+ 
+ 
+         
+"HivePath" = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search"
+ 
+        "KeyName" = "BingSearchEnabled"
+ 
+        "PropertyType" = "DWORD"
+ 
+        "PropertyValue" = "0"
+ 
+ 
+       
+"HivePath" = "HKCU:\Software\Microsoft\Windows\CurrentVersion\SearchSettings"
+ 
+        "KeyName" = "IsAADCloudSearchEnabled"
+ 
+        "PropertyType" = "DWORD"
+ 
+        "PropertyValue" = "0"
+
+
+
+
+
+
+
 The value of the following registry key:
 
 Key: HKLM\Software\Microsoft\MSRDC\Policies
