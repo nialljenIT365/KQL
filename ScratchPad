@@ -1,3 +1,15 @@
+#description: Outputs specific Nerdio variables
+#tags: Nerdio, Debug, Variables
+
+Write-Output "DesktopUser: $DesktopUser"
+Write-Output "AzureVMName: $AzureVMName"
+Write-Output "AzureResourceGroupName: $AzureResourceGroupName"
+
+New-AzRoleAssignment -ResourceName $AzureVMName -ResourceGroupName $AzureResourceGroupName -SignInName $DesktopUser -RoleDefinitionName "Virtual Machine Administrator Login" -ResourceType "Microsoft.Compute/virtualMachines"
+
+### End Script ###
+
+
 Install-Module -Name Az -AllowClobber -Scope CurrentUser
 Import-Module -Name Az
 
