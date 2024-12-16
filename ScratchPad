@@ -1,3 +1,6 @@
+New-AzRoleAssignment -ResourceName $AzureVMName -ResourceGroupName $AzureResourceGroupName -SignInName $DesktopUser -RoleDefinitionName "Virtual Machine Administrator Login" -ResourceType "Microsoft.Compute/virtualMachines"
+
+
 Heartbeat
 | extend NormalizedResourceGroup = tolower(ResourceGroup)  // Convert ResourceGroup to lowercase
 | summarize MachineCount = dcount(Computer) by bin(TimeGenerated, 1h), NormalizedResourceGroup
