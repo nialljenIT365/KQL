@@ -1,3 +1,16 @@
+#description: Outputs specific Nerdio variables
+#tags: Nerdio, Debug, Variables
+
+Write-Output "DesktopUser: $DesktopUser"
+Write-Output "AzureVMName: $AzureVMName"
+Write-Output "AzureResourceGroupName: $AzureResourceGroupName"
+Write-Output "AzureSubscriptionId: $AzureSubscriptionId"
+
+### End Script ###
+
+
+
+
 #description: Outputs pre-populated Nerdio variables to standard output
 #tags: Nerdio, Debug, Variables
 
