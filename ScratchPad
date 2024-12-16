@@ -1,3 +1,14 @@
+# Specify the destination path for saving modules
+$DestinationPath = "C:\Temp\Modules"
+
+# Save PowerShellGet and NuGet dependencies
+Save-Module -Name PowerShellGet -Path $DestinationPath
+Save-Module -Name PackageManagement -Path $DestinationPath
+
+
+
+
+
 Uninstall-Module -Name Az -AllVersions -Force
 Get-Module -ListAvailable -Name Az.* | ForEach-Object { Uninstall-Module -Name $_.Name -AllVersions -Force }
 
