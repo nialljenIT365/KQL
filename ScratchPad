@@ -1,3 +1,7 @@
+Install-Module -Name Az -AllowClobber -Scope CurrentUser
+Import-Module -Name Az
+
+
 New-AzRoleAssignment -ResourceName $AzureVMName -ResourceGroupName $AzureResourceGroupName -SignInName $DesktopUser -RoleDefinitionName "Virtual Machine Administrator Login" -ResourceType "Microsoft.Compute/virtualMachines"
 
 
