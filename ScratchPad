@@ -1,3 +1,24 @@
+#description: Outputs specific Nerdio variables and assigns a role with error handling
+#tags: Nerdio, Debug, RoleAssignment
+
+Write-Output "DesktopUser: $DesktopUser"
+Write-Output "AzureVMName: $AzureVMName"
+Write-Output "AzureResourceGroupName: $AzureResourceGroupName"
+
+try {
+    # Attempt to assign the role
+    Write-Output "Assigning 'Virtual Machine Administrator Login' role to $DesktopUser for VM $AzureVMName in resource group $AzureResourceGroupName..."
+    New-AzRoleAssignment -ResourceName $AzureVMName -ResourceGroupName $AzureResourceGroupName -SignInName $DesktopUser -RoleDefinitionName "Virtual Machine Administrator Login" -ResourceType "Microsoft.Compute/virtualMachines"
+    Write-Output "Role assignment successful."
+} catch {
+    # Output any errors to standard output
+    Write-Output "Failed to assign role: $_"
+}
+
+### End Script ###
+
+
+
 #description: Outputs specific Nerdio variables
 #tags: Nerdio, Debug, Variables
 
