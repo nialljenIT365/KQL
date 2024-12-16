@@ -1,3 +1,44 @@
+#description: Outputs pre-populated Nerdio variables to standard output
+#tags: Nerdio, Debug, Variables
+
+<#
+Notes:
+This script outputs the values of all pre-populated Nerdio variables to the standard output.
+It handles cases where certain variables may not be available in the current context.
+#>
+
+# Define a function to output variable values safely
+function Output-Variable {
+    param (
+        [string]$VariableName,
+        [object]$VariableValue
+    )
+
+    if ($null -ne $VariableValue) {
+        Write-Output "$VariableName: $VariableValue"
+    } else {
+        Write-Output "$VariableName: Not available in this context"
+    }
+}
+
+# Output each pre-populated variable
+Output-Variable "HostPoolId" $HostPoolId
+Output-Variable "HostPoolName" $HostPoolName
+Output-Variable "AzureSubscriptionId" $AzureSubscriptionId
+Output-Variable "AzureSubscriptionName" $AzureSubscriptionName
+Output-Variable "AzureResourceGroupName" $AzureResourceGroupName
+Output-Variable "AzureRegionName" $AzureRegionName
+Output-Variable "AzureVMName" $AzureVMName
+Output-Variable "ADUsername" $ADUsername
+Output-Variable "ADPassword" $ADPassword
+Output-Variable "DesktopUser" $DesktopUser
+
+### End Script ###
+
+
+
+
+
 https://drive.google.com/file/d/1i8z6Q7l7P7NgftLmEUSnoHGfqQzKhmHj/view?pli=1
 
 
