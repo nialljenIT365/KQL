@@ -1,3 +1,20 @@
+WARNING: Unable to acquire token for tenant 'organizations' with error 'InteractiveBrowserCredential authentication failed: A window handle must be configured. See https://aka.ms/msal-net-wam#parent-window-handles'
+WARNING: Please run 'Connect-AzAccount -DeviceCode' if browser is not supported in this session.
+Connect-AzAccount : InteractiveBrowserCredential authentication failed: A window handle must be configured. See https://aka.ms/msal-net-wam#parent-window-handles
+At line:3 char:1
++ Connect-AzAccount -Subscription $Subscription
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : CloseError: (:) [Connect-AzAccount], AuthenticationFailedException
+    + FullyQualifiedErrorId : Microsoft.Azure.Commands.Profile.ConnectAzureRmAccountCommand
+ 
+New-AzRoleAssignment : Object reference not set to an instance of an object.
+At line:5 char:1
++ New-AzRoleAssignment -ResourceName $AzureVMName -ResourceGroupName "r ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : CloseError: (:) [New-AzRoleAssignment], NullReferenceException
+    + FullyQualifiedErrorId : Microsoft.Azure.Commands.Resources.NewAzureRoleAssignmentCommand
+
+
 Method 'get_SerializationSettings' in type 'Microsoft.Azure.Management.Internal.Resources.ResourceManagementClient' from assembly 'Microsoft.Azure.PowerShell.Clients.ResourceManager, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35' does not have an implementation.
 Method 'get_SerializationSettings' in type 'Microsoft.Azure.Management.Internal.Resources.ResourceManagementClient' from assembly 'Microsoft.Azure.PowerShell.Clients.ResourceManager, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35' does not have an implementation.
 Method 'get_SerializationSettings' in type 'Microsoft.Azure.Management.Internal.Resources.ResourceManagementClient' from assembly 'Microsoft.Azure.PowerShell.Clients.ResourceManager, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35' does not have an implementation.
