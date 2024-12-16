@@ -1,3 +1,7 @@
+Get-AzRoleDefinition | Where-Object { $_.Name -like "*Virtual Machine*" } | Format-Table -Property Name, IsCustom, Id
+
+
+
 Get-AzRoleDefinition | Format-Table -Property Name, IsCustom, Id
 
 
