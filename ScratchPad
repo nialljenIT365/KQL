@@ -1,3 +1,6 @@
+Copy-Item -Path "C:\Temp\Modules\*" -Destination "C:\Program Files\WindowsPowerShell\Modules" -Recurse
+
+
 # Specify the destination path for saving modules
 $DestinationPath = "C:\Temp\Modules"
 
