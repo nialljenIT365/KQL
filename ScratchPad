@@ -1,3 +1,18 @@
+# Ensure the PowerShellGet module is up to date
+Install-Module -Name PowerShellGet -Force -AllowClobber
+
+# Update all installed modules
+Update-Module -Name Az -Force
+
+# Verify the version of the Az module
+Get-Module -Name Az -ListAvailable
+
+
+
+
+
+
+
 Failed to assign role: Method 'get_SerializationSettings' in type 'Microsoft.Azure.Management.Internal.Resources.ResourceManagementClient' from assembly 'Microsoft.Azure.PowerShell.Clients.ResourceManager, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35' does not have an implementation.
 
 #description: Outputs specific Nerdio variables and assigns a role with error handling
