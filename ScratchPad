@@ -1,3 +1,7 @@
+New-AzRoleAssignment -ObjectId <objectId> -RoleDefinitionName <roleName> -Scope /subscriptions/<subscriptionId>/resourcegroups/<resourceGroupName>/providers/<providerName>/<resourceType>/<resourceSubType>/<resourceName>
+
+
+
 Get-AzRoleDefinition | Where-Object { $_.Name -like "*Virtual Machine*" } | Format-Table -Property Name, IsCustom, Id
 
 
