@@ -1,3 +1,28 @@
+Method 'get_SerializationSettings' in type 'Microsoft.Azure.Management.Internal.Resources.ResourceManagementClient' from assembly 'Microsoft.Azure.PowerShell.Clients.ResourceManager, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35' does not have an implementation.
+Method 'get_SerializationSettings' in type 'Microsoft.Azure.Management.Internal.Resources.ResourceManagementClient' from assembly 'Microsoft.Azure.PowerShell.Clients.ResourceManager, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35' does not have an implementation.
+Method 'get_SerializationSettings' in type 'Microsoft.Azure.Management.Internal.Resources.ResourceManagementClient' from assembly 'Microsoft.Azure.PowerShell.Clients.ResourceManager, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35' does not have an implementation.
+System.Management.Automation.ParameterBindingValidationException: Cannot bind argument to parameter 'Context' because it is null.
+   at System.Management.Automation.ParameterBinderBase.ValidateNullOrEmptyArgument(CommandParameterInternal parameter, CompiledCommandParameter parameterMetadata, Type argumentType, Object parameterValue, Boolean recurseIntoCollections)
+   at System.Management.Automation.ParameterBinderBase.BindParameter(CommandParameterInternal parameter, CompiledCommandParameter parameterMetadata, ParameterBindingFlags flags)
+   at System.Management.Automation.CmdletParameterBinderController.BindParameter(CommandParameterInternal argument, MergedCompiledCommandParameter parameter, ParameterBindingFlags flags)
+   at System.Management.Automation.CmdletParameterBinderController.BindParameter(UInt32 parameterSets, CommandParameterInternal argument, MergedCompiledCommandParameter parameter, ParameterBindingFlags flags)
+   at System.Management.Automation.CmdletParameterBinderController.BindParameters(UInt32 parameterSets, Collection`1 arguments)
+   at System.Management.Automation.CmdletParameterBinderController.BindCommandLineParametersNoValidation(Collection`1 arguments)
+   at System.Management.Automation.CmdletParameterBinderController.BindCommandLineParameters(Collection`1 arguments)
+   at System.Management.Automation.CommandProcessor.BindCommandLineParameters()
+   at System.Management.Automation.CommandProcessor.Prepare(IDictionary psDefaultParameterValues)
+   at System.Management.Automation.CommandProcessorBase.DoPrepare(IDictionary psDefaultParameterValues)
+   at System.Management.Automation.Internal.PipelineProcessor.Start(Boolean incomingStream)
+   at System.Management.Automation.Internal.PipelineProcessor.SynchronousExecuteEnumerate(Object input)
+--- End of stack trace from previous location where exception was thrown ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Management.Automation.Internal.PipelineProcessor.SynchronousExecuteEnumerate(Object input)
+   at System.Management.Automation.PipelineOps.InvokePipeline(Object input, Boolean ignoreInput, CommandParameterInternal[][] pipeElements, CommandBaseAst[] pipeElementAsts, CommandRedirection[][] commandRedirections, FunctionContext funcContext)
+   at System.Management.Automation.Interpreter.ActionCallInstruction`6.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)
+
+
+
 # Ensure the PowerShellGet module is up to date
 Install-Module -Name PowerShellGet -Force -AllowClobber
 
