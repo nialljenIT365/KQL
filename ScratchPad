@@ -1,3 +1,6 @@
+Get-AzRoleDefinition | Format-Table -Property Name, IsCustom, Id
+
+
 #description: Outputs specific Nerdio variables
 #tags: Nerdio, Debug, Variables
 
