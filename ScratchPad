@@ -1,3 +1,5 @@
+Failed to assign role: Method 'get_SerializationSettings' in type 'Microsoft.Azure.Management.Internal.Resources.ResourceManagementClient' from assembly 'Microsoft.Azure.PowerShell.Clients.ResourceManager, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35' does not have an implementation.
+
 #description: Outputs specific Nerdio variables and assigns a role with error handling
 #tags: Nerdio, Debug, RoleAssignment
 
