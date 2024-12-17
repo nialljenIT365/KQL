@@ -1,3 +1,13 @@
+Import-Module : Could not load file or assembly 'file:///C:\Program
+Files\WindowsPowerShell\Modules\PackageManagement\1.4.8.1\fullclr\Microsoft.PackageManagement.dll' or one of its
+dependencies. Operation is not supported. (Exception from HRESULT: 0x80131515)
+At line:1 char:1
++ Import-Module PowerShellGet -Scope Global -Force
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [Import-Module], FileLoadException
+    + FullyQualifiedErrorId : System.IO.FileLoadException,Microsoft.PowerShell.Commands.ImportModuleCommand
+
+
 Find-Module -Name PowerShellGet | Select Name, Version, Repository
 
 
