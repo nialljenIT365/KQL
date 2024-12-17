@@ -1,3 +1,8 @@
+# Unblock all files in the PowerShellGet module
+Get-ChildItem -Path "C:\Program Files\WindowsPowerShell\Modules\PowerShellGet" -Recurse |
+    Unblock-File
+
+
 Import-Module : Could not load file or assembly 'file:///C:\Program
 Files\WindowsPowerShell\Modules\PackageManagement\1.4.8.1\fullclr\Microsoft.PackageManagement.dll' or one of its
 dependencies. Operation is not supported. (Exception from HRESULT: 0x80131515)
