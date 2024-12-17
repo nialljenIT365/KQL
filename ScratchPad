@@ -1,3 +1,11 @@
+Get-PSRepository
+
+Name                      InstallationPolicy   SourceLocation
+----                      ------------------   --------------
+PSGallery                 Untrusted            https://www.powershellgallery.com/api/v2
+
+
+
 PackageManagement\Get-Package : The term 'PackageManagement\Get-Package' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the 
 name, or if a path was included, verify that the path is correct and try again.
 At C:\Program Files\WindowsPowerShell\Modules\PowerShellGet\2.2.5\PSModule.psm1:9445 char:9
