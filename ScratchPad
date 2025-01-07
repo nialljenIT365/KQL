@@ -1,4 +1,7 @@
- MicrosoftWindows.Client.CBS_1000.22700.1055.0_x64__cw5n1h2txyewy
+Get-AppxPackage | Where-Object { $_.PackageFullName -like "*MicrosoftWindows.Client.CBS*" } | ForEach-Object { Reset-AppxPackage -Package $_.PackageFullName }
+
+
+MicrosoftWindows.Client.CBS_1000.22700.1055.0_x64__cw5n1h2txyewy
 
 
 # Function to create and apply a registry entry
