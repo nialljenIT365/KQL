@@ -70,6 +70,13 @@ $regEntry = [PSCustomObject]@{
 }
 $regEntries += $regEntry
 
+# Loop through each registry entry and apply it
+foreach ($entry in $regEntries) {
+    Set-RegistryValue -Path $entry.Path -ValueName $entry.ValueName -ValueType $entry.ValueType -ValueData $entry.ValueData
+}
+
+Write-Host "All registry entries have been successfully applied."
+
 
 
 Get-AppxPackage | Where-Object { $_.PackageFullName -like "*MicrosoftWindows.Client.CBS*" } | ForEach-Object { Reset-AppxPackage -Package $_.PackageFullName }
