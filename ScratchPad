@@ -1,3 +1,16 @@
+Heartbeat
+| extend 
+    Hostpool = case(
+        Computer startswith "M09PSSPG", "CUS_PRD_SSPersistent",
+        "Other"
+    )
+| summarize 
+    CUS_PRD_SSPersistent = dcountif(Computer, Hostpool == "CUS_PRD_SSPersistent"),
+    Others = dcountif(Computer, Hostpool == "Other")
+    by bin(TimeGenerated, 1h)
+| sort by TimeGenerated desc
+
+
 # Function to create and apply a registry entry
 function Set-RegistryValue {
     param (
