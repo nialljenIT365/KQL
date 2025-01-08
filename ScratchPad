@@ -36,6 +36,50 @@ Heartbeat
         Computer startswith "M04PSSPI", "WEU_PRD_SSPersistent",
         "Other"
     )
+| where Hostpool == "Other"
+| summarize Count = count() by Computer
+| sort by Count desc
+
+
+
+Heartbeat
+| where TimeGenerated >= ago(7d)
+| extend 
+    Hostpool = case(
+        Computer startswith "M09PSSPG", "CUS_PRD_SSPersistent",
+        Computer startswith "M13PMSNI", "EAS_PRD_MSPooled",
+        Computer startswith "M13PSSPI", "EAS_PRD_SSPersistent",
+        Computer startswith "M06PSSPG", "EUS2_PRD_SSPersistent",
+        Computer startswith "M06USSPG", "EUS2_UAT_SSPersistent",
+        Computer startswith "M01DDEVT", "NEU_DEV_SSPersistent",
+        Computer startswith "M01NACRI", "NEU_NPA_CRIMS_RMPooled",
+        Computer startswith "M01NBCRI", "NEU_NPB_CRIMS_RMPooled",
+        Computer startswith "M01OHCRI", "NEU_OAT_High_CRIMS_RMPooled",
+        Computer startswith "M01OLCRI", "NEU_OAT_Low_CRIMS_RMPooled",
+        Computer startswith "M01OMCRI", "NEU_OAT_Med_CRIMS_RMPooled",
+        Computer startswith "M01PADM", "NEU_PRD_ADM_RMPooled",
+        Computer startswith "M01PHCRI", "NEU_PRD_High_CRIMS_RMPooled",
+        Computer startswith "M01PLCRI", "NEU_PRD_Low_CRIMS_RMPooled",
+        Computer startswith "M01PMCRI", "NEU_PRD_Med_CRIMS_RMPooled",
+        Computer startswith "M01PMSNI", "NEU_PRD_MSPooled",
+        Computer startswith "M01PSSPI", "NEU_PRD_SSPersistent",
+        Computer startswith "M01PQNT", "NEU_Prod_Quantum_RMPooled",
+        Computer startswith "M01TMSNI", "NEU_TST_MSPooled",
+        Computer startswith "M01TSSPI", "NEU_TST_SSPersistent",
+        Computer startswith "M01UMSNI", "NEU_UAT_MULTISESSION",
+        Computer startswith "M01UQNT", "NEU_UAT_Quantum_RMPooled",
+        Computer startswith "M01USSPI", "NEU_UAT_SSPersistent",
+        Computer startswith "M14PMSNI", "SEA_PRD_MSPooled",
+        Computer startswith "M14PSSPI", "SEA_PRD_SSPersistent",
+        Computer startswith "M14UMSNI", "SEA_UAT_MSPooled",
+        Computer startswith "M14USSPI", "SEA_UAT_SSPersistent",
+        Computer startswith "M04PHCRI", "WEU_PRD_High_CRIMS_RMPooled",
+        Computer startswith "M04PLCRI", "WEU_PRD_Low_CRIMS_RMPooled",
+        Computer startswith "M04PMCRI", "WEU_PRD_Med_CRIMS_RMPooled",
+        Computer startswith "M04PMSNI", "WEU_PRD_MSPooled",
+        Computer startswith "M04PSSPI", "WEU_PRD_SSPersistent",
+        "Other"
+    )
 | summarize 
     CUS_PRD_SSPersistent = dcountif(Computer, Hostpool == "CUS_PRD_SSPersistent"),
     EAS_PRD_MSPooled = dcountif(Computer, Hostpool == "EAS_PRD_MSPooled"),
