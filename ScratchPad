@@ -1,4 +1,25 @@
 Heartbeat
+| where TimeGenerated >= ago(7d)
+| extend 
+    Hostpool = case(
+        Computer startswith "M09PSSPG", "CUS_PRD_SSPersistent",
+        "Other"
+    )
+| summarize 
+    CUS_PRD_SSPersistent = dcountif(Computer, Hostpool == "CUS_PRD_SSPersistent"),
+    Others = dcountif(Computer, Hostpool == "Other")
+    by bin(TimeGenerated, 1h)
+| make-series 
+    CUS_PRD_SSPersistent = sum(CUS_PRD_SSPersistent), 
+    Others = sum(Others)
+    on TimeGenerated 
+    in range(startofday(ago(7d)), now(), 1h)
+| project TimeGenerated, CUS_PRD_SSPersistent, Others
+| sort by TimeGenerated desc
+
+
+
+Heartbeat
 | extend 
     Hostpool = case(
         Computer startswith "M09PSSPG", "CUS_PRD_SSPersistent",
