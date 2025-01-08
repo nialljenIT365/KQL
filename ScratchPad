@@ -1,3 +1,18 @@
+    TotalVMs = sum(
+        CUS_PRD_SSPersistent + EAS_PRD_MSPooled + EAS_PRD_SSPersistent +
+        EUS2_PRD_SSPersistent + EUS2_UAT_SSPersistent + NEU_DEV_SSPersistent +
+        NEU_NPA_CRIMS_RMPooled + NEU_NPB_CRIMS_RMPooled + NEU_OAT_High_CRIMS_RMPooled +
+        NEU_OAT_Low_CRIMS_RMPooled + NEU_OAT_Med_CRIMS_RMPooled + NEU_PRD_ADM_RMPooled +
+        NEU_PRD_High_CRIMS_RMPooled + NEU_PRD_Low_CRIMS_RMPooled + NEU_PRD_Med_CRIMS_RMPooled +
+        NEU_PRD_MSPooled + NEU_PRD_SSPersistent + NEU_Prod_Quantum_RMPooled +
+        NEU_TST_MSPooled + NEU_TST_SSPersistent + NEU_UAT_MULTISESSION +
+        NEU_UAT_Quantum_RMPooled + NEU_UAT_SSPersistent + SEA_PRD_MSPooled +
+        SEA_PRD_SSPersistent + SEA_UAT_MSPooled + SEA_UAT_SSPersistent +
+        WEU_PRD_High_CRIMS_RMPooled + WEU_PRD_Low_CRIMS_RMPooled + WEU_PRD_Med_CRIMS_RMPooled +
+        WEU_PRD_MSPooled + WEU_PRD_SSPersistent + Others
+    )
+
+
 Heartbeat
 | where TimeGenerated >= ago(7d)
 | extend 
