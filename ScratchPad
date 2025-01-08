@@ -9,13 +9,74 @@ Heartbeat
     CUS_PRD_SSPersistent = dcountif(Computer, Hostpool == "CUS_PRD_SSPersistent"),
     Others = dcountif(Computer, Hostpool == "Other")
     by bin(TimeGenerated, 1h)
-| make-series 
-    CUS_PRD_SSPersistent = sum(CUS_PRD_SSPersistent), 
-    Others = sum(Others)
-    on TimeGenerated 
-    in range(startofday(ago(7d)), now(), 1h)
-| project TimeGenerated, CUS_PRD_SSPersistent, Others
 | sort by TimeGenerated desc
+
+update the KQL Hostpool case with the following startswith values. value on left is the hsostpool name and value on right is startswith
+CUS_PRD_SSPersistent - M09PSSPG
+
+EAS_PRD_MSPooled - M13PMSNI
+
+EAS_PRD_SSPersistent - M13PSSPI
+
+EUS2_PRD_SSPersistent  - M06PSSPG
+
+EUS2_UAT_SSPersistent  - M06USSPG
+
+NEU_DEV_SSPersistent  - M01DDEVT
+
+NEU_NPA_CRIMS_RMPooled - M01NACRI
+
+NEU_NPB_CRIMS_RMPooled - M01NBCRI
+
+NEU_OAT_High_CRIMS_RMPooled  - M01OHCRI
+
+NEU_OAT_Low_CRIMS_RMPooled  - M01OLCRI
+
+NEU_OAT_Med_CRIMS_RMPooled  - M01OMCRI
+
+NEU_PRD_ADM_RMPooled  - M01PADM
+
+NEU_PRD_High_CRIMS_RMPooled  - M01PHCRI
+
+NEU_PRD_Low_CRIMS_RMPooled  - M01PLCRI
+
+NEU_PRD_Med_CRIMS_RMPooled  - M01PMCRI
+
+NEU_PRD_MSPooled - M01PMSNI
+
+NEU_PRD_SSPersistent  - M01PSSPI
+
+NEU_Prod_Quantum_RMPooled  - M01PQNT
+
+NEU_TST_MSPooled  - M01TMSNI
+
+NEU_TST_SSPersistent  - M01TSSPI
+
+NEU_UAT_MULTISESSION  - M01UMSNI
+
+NEU_UAT_Quantum_RMPooled  - M01UQNT
+
+NEU_UAT_SSPersistent  - M01USSPI
+
+SEA_PRD_MSPooled  - M14PMSNI
+
+SEA_PRD_SSPersistent  - M14PSSPI
+
+SEA_UAT_MSPooled  - M14UMSNI
+
+SEA_UAT_SSPersistent  - M14USSPI
+
+WEU_PRD_High_CRIMS_RMPooled  - M04PHCRI
+
+WEU_PRD_Low_CRIMS_RMPooled  - M04PLCRI
+
+WEU_PRD_Med_CRIMS_RMPooled  - M04PMCRI
+
+WEU_PRD_MSPooled  - M04PMSNI
+
+WEU_PRD_SSPersistent  - M04PSSPI
+
+
 
 
 
