@@ -1,3 +1,55 @@
+resources
+| where ['type'] == "microsoft.compute/virtualmachines" 
+| extend 
+    Hostpool = case(
+        name startswith "M09PSSPG", "CUS_PRD_SSPersistent",
+        name startswith "M13PMSNI", "EAS_PRD_MSPooled",
+        name startswith "M13PSSPI", "EAS_PRD_SSPersistent",
+        name startswith "M06PSSPG", "EUS2_PRD_SSPersistent",
+        name startswith "M06USSPG", "EUS2_UAT_SSPersistent",
+        name startswith "M01DDEVT", "NEU_DEV_SSPersistent",
+        name startswith "M01DVLDT", "NEU_DEV_SSPersistent",
+        name startswith "M01NACRI", "NEU_NPA_CRIMS_RMPooled",
+        name startswith "M01NBCRI", "NEU_NPB_CRIMS_RMPooled",
+        name startswith "M01OHCRI", "NEU_OAT_High_CRIMS_RMPooled",
+        name startswith "M01OLCRI", "NEU_OAT_Low_CRIMS_RMPooled",
+        name startswith "M01OMCRI", "NEU_OAT_Med_CRIMS_RMPooled",
+        name startswith "M01PADM", "NEU_PRD_ADM_RMPooled",
+        name startswith "M01PHCRI", "NEU_PRD_High_CRIMS_RMPooled",
+        name startswith "M01PLCRI", "NEU_PRD_Low_CRIMS_RMPooled",
+        name startswith "M01PMCRI", "NEU_PRD_Med_CRIMS_RMPooled",
+        name startswith "M01PMSNI", "NEU_PRD_MSPooled",
+        name startswith "M01PSSPI", "NEU_PRD_SSPersistent",
+        name startswith "M01PQNT", "NEU_Prod_Quantum_RMPooled",
+        name startswith "M01TMSNI", "NEU_TST_MSPooled",
+        name startswith "M01TSSPI", "NEU_TST_SSPersistent",
+        name startswith "M01UMSNI", "NEU_UAT_MULTISESSION",
+        name startswith "M01UQNT", "NEU_UAT_Quantum_RMPooled",
+        name startswith "M01USSPI", "NEU_UAT_SSPersistent",
+        name startswith "M14PMSNI", "SEA_PRD_MSPooled",
+        name startswith "M14PSSPI", "SEA_PRD_SSPersistent",
+        name startswith "M14UMSNI", "SEA_UAT_MSPooled",
+        name startswith "M14USSPI", "SEA_UAT_SSPersistent",
+        name startswith "M04PHCRI", "WEU_PRD_High_CRIMS_RMPooled",
+        name startswith "M04PLCRI", "WEU_PRD_Low_CRIMS_RMPooled",
+        name startswith "M04PMCRI", "WEU_PRD_Med_CRIMS_RMPooled",
+        name startswith "M04PMSNI", "WEU_PRD_MSPooled",
+        name startswith "M04PSSPI", "WEU_PRD_SSPersistent",
+        "Other"
+    )
+| where Hostpool == "Other"
+| where subscriptionId == "35ad321e-e46e-4c1c-a919-38b0fafbacdd"
+| where subscriptionId == "58cb357e-51af-4f62-8982-a8c2b9059362"
+| where subscriptionId == "031f411c-34a6-49ea-a4fe-0be328271783"
+| where subscriptionId == "6c05505a-2a53-46a1-a54c-d463f021bcdc"
+| where subscriptionId == "23bcd608-7846-4fe2-a900-fd2220458d84"
+| where subscriptionId == "5e0dd0c1-0273-41f3-8a68-63a549fc300e"
+| where subscriptionId == "d0440ed0-d440-456e-bf57-e6514e3dab37"
+| where subscriptionId == "01f03a19-5500-482a-b480-3bb664e0ebc2"
+| where subscriptionId == "8d14bfce-8436-4954-8bbd-e5ffc4eae668"
+
+
+
 # Function to create and apply a registry entry
 function Set-RegistryValue {
     param (
