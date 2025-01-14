@@ -1,4 +1,29 @@
 resources
+| where ['type'] == "microsoft.compute/virtualmachines"
+| extend 
+    Hostpool = case(
+        name contains "IMG", "Gold Images",
+        name startswith "M04PCRIMS", "Crims Images",
+        name startswith "M04CRIMS1", "Crims Images",
+        name startswith "NMW-", "Nerdio Helper VM",
+        "Other"
+    )
+| where subscriptionId in (
+    "35ad321e-e46e-4c1c-a919-38b0fafbacdd",
+    "58cb357e-51af-4f62-8982-a8c2b9059362",
+    "031f411c-34a6-49ea-a4fe-0be328271783",
+    "6c05505a-2a53-46a1-a54c-d463f021bcdc",
+    "23bcd608-7846-4fe2-a900-fd2220458d84",
+    "5e0dd0c1-0273-41f3-8a68-63a549fc300e",
+    "d0440ed0-d440-456e-bf57-e6514e3dab37",
+    "01f03a19-5500-482a-b480-3bb664e0ebc2",
+    "8d14bfce-8436-4954-8bbd-e5ffc4eae668"
+)
+// Exclude VMs with the tag NMW_ARM_HOST_POOL
+| where Hostpool == "Other"
+| where not(todynamic(tags) has "NMW_ARM_HOST_POOL")
+
+resources
 | where ['type'] == "microsoft.compute/virtualmachines" 
 | where subscriptionId in (
     "35ad321e-e46e-4c1c-a919-38b0fafbacdd",
