@@ -1,3 +1,9 @@
+(device.manufacturer -eq "Microsoft Corporation") and (device.model -eq "Virtual Machine") and (device.operatingSystemSKU -eq "ServerRdsh")
+
+
+
+
+
 resources
 | where ['type'] == "microsoft.compute/virtualmachines"
 | extend 
