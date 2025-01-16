@@ -1,3 +1,104 @@
+let AnalyticsQuery =
+let Source = Json.Document(Web.Contents("https://api.loganalytics.io/v1/workspaces/ce4e1e84-3765-4cfe-ac40-5de8d7633df4/query", 
+[Query=[#"query"="Heartbeat
+| where TimeGenerated >= ago(30d)
+| extend 
+    Hostpool = case(
+        Computer startswith ""M09PSSPG"", ""CUS_PRD_SSPersistent"",
+        Computer startswith ""M13PMSNI"", ""EAS_PRD_MSPooled"",
+        Computer startswith ""M13PSSPI"", ""EAS_PRD_SSPersistent"",
+        Computer startswith ""M06PSSPG"", ""EUS2_PRD_SSPersistent"",
+        Computer startswith ""M06USSPG"", ""EUS2_UAT_SSPersistent"",
+        Computer startswith ""M01DDEVT"", ""NEU_DEV_SSPersistent"",
+        Computer startswith ""M01DVLDT"", ""NEU_DEV_SSPersistent"",
+        Computer startswith ""M01NACRI"", ""NEU_NPA_CRIMS_RMPooled"",
+        Computer startswith ""M01NBCRI"", ""NEU_NPB_CRIMS_RMPooled"",
+        Computer startswith ""M01OHCRI"", ""NEU_OAT_High_CRIMS_RMPooled"",
+        Computer startswith ""M01OLCRI"", ""NEU_OAT_Low_CRIMS_RMPooled"",
+        Computer startswith ""M01OMCRI"", ""NEU_OAT_Med_CRIMS_RMPooled"",
+        Computer startswith ""M01PADM"", ""NEU_PRD_ADM_RMPooled"",
+        Computer startswith ""M01PHCRI"", ""NEU_PRD_High_CRIMS_RMPooled"",
+        Computer startswith ""M01PLCRI"", ""NEU_PRD_Low_CRIMS_RMPooled"",
+        Computer startswith ""M01PMCRI"", ""NEU_PRD_Med_CRIMS_RMPooled"",
+        Computer startswith ""M01PMSNI"", ""NEU_PRD_MSPooled"",
+        Computer startswith ""M01PSSPI"", ""NEU_PRD_SSPersistent"",
+        Computer startswith ""M01PQNT"", ""NEU_Prod_Quantum_RMPooled"",
+        Computer startswith ""M01TMSNI"", ""NEU_TST_MSPooled"",
+        Computer startswith ""M01TSSPI"", ""NEU_TST_SSPersistent"",
+        Computer startswith ""M01UMSNI"", ""NEU_UAT_MULTISESSION"",
+        Computer startswith ""M01UQNT"", ""NEU_UAT_Quantum_RMPooled"",
+        Computer startswith ""M01USSPI"", ""NEU_UAT_SSPersistent"",
+        Computer startswith ""M14PMSNI"", ""SEA_PRD_MSPooled"",
+        Computer startswith ""M14PSSPI"", ""SEA_PRD_SSPersistent"",
+        Computer startswith ""M14UMSNI"", ""SEA_UAT_MSPooled"",
+        Computer startswith ""M14USSPI"", ""SEA_UAT_SSPersistent"",
+        Computer startswith ""M04PHCRI"", ""WEU_PRD_High_CRIMS_RMPooled"",
+        Computer startswith ""M04PLCRI"", ""WEU_PRD_Low_CRIMS_RMPooled"",
+        Computer startswith ""M04PMCRI"", ""WEU_PRD_Med_CRIMS_RMPooled"",
+        Computer startswith ""M04PMSNI"", ""WEU_PRD_MSPooled"",
+        Computer startswith ""M04PSSPI"", ""WEU_PRD_SSPersistent"",
+        ""Other""
+    )
+| summarize
+    CUS_PRD_SSPersistent = dcountif(Computer, Hostpool == ""CUS_PRD_SSPersistent""),
+    EAS_PRD_MSPooled = dcountif(Computer, Hostpool == ""EAS_PRD_MSPooled""),
+    EAS_PRD_SSPersistent = dcountif(Computer, Hostpool == ""EAS_PRD_SSPersistent""),
+    EUS2_PRD_SSPersistent = dcountif(Computer, Hostpool == ""EUS2_PRD_SSPersistent""),
+    EUS2_UAT_SSPersistent = dcountif(Computer, Hostpool == ""EUS2_UAT_SSPersistent""),
+    NEU_DEV_SSPersistent = dcountif(Computer, Hostpool == ""NEU_DEV_SSPersistent""),
+    NEU_NPA_CRIMS_RMPooled = dcountif(Computer, Hostpool == ""NEU_NPA_CRIMS_RMPooled""),
+    NEU_NPB_CRIMS_RMPooled = dcountif(Computer, Hostpool == ""NEU_NPB_CRIMS_RMPooled""),
+    NEU_OAT_High_CRIMS_RMPooled = dcountif(Computer, Hostpool == ""NEU_OAT_High_CRIMS_RMPooled""),
+    NEU_OAT_Low_CRIMS_RMPooled = dcountif(Computer, Hostpool == ""NEU_OAT_Low_CRIMS_RMPooled""),
+    NEU_OAT_Med_CRIMS_RMPooled = dcountif(Computer, Hostpool == ""NEU_OAT_Med_CRIMS_RMPooled""),
+    NEU_PRD_ADM_RMPooled = dcountif(Computer, Hostpool == ""NEU_PRD_ADM_RMPooled""),
+    NEU_PRD_High_CRIMS_RMPooled = dcountif(Computer, Hostpool == ""NEU_PRD_High_CRIMS_RMPooled""),
+    NEU_PRD_Low_CRIMS_RMPooled = dcountif(Computer, Hostpool == ""NEU_PRD_Low_CRIMS_RMPooled""),
+    NEU_PRD_Med_CRIMS_RMPooled = dcountif(Computer, Hostpool == ""NEU_PRD_Med_CRIMS_RMPooled""),
+    NEU_PRD_MSPooled = dcountif(Computer, Hostpool == ""NEU_PRD_MSPooled""),
+    NEU_PRD_SSPersistent = dcountif(Computer, Hostpool == ""NEU_PRD_SSPersistent""),
+    NEU_Prod_Quantum_RMPooled = dcountif(Computer, Hostpool == ""NEU_Prod_Quantum_RMPooled""),
+    NEU_TST_MSPooled = dcountif(Computer, Hostpool == ""NEU_TST_MSPooled""),
+    NEU_TST_SSPersistent = dcountif(Computer, Hostpool == ""NEU_TST_SSPersistent""),
+    NEU_UAT_MULTISESSION = dcountif(Computer, Hostpool == ""NEU_UAT_MULTISESSION""),
+    NEU_UAT_Quantum_RMPooled = dcountif(Computer, Hostpool == ""NEU_UAT_Quantum_RMPooled""),
+    NEU_UAT_SSPersistent = dcountif(Computer, Hostpool == ""NEU_UAT_SSPersistent""),
+    SEA_PRD_MSPooled = dcountif(Computer, Hostpool == ""SEA_PRD_MSPooled""),
+    SEA_PRD_SSPersistent = dcountif(Computer, Hostpool == ""SEA_PRD_SSPersistent""),
+    SEA_UAT_MSPooled = dcountif(Computer, Hostpool == ""SEA_UAT_MSPooled""),
+    SEA_UAT_SSPersistent = dcountif(Computer, Hostpool == ""SEA_UAT_SSPersistent""),
+    WEU_PRD_High_CRIMS_RMPooled = dcountif(Computer, Hostpool == ""WEU_PRD_High_CRIMS_RMPooled""),
+    WEU_PRD_Low_CRIMS_RMPooled = dcountif(Computer, Hostpool == ""WEU_PRD_Low_CRIMS_RMPooled""),
+    WEU_PRD_Med_CRIMS_RMPooled = dcountif(Computer, Hostpool == ""WEU_PRD_Med_CRIMS_RMPooled""),
+    WEU_PRD_MSPooled = dcountif(Computer, Hostpool == ""WEU_PRD_MSPooled""),
+    WEU_PRD_SSPersistent = dcountif(Computer, Hostpool == ""WEU_PRD_SSPersistent""),
+    Others = dcountif(Computer, Hostpool == ""Other"")
+    by bin(TimeGenerated, 1h)
+| sort by TimeGenerated desc
+",#"x-ms-app"="OmsAnalyticsPBI",#"prefer"="ai.response-thinning=true"],Timeout=#duration(0,0,4,0)])),
+TypeMap = #table(
+{ "AnalyticsTypes", "Type" }, 
+{ 
+{ "string",   Text.Type },
+{ "int",      Int32.Type },
+{ "long",     Int64.Type },
+{ "real",     Double.Type },
+{ "timespan", Duration.Type },
+{ "datetime", DateTimeZone.Type },
+{ "bool",     Logical.Type },
+{ "guid",     Text.Type },
+{ "dynamic",  Text.Type }
+}),
+DataTable = Source[tables]{0},
+Columns = Table.FromRecords(DataTable[columns]),
+ColumnsWithType = Table.Join(Columns, {"type"}, TypeMap , {"AnalyticsTypes"}),
+Rows = Table.FromRows(DataTable[rows], Columns[name]), 
+Table = Table.TransformColumnTypes(Rows, Table.ToList(ColumnsWithType, (c) => { c{0}, c{3}}))
+in
+Table
+in AnalyticsQuery
+
+
 (device.manufacturer -eq "Microsoft Corporation") and (device.model -eq "Virtual Machine") and (device.operatingSystemSKU -eq "ServerRdsh")
 
 
