@@ -1,5 +1,27 @@
 let
     // Define the start and end times
+    StartDateTime = DateTime.From(DateTime.FixedLocalNow() - #duration(30, 0, 0, 0)), // 30 days ago
+    RoundedStartDateTime = DateTime.From(DateTime.FromText(Text.Start(Text.From(StartDateTime), 17) & "00:00")), // Round down to the nearest hour
+    EndDateTime = DateTime.From(DateTime.FixedLocalNow()), // Current datetime
+
+    // Calculate the total number of 15-minute increments
+    DurationInMinutes = Duration.TotalMinutes(EndDateTime - RoundedStartDateTime),
+    NumberOfIncrements = Number.RoundDown(DurationInMinutes / 15),
+
+    // Generate the list of times
+    TimeList = List.Transform({0..NumberOfIncrements}, each RoundedStartDateTime + #duration(0, 0, _ * 15, 0)),
+
+    // Convert the list to a table
+    TimeTable = Table.FromList(TimeList, Splitter.SplitByNothing(), {"TimeGenerated"}),
+
+    // Set the column type
+    TypedTable = Table.TransformColumnTypes(TimeTable, {{"TimeGenerated", type datetime}})
+in
+    TypedTable
+
+
+let
+    // Define the start and end times
     StartDateTime = DateTime.LocalNow() - #duration(30, 0, 0, 0), // 30 days ago
     EndDateTime = DateTime.LocalNow(), // Now
     
