@@ -1,3 +1,25 @@
+let
+    // Define the start and end times
+    StartDateTime = DateTime.LocalNow() - #duration(30, 0, 0, 0), // 30 days ago
+    EndDateTime = DateTime.LocalNow(), // Now
+    
+    // Calculate the total number of 15-minute increments
+    DurationInMinutes = Duration.TotalMinutes(EndDateTime - StartDateTime),
+    NumberOfIncrements = Number.RoundDown(DurationInMinutes / 15),
+    
+    // Generate the list of times
+    TimeList = List.Transform({0..NumberOfIncrements}, each StartDateTime + #duration(0, 0, _ * 15, 0)),
+    
+    // Convert the list to a table
+    TimeTable = Table.FromList(TimeList, Splitter.SplitByNothing(), {"TimeGenerated"}),
+
+    // Set the column type
+    TypedTable = Table.TransformColumnTypes(TimeTable, {{"TimeGenerated", type datetime}})
+in
+    TypedTable
+
+
+
 1/8/2025 12:30:00 AM
 1/8/2025 12:45:00 AM
 1/8/2025 1:00:00 AM
