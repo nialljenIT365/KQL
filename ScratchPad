@@ -1,3 +1,12 @@
+WVDManagement
+| where Route == "ArmHostPool::GetAllUserSessions"
+| extend SplitAll = split(_ResourceId, '/')
+| extend HostPool = SplitAll[8]
+| where HostPool contains "prd" or HostPool contains "uat" or HostPool contains "prod"
+| summarize ObjectsTotals = avg(ObjectsFetched) by tostring(HostPool), bin(TimeGenerated, 30m)
+
+
+
 let AnalyticsQuery =
 let Source = Json.Document(Web.Contents("https://api.loganalytics.io/v1/workspaces/ce4e1e84-3765-4cfe-ac40-5de8d7633df4/query", 
 [Query=[#"query"="WVDManagement
