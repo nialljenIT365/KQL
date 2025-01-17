@@ -1,3 +1,5 @@
+Expression.Error: The import Date.Hour matches no exports. Did you miss a module reference?
+
 let
     // Define the start and end times
     StartDateTime = DateTime.LocalNow() - #duration(30, 0, 0, 0), // 30 days ago
