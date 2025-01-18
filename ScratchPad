@@ -1,4 +1,58 @@
 let
+    // Define the start and end times
+    StartDateTime = DateTime.LocalNow() - #duration(30, 0, 0, 0), // 30 days ago
+    RoundedStartDateTime = DateTime.From(DateTime.ToText(StartDateTime, "yyyy-MM-dd HH:00:00")), // Round down to the nearest hour
+    EndDateTime = DateTime.LocalNow(), // Current datetime
+
+    // Calculate the total number of 30-Hour increments
+    DurationInMinutes = Duration.TotalMinutes(EndDateTime - RoundedStartDateTime),
+    NumberOfIncrements = Number.RoundDown(DurationInMinutes / 60),
+
+    // Generate the list of times
+    TimeList = List.Transform({0..NumberOfIncrements}, each RoundedStartDateTime + #duration(0, 0, _ * 60, 0)),
+
+    // Convert the list to a table
+    TimeTable = Table.FromList(TimeList, Splitter.SplitByNothing(), {"TimeGenerated"}),
+
+    // Set the column type
+    TypedTable = Table.TransformColumnTypes(TimeTable, {{"TimeGenerated", type datetime}}),
+
+    // Add columns for Day of Week (Name and Number)
+    #"Inserted Day of Week Name" = Table.AddColumn(TypedTable, "Day of Week Name", each Date.ToText(DateTime.Date([TimeGenerated]), "dddd"), type text),
+    #"Inserted Day of Week Number" = Table.AddColumn(#"Inserted Day of Week Name", "Day of Week Number", each Date.DayOfWeek(DateTime.Date([TimeGenerated]), Day.Monday) + 1, Int64.Type),
+
+    // Add column for Start of Week (starting from Monday)
+    #"Inserted Start of Week" = Table.AddColumn(#"Inserted Day of Week Number", "Start of Week", each Date.StartOfWeek(DateTime.Date([TimeGenerated]), Day.Monday), type date),
+
+    // Add columns for Month Name
+    #"Inserted Month Name" = Table.AddColumn(#"Inserted Start of Week", "Month Name", each Date.MonthName(DateTime.Date([TimeGenerated])), type text),
+
+    // Add column for Day of Month
+    #"Inserted Day of Month" = Table.AddColumn(#"Inserted Month Name", "Day of Month", each Date.Day(DateTime.Date([TimeGenerated])), Int64.Type),
+
+    // Add column for Is Weekday (True if Monday-Friday, False otherwise)
+    #"Inserted Is Weekday" = Table.AddColumn(#"Inserted Day of Month", "Is Weekday", each if Date.DayOfWeek(DateTime.Date([TimeGenerated]), Day.Monday) < 5 then true else false, type logical),
+
+    // Add column for Is Weekend (True if Saturday or Sunday, False otherwise)
+    #"Inserted Is Weekend" = Table.AddColumn(#"Inserted Is Weekday", "Is Weekend", each not [Is Weekday], type logical),
+
+    // Add column for Relative Day (from today, 0 = today, -1 = yesterday, etc.)
+    #"Inserted Relative Day" = Table.AddColumn(#"Inserted Is Weekend", "Relative Day", each Duration.Days(Duration.From(DateTime.Date([TimeGenerated]) - DateTime.Date(EndDateTime))), Int64.Type),
+
+    // Add column for Week of the Month
+    #"Inserted Week of Month" = Table.AddColumn(#"Inserted Relative Day", "Week of Month", 
+        each Number.RoundUp((Date.Day(DateTime.Date([TimeGenerated])) + Date.DayOfWeek(Date.StartOfMonth(DateTime.Date([TimeGenerated])), Day.Monday)) / 7), Int64.Type),
+
+    // Reorder columns for better readability
+    #"Reordered Columns" = Table.ReorderColumns(#"Inserted Week of Month", 
+        {"TimeGenerated", "Day of Week Name", "Day of Week Number", "Start of Week", 
+         "Month Name", "Day of Month", "Week of Month", "Is Weekday", "Is Weekend", "Relative Day"})
+in
+    #"Reordered Columns"
+
+
+
+let
     // Set the start date to 365 days ago and the end date to today
     StartDate = Date.AddDays(DateTime.Date(DateTime.LocalNow()), -365), 
     EndDate = DateTime.Date(DateTime.LocalNow()), 
