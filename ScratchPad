@@ -1,3 +1,5 @@
+The expression contains columns from multiple tables, but only columns from a single table can be used in a True/False expression that is used as a table filter expression.
+
 DevicesDifference = 
 SUMX(
     'DevicesRunning-rows',
