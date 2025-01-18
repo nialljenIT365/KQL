@@ -1,3 +1,17 @@
+DevicesDifference = 
+SUMX(
+    'DevicesRunning-rows',
+    VAR MatchingMaxUsers =
+        CALCULATE(
+            SUM('MaxUsersPerHostPool'[MaxUsers]),
+            'TimeGenerated'[TimeGenerated] = 'DevicesRunning-rows'[TimeGenerated]
+        )
+    RETURN
+        'DevicesRunning-rows'[NumOfDevices] - MatchingMaxUsers
+)
+
+
+
 Table name TimeGenerated
 Column Name TimeGenerated
 Table name DevicesRunning-rows
