@@ -1,3 +1,13 @@
+Table name TimeGenerated
+Column Name TimeGenerated
+Table name DevicesRunning-rows
+Column Name NumOfDevices
+Table name MaxUsersPerHostPool
+Column name MaxUsers
+
+I need a dax measure that subtracts MaxUsers from NumOfDevices in the matching TimeGenerated
+
+
 let
     // Define the start and end times
     StartDateTime = DateTime.LocalNow() - #duration(30, 0, 0, 0), // 30 days ago
