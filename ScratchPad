@@ -1,3 +1,15 @@
+DevicesDifference =
+SUMX(
+    'DevicesRunning-rows',
+    VAR MatchingMaxUsers =
+        CALCULATE(
+            SUM('MaxUsersPerHostPool'[MaxUsers])
+        )
+    RETURN
+        'DevicesRunning-rows'[NumOfDevices] - MatchingMaxUsers
+)
+
+
 The expression contains columns from multiple tables, but only columns from a single table can be used in a True/False expression that is used as a table filter expression.
 
 DevicesDifference = 
