@@ -1,3 +1,18 @@
+TASKKILL /F /T /IM olk.exe
+SYSTEM Context to remove from VM
+Get-AppxPackage -AllUsers | Where-Object {$_.Name -Like '*OutlookForWindows*'} | Remove-AppxPackage
+Get-AppxProvisionedPackage -Online | ? DisplayName -like '*OutlookForWindows*' | Remove-AppxProvisionedPackage -Online
+
+Key: HKEY_CURRENT_USER\Software\Microsoft\Office\16.0\Outlook\Options\General
+Type: REG_DWORD
+Value: HideNewOutlookToggle
+Data: 00000001
+
+
+
+
+
+
 So the following is everything I've learned to do (so far) with Outlook Preview from a systems administration stance:
 
 Uninstall Outlook Preview with PowerShell (USER context)
