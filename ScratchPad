@@ -1,3 +1,29 @@
+So the following is everything I've learned to do (so far) with Outlook Preview from a systems administration stance:
+
+Uninstall Outlook Preview with PowerShell (USER context)
+
+ Get-AppxPackage | Where-Object {$_.Name -Like '*OutlookForWindows*'} | Remove-AppxPackage
+Uninstall Outlook Preview with PowerShell (SYSTEM context)
+
+ Get-AppxPackage -AllUsers | Where-Object {$_.Name -Like '*OutlookForWindows*'} | Remove-AppxPackage
+Uninstall Outlook Preview with Command Prompt / Batch Script (USER context)
+
+ POWERSHELL -ExecutionPolicy Bypass -Command "Get-AppxPackage | Where-Object {$_.Name -Like '*OutlookForWindows*'} | Remove-AppxPackage"
+Uninstall Outlook Preview with Command Prompt / Batch Script (SYSTEM context)
+
+ POWERSHELL -ExecutionPolicy Bypass -Command "Get-AppxPackage -AllUsers | Where-Object {$_.Name -Like '*OutlookForWindows*'} | Remove-AppxPackage"
+Block Outlook Preview from Outlook 365 in Windows Registry
+
+Key: HKEY_CURRENT_USER\Software\Microsoft\Office\16.0\Outlook\Options\General
+
+Type: REG_DWORD
+
+Value: HideNewOutlookToggle
+
+Data: 00000001
+
+
+
 function Enable-VMHibernation {
     param (
         [Parameter(Mandatory=$true)]
