@@ -1,3 +1,10 @@
+exceptions | where timestamp > ago(9h) | order by timestamp
+
+28/01/2025, 10:16:46.604
+
+
+
+
 // HealthChecks of SessionHost 
 
 // Renders a summary of SessionHost health status. 
