@@ -1,3 +1,84 @@
+ 
+// HealthChecks of SessionHost 
+
+// Renders a summary of SessionHost health status. 
+
+let HealthCheckIdToDescription = (idx: long) {
+    case(
+    idx == 0,
+    "DomainJoin",
+    idx == 1,
+    "DomainTrust",
+    idx == 2,
+    "FSLogix",
+    idx == 3,
+    "SxSStack",
+    idx == 4,
+    "URLCheck",
+    idx == 5,
+    "GenevaAgent",
+    idx == 6,
+    "DomainReachable",
+    idx == 7,
+    "WebRTCRedirector",
+    idx == 8,
+    "SxSStackEncryption",
+    idx == 9,
+    "IMDSReachable",
+    idx == 10,
+    "MSIXPackageStaging",
+    strcat("InvalidNameIndex: ", idx)
+)
+};
+let GetHealthCheckResult = (idx: long) {
+    case(
+    idx == 0,
+    "Unknown",
+    idx == 1,
+    "Succeeded",
+    idx == 2,
+    "Failed",
+    idx == 3,
+    "SessionHostShutdown",
+    strcat("InvalidResultIndex: ", idx)
+)
+};
+WVDAgentHealthStatus
+// In some states (e.g. Unavailable, Upgrading) hosts are not running health checks
+| where isnotempty(SessionHostHealthCheckResult)
+| mv-expand SessionHostHealthCheckResult to typeof(dynamic)
+| evaluate bag_unpack(SessionHostHealthCheckResult)
+| evaluate bag_unpack(AdditionalFailureDetails)
+| extend HealthCheckDesc = HealthCheckIdToDescription(HealthCheckName)
+| where HealthCheckResult == 2
+
+
+
+returns 
+
+TimeGenerated [UTC]	OperationName	SessionHostName	SessionHostResourceId	AgentVersion	OSVersion	SxSStackVersion	AllowNewSessions	Status	StatusTimeStamp [UTC]	LastHeartBeat [UTC]	EndpointState	UpgradeState	UpgradeErrorMsg	LastUpgradeTimeStamp [UTC]	ActiveSessions	InactiveSessions	Type	_ResourceId	HealthCheckDesc
+28/01/2025, 11:40:48.819	AgentUpdateHealthStatus	M01PSSPI1357.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI1357	1.0.10292.900	10.0.22631.4751	rdp-sxs240705700	TRUE	NeedsAssistance	27/01/2025, 19:44:34.527	28/01/2025, 11:40:48.811	NeedsAssistance	Succeeded		27/01/2025, 19:44:34.527	1	0	WVDAgentHealthStatus	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	MSIXPackageStaging
+28/01/2025, 11:39:06.318	AgentUpdateHealthStatus	M01PSSPI1046.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI1046	1.0.10292.900	10.0.22631.4751	rdp-sxs240705700	TRUE	NeedsAssistance	28/01/2025, 07:20:12.616	28/01/2025, 11:39:06.307	NeedsAssistance	Succeeded		28/01/2025, 07:20:12.616	1	0	WVDAgentHealthStatus	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	MSIXPackageStaging
+28/01/2025, 11:39:09.156	AgentUpdateHealthStatus	M01PSSPI1589.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI1589	1.0.10292.900	10.0.22631.4751	rdp-sxs240705700	TRUE	NeedsAssistance	27/01/2025, 17:14:11.241	28/01/2025, 11:39:09.149	NeedsAssistance	Succeeded		27/01/2025, 17:14:11.241	1	0	WVDAgentHealthStatus	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	MSIXPackageStaging
+28/01/2025, 11:39:10.737	AgentUpdateHealthStatus	M01PSSPI0024.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0024	1.0.10292.900	10.0.22631.4751	rdp-sxs240705700	TRUE	NeedsAssistance	28/01/2025, 07:09:10.639	28/01/2025, 11:39:10.730	NeedsAssistance	Succeeded		28/01/2025, 07:09:10.639	1	0	WVDAgentHealthStatus	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	MSIXPackageStaging
+28/01/2025, 11:39:14.971	AgentUpdateHealthStatus	M01PSSPI1235.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI1235	1.0.10292.900	10.0.22631.4751	rdp-sxs240705700	TRUE	NeedsAssistance	28/01/2025, 07:12:20.804	28/01/2025, 11:39:14.961	NeedsAssistance	Succeeded		28/01/2025, 07:12:20.804	1	0	WVDAgentHealthStatus	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	MSIXPackageStaging
+28/01/2025, 11:39:36.386	AgentUpdateHealthStatus	M01PSSPI1046.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI1046	1.0.10292.900	10.0.22631.4751	rdp-sxs240705700	TRUE	NeedsAssistance	28/01/2025, 07:20:12.616	28/01/2025, 11:39:36.377	NeedsAssistance	Succeeded		28/01/2025, 07:20:12.616	1	0	WVDAgentHealthStatus	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	MSIXPackageStaging
+28/01/2025, 11:39:39.195	AgentUpdateHealthStatus	M01PSSPI1589.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI1589	1.0.10292.900	10.0.22631.4751	rdp-sxs240705700	TRUE	NeedsAssistance	27/01/2025, 17:14:11.241	28/01/2025, 11:39:39.188	NeedsAssistance	Succeeded		27/01/2025, 17:14:11.241	1	0	WVDAgentHealthStatus	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	MSIXPackageStaging
+28/01/2025, 11:39:41.732	AgentUpdateHealthStatus	M01PSSPI0024.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0024	1.0.10292.900	10.0.22631.4751	rdp-sxs240705700	TRUE	NeedsAssistance	28/01/2025, 07:09:10.639	28/01/2025, 11:39:41.725	NeedsAssistance	Succeeded		28/01/2025, 07:09:10.639	1	0	WVDAgentHealthStatus	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	MSIXPackageStaging
+28/01/2025, 11:39:45.024	AgentUpdateHealthStatus	M01PSSPI1235.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI1235	1.0.10292.900	10.0.22631.4751	rdp-sxs240705700	TRUE	NeedsAssistance	28/01/2025, 07:12:20.804	28/01/2025, 11:39:45.016	NeedsAssistance	Succeeded		28/01/2025, 07:12:20.804	1	0	WVDAgentHealthStatus	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	MSIXPackageStaging
+28/01/2025, 11:39:10.095	AgentUpdateHealthStatus	M01PSSPI1173.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI1173	1.0.10292.900	10.0.22631.4751	rdp-sxs240705700	TRUE	NeedsAssistance	27/01/2025, 19:35:19.771	28/01/2025, 11:39:10.088	NeedsAssistance	Succeeded		27/01/2025, 19:35:19.771	1	0	WVDAgentHealthStatus	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	MSIXPackageStaging
+28/01/2025, 11:39:23.132	AgentUpdateHealthStatus	M01PSSPI1343.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI1343	1.0.10292.900	10.0.22631.4751	rdp-sxs240705700	TRUE	NeedsAssistance	28/01/2025, 07:28:10.760	28/01/2025, 11:39:23.124	NeedsAssistance	Succeeded		28/01/2025, 07:28:10.760	1	0	WVDAgentHealthStatus	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	MSIXPackageStaging
+28/01/2025, 11:39:23.372	AgentUpdateHealthStatus	M01PSSPI1203.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI1203	1.0.10292.900	10.0.22631.4751	rdp-sxs240705700	TRUE	NeedsAssistance	27/01/2025, 07:22:20.591	28/01/2025, 11:39:23.365	NeedsAssistance	Succeeded		27/01/2025, 07:22:20.591	1	0	WVDAgentHealthStatus	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	MSIXPackageStaging
+28/01/2025, 11:39:24.156	AgentUpdateHealthStatus	M01PSSPI1507.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI1507	1.0.10292.900	10.0.22631.4751	rdp-sxs240705700	TRUE	NeedsAssistance	27/01/2025, 10:36:35.228	28/01/2025, 11:39:24.148	NeedsAssistance	Succeeded		27/01/2025, 10:36:35.228	1	0	WVDAgentHealthStatus	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	MSIXPackageStaging
+28/01/2025, 11:39:29.816	AgentUpdateHealthStatus	M01PSSPI0230.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0230	1.0.10292.900	10.0.22631.4751	rdp-sxs240705700	TRUE	NeedsAssistance	28/01/2025, 06:57:50.081	28/01/2025, 11:37:59.230	NeedsAssistance	Succeeded		28/01/2025, 06:57:50.081	1	0	WVDAgentHealthStatus	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	MSIXPackageStaging
+28/01/2025, 11:39:40.181	AgentUpdateHealthStatus	M01PSSPI1173.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI1173	1.0.10292.900	10.0.22631.4751	rdp-sxs240705700	TRUE	NeedsAssistance	27/01/2025, 19:35:19.771	28/01/2025, 11:39:40.173	NeedsAssistance	Succeeded		27/01/2025, 19:35:19.771	1	0	WVDAgentHealthStatus	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_prd_sspersistent	MSIXPackageStaging
+28/01/2025, 11:39:12.290	AgentUpdateHealthStatus	M01TSSPI0004.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-UATVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01TSSPI0004	1.0.10292.900	10.0.22631.4602	rdp-sxs240705700	TRUE	NeedsAssistance	27/01/2025, 12:52:04.122	28/01/2025, 11:36:11.823	NeedsAssistance	Succeeded		27/01/2025, 12:52:04.122	1	0	WVDAgentHealthStatus	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd/providers/microsoft.desktopvirtualization/hostpools/neu_tst_sspersistent	MSIXPackageStaging
+
+
+
+
+
+
 curl -v "https://management.azure.com/?api-version=2021-01-01"
 
 
