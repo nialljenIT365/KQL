@@ -1,3 +1,112 @@
+// HealthChecks of SessionHost 
+
+// Renders a summary of SessionHost health status. 
+
+let HealthCheckIdToDescription = (idx: long) {
+    case(
+    idx == 0,
+    "DomainJoin",
+    idx == 1,
+    "DomainTrust",
+    idx == 2,
+    "FSLogix",
+    idx == 3,
+    "SxSStack",
+    idx == 4,
+    "URLCheck",
+    idx == 5,
+    "GenevaAgent",
+    idx == 6,
+    "DomainReachable",
+    idx == 7,
+    "WebRTCRedirector",
+    idx == 8,
+    "SxSStackEncryption",
+    idx == 9,
+    "IMDSReachable",
+    idx == 10,
+    "MSIXPackageStaging",
+    strcat("InvalidNameIndex: ", idx)
+)
+};
+let GetHealthCheckResult = (idx: long) {
+    case(
+    idx == 0,
+    "Unknown",
+    idx == 1,
+    "Succeeded",
+    idx == 2,
+    "Failed",
+    idx == 3,
+    "SessionHostShutdown",
+    strcat("InvalidResultIndex: ", idx)
+)
+};
+WVDAgentHealthStatus
+// In some states (e.g. Unavailable, Upgrading) hosts are not running health checks
+| where isnotempty(SessionHostHealthCheckResult)
+| mv-expand SessionHostHealthCheckResult to typeof(dynamic)
+| evaluate bag_unpack(SessionHostHealthCheckResult)
+| evaluate bag_unpack(AdditionalFailureDetails)
+| extend HealthCheckDesc = HealthCheckIdToDescription(HealthCheckName)
+| where HealthCheckResult == 2
+| where HealthCheckDesc contains "MSIXPackage"
+
+
+what modification do I need to make to the above to parse the Message column with string format below
+"SessionHost needs assistance: The following MSIX packages have failed to properly stage: [ManagementStudioClient-2023.355.689-001A_2023.355.690.0_x64__nmvg3h6wsd778, (Native error 1816., NeedsAssistance)]
+[DWGSee_3.36.0.0_x64__nmvg3h6wsd778, (Native error 1816., NeedsAssistance)]
+[xPlan_9.2.20.0_x64__pccxv4s157z20, (Native error 1816., NeedsAssistance)]
+[SAP-SAP-7.70_7.7.0.0_x64__nmvg3h6wsd778, (Unexpected network error, NeedsAssistance)]
+[IBM-MQExplorer-9.3.1.0_9.3.1.0_x64__nmvg3h6wsd778, (Unexpected network error, NeedsAssistance)]
+[GoToAssist-v11.9-1380_11.9.1380.0_x64__nmvg3h6wsd778, (Native error 1816., NeedsAssistance)]
+[Devolutions-Remote-Desktop-Manager-13.6.7.0_0.0.0.0_x64__nmvg3h6wsd778, (Native error 1816., NeedsAssistance)]
+[Oracle-SQLDeveloper-24.3.0.284.2209-x64_24.3.1.0_x64__nmvg3h6wsd778, (Native error 1816., NeedsAssistance)]
+[AbInitio-TRMC-4.1.6.0-MSIX_4.1.6.0_x64__pccxv4s157z20, (Native error 1816., NeedsAssistance)]
+[BlockCrossClient_9.17.6393.0_x64__pccxv4s157z20, (Native error 1816., NeedsAssistance)]
+[Seavus-Project-Viewer_16.0.51.0_x64__pccxv4s157z20, (Native error 1816., NeedsAssistance)]
+[PowerAutomateProcessMining_6.1.2401.17492_x64__8wekyb3d8bbwe, (Unexpected network error, NeedsAssistance)]
+[Pentana-Vision-PRD-6.0.1.7-01A_6.0.1.0_x64__nmvg3h6wsd778, (Native error 1816., NeedsAssistance)]
+[AbInitio-GDE-4.1.6.0_4.1.6.0_x64__pccxv4s157z20, (Native error 1816., NeedsAssistance)]
+[Postman11_11.18.0.0_x64__nmvg3h6wsd778, (Native error 1816., NeedsAssistance)]
+[Notepad-plus-plus_8.7.3.0_x64__nmvg3h6wsd778, (Unexpected network error, NeedsAssistance)]
+[Markit-EDM-19.2.35_19.2.35.0_x64__pccxv4s157z20, (Native error 1816., NeedsAssistance)]
+[Microsoft.PowerAutomateDesktop_11.2411.200.0_x64__8wekyb3d8bbwe, (Native error 1816., NeedsAssistance)]
+[Pentana-ExcelImporter_5.4.8.0_x64__nmvg3h6wsd778, (Native error 1816., NeedsAssistance)]
+[SafeNetAuthenticationClient10.9_10.9.3283.0_x64__nmvg3h6wsd778, (Unexpected network error, NeedsAssistance)]"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 let HealthCheckIdToDescription = (idx: long) {
     case(
         idx == 0, "DomainJoin",
