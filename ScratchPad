@@ -1,3 +1,70 @@
+% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0* Host management.azure.com:443 was resolved.
+* IPv6: (none)
+* IPv4: 4.150.241.10
+*   Trying 4.150.241.10:443...
+* Connected to management.azure.com (4.150.241.10) port 443
+* schannel: disabled automatic use of client certificate
+* ALPN: curl offers http/1.1
+* ALPN: server accepted http/1.1
+* using HTTP/1.x
+> GET / HTTP/1.1
+
+> Host: management.azure.com
+
+> User-Agent: curl/8.7.1
+
+> Accept: */*
+
+> 
+
+* Request completely sent off
+* schannel: remote party requests renegotiation
+* schannel: renegotiating SSL/TLS connection
+* schannel: SSL/TLS connection renegotiated
+< HTTP/1.1 400 Bad Request
+
+< Cache-Control: no-cache
+
+< Pragma: no-cache
+
+< Content-Length: 137
+
+< Content-Type: application/json; charset=utf-8
+
+< Expires: -1
+
+< x-ms-failure-cause: gateway
+
+< x-ms-request-id: 0d8770af-4110-41d8-965b-ddab98a25b5a
+
+< x-ms-correlation-request-id: 0d8770af-4110-41d8-965b-ddab98a25b5a
+
+< x-ms-routing-request-id: WESTEUROPE:20250128T101355Z:0d8770af-4110-41d8-965b-ddab98a25b5a
+
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+< X-Content-Type-Options: nosniff
+
+< X-Cache: CONFIG_NOCACHE
+
+< X-MSEdge-Ref: Ref A: 34080C355823493AA6EEB68317DC3756 Ref B: DB3EDGE3217 Ref C: 2025-01-28T10:13:55Z
+
+< Date: Tue, 28 Jan 2025 10:13:54 GMT
+
+< 
+
+{ [137 bytes data]
+
+100   137  100   137    0     0   1249      0 --:--:-- --:--:-- --:--:--  1304
+* Connection #0 to host management.azure.com left intact
+
+{"error":{"code":"MissingApiVersionParameter","message":"The api-version query parameter (?api-version=) is required for all requests."}}
+
+
+
 curl -v https://management.azure.com
 
 
