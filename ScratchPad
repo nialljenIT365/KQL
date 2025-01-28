@@ -1,3 +1,8 @@
+exceptions
+| where timestamp between (datetime(2025-01-28T08:00:00) .. datetime(2025-01-28T10:17:00))
+| order by timestamp
+
+
 exceptions | where timestamp > ago(9h) | order by timestamp
 
 28/01/2025, 10:16:46.604
