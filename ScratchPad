@@ -55,7 +55,13 @@ WVDAgentHealthStatus
 | distinct Message
 
 
+I would like to parse the Message column with three new columns and a duplicate row for each application if possible
 
+Column called ErrorMessage with the text from Start of line to the first : ie SessionHost needs assistance: The following MSIX packages have failed to properly stage:
+Column called Apps that contains each application name in the Message string
+Colum called Error that takes the value between the trailing ( and ,) ie (Native error 1816.,
+
+returns output on message column as below. 
 
 "SessionHost needs assistance: The following MSIX packages have failed to properly stage: [ManagementStudioClient-2023.355.689-001A_2023.355.690.0_x64__nmvg3h6wsd778, (Unexpected network error, NeedsAssistance)]
 [DWGSee_3.36.0.0_x64__nmvg3h6wsd778, (Unexpected network error, NeedsAssistance)]
@@ -120,7 +126,11 @@ WVDAgentHealthStatus
 [SafeNetAuthenticationClient10.9_10.9.3283.0_x64__nmvg3h6wsd778, (Unexpected network error, NeedsAssistance)]"
 SessionHost needs assistance: The following MSIX packages have failed to properly stage: [xPlan_9.2.20.0_x64__pccxv4s157z20, (Unexpected network error, NeedsAssistance)]
 
+I would like to parse the Message column with three new columns and a duplicate row for each application if possible
 
+Column called ErrorMessage with the text from Start of line to the first : ie SessionHost needs assistance: The following MSIX packages have failed to properly stage:
+Column called Apps that contains each application name in the Message string
+Colum called Error that takes the value between the trailing ( and ,) ie (Native error 1816.,
 
 
 'evaluate' operator: Failed to resolve table or column or scalar or graph expression named 'AdditionalFailureDetails'
