@@ -1,3 +1,7 @@
+curl -v https://management.azure.com
+
+
+
 TASKKILL /F /T /IM olk.exe
 SYSTEM Context to remove from VM
 Get-AppxPackage -AllUsers | Where-Object {$_.Name -Like '*OutlookForWindows*'} | Remove-AppxPackage
