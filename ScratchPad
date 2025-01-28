@@ -1,4 +1,50 @@
- 
+let HealthCheckIdToDescription = (idx: long) {
+    case(
+        idx == 0, "DomainJoin",
+        idx == 1, "DomainTrust",
+        idx == 2, "FSLogix",
+        idx == 3, "SxSStack",
+        idx == 4, "URLCheck",
+        idx == 5, "GenevaAgent",
+        idx == 6, "DomainReachable",
+        idx == 7, "WebRTCRedirector",
+        idx == 8, "SxSStackEncryption",
+        idx == 9, "IMDSReachable",
+        idx == 10, "MSIXPackageStaging",
+        strcat("InvalidNameIndex: ", idx)
+    )
+};
+let GetHealthCheckResult = (idx: long) {
+    case(
+        idx == 0, "Unknown",
+        idx == 1, "Succeeded",
+        idx == 2, "Failed",
+        idx == 3, "SessionHostShutdown",
+        strcat("InvalidResultIndex: ", idx)
+    )
+};
+WVDAgentHealthStatus
+// In some states (e.g. Unavailable, Upgrading) hosts are not running health checks
+| where isnotempty(SessionHostHealthCheckResult)
+| mv-expand SessionHostHealthCheckResult to typeof(dynamic)
+| evaluate bag_unpack(SessionHostHealthCheckResult)
+| evaluate bag_unpack(AdditionalFailureDetails)
+// Map HealthCheckDesc
+| extend HealthCheckDesc = HealthCheckIdToDescription(HealthCheckName)
+// Filter for failures
+| where HealthCheckResult == 2
+// Filter specific messages (e.g., only "DomainJoin" and "FSLogix")
+| where HealthCheckDesc == "DomainJoin" or HealthCheckDesc == "FSLogix"
+// Select relevant columns
+| project TimeGenerated, SessionHostName, HealthCheckDesc, HealthCheckResult, _ResourceId
+
+
+
+
+
+
+
+
 // HealthChecks of SessionHost 
 
 // Renders a summary of SessionHost health status. 
