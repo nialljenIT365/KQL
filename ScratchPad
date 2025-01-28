@@ -1,3 +1,7 @@
+
+'evaluate' operator: Failed to resolve table or column or scalar or graph expression named 'AdditionalFailureDetails'
+Request id: 1245cdc4-13f8-4751-b851-54ae64bd9bde
+
 let HealthCheckIdToDescription = (idx: long) {
     case(
         idx == 0, "DomainJoin",
