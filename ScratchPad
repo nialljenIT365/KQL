@@ -1,4 +1,46 @@
-     
+let HealthCheckIdToDescription = (idx: long) {
+    case(
+        idx == 0, "DomainJoin",
+        idx == 1, "DomainTrust",
+        idx == 2, "FSLogix",
+        idx == 3, "SxSStack",
+        idx == 4, "URLCheck",
+        idx == 5, "GenevaAgent",
+        idx == 6, "DomainReachable",
+        idx == 7, "WebRTCRedirector",
+        idx == 8, "SxSStackEncryption",
+        idx == 9, "IMDSReachable",
+        idx == 10, "MSIXPackageStaging",
+        strcat("InvalidNameIndex: ", idx)
+    )
+};
+WVDAgentHealthStatus
+| where isnotempty(SessionHostHealthCheckResult)
+| mv-expand SessionHostHealthCheckResult to typeof(dynamic)
+| evaluate bag_unpack(SessionHostHealthCheckResult)
+// Filter messages related to MSIXPackage
+| where HealthCheckResult == 2
+| where HealthCheckDesc contains "MSIXPackage"
+// Parse the Message column
+| extend
+    // Extract the error message (everything before the first colon)
+    ErrorMessage = extract("^(.*?):", 1, Message),
+    // Extract the applications list (everything inside square brackets)
+    AppsList = extract_all(@"\[(.*?)\]", Message)
+// Expand AppsList into individual rows
+| mv-expand AppsList
+| extend
+    // Extract the app name from the application details
+    Apps = extract("^(.*?),", 1, AppsList),
+    // Extract the error details (everything between parentheses)
+    Error = extract(@"\((.*?),", 1, AppsList)
+// Select relevant columns
+| project TimeGenerated, SessionHostName, ErrorMessage, Apps, Error
+
+
+
+
+
 // HealthChecks of SessionHost 
 
 // Renders a summary of SessionHost health status. 
