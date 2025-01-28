@@ -1,3 +1,8 @@
+curl -v "https://management.azure.com/?api-version=2021-01-01"
+
+
+
+
 % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 
