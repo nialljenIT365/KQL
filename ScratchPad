@@ -1,3 +1,11 @@
+WVDAgentHealthStatus
+| where isnotempty(SessionHostHealthCheckResult)
+| mv-expand SessionHostHealthCheckResult to typeof(dynamic)
+| project *
+| take 10
+
+
+
 let HealthCheckIdToDescription = (idx: long) {
     case(
         idx == 0, "DomainJoin",
