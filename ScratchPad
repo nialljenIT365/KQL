@@ -53,7 +53,7 @@ WVDAgentHealthStatus
 | where HealthCheckDesc contains "MSIXPackage"
 
 
-what modification do I need to make to the above to parse the Message column with string format below
+what modification do I need to make to the above KQL to parse the Message column with string format below, I want to be able to see each application name and error code
 "SessionHost needs assistance: The following MSIX packages have failed to properly stage: [ManagementStudioClient-2023.355.689-001A_2023.355.690.0_x64__nmvg3h6wsd778, (Native error 1816., NeedsAssistance)]
 [DWGSee_3.36.0.0_x64__nmvg3h6wsd778, (Native error 1816., NeedsAssistance)]
 [xPlan_9.2.20.0_x64__pccxv4s157z20, (Native error 1816., NeedsAssistance)]
