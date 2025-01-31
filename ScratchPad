@@ -1,3 +1,10 @@
+# Retrieve the tag value for NMW_ARM_HOST_POOL
+$tagValue = $vm.Tags["NMW_ARM_HOST_POOL"]
+
+# Display the value
+Write-Output "NMW_ARM_HOST_POOL Tag Value: $tagValue"
+
+
 NMW_ARM_HOST_POOL
 
 $vmName = "YourVMName"
