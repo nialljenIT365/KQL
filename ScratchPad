@@ -1,3 +1,6 @@
+(Get-WMIObject Win32_UserAccount -Filter "SID LIKE 'S-1-5-21-%-500'").Name
+
+
 & "C:\Program Files\PowerShell\7\pwsh.exe" -NoProfile -Command "Connect-Avd -DeviceCode -TenantID 27b2553d-4a89-4c74-88e1-d1d590624294 -SubscriptionId 01f03a19-5500-482a-b480-3bb664e0ebc2"
 
 & "C:\Program Files\PowerShell\7\pwsh.exe" -NoProfile -Command "Get-AvdSessionHost -HostpoolName NEU_TST_SSPersistent -ResourceGroupName RemoteDesktopDevices-EMEA-NEU-PRD"
