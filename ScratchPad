@@ -1,3 +1,19 @@
+Get-AvdSessionHost
+WARNING: Upcoming breaking changes in the cmdlet 'Get-AzAccessToken' :
+The Token property of the output type will be changed from String to SecureString. Add the [-AsSecureString] switch to avoid the impact of this upcoming breaking change.
+- The change is expected to take effect in Az version : '14.0.0'
+- The change is expected to take effect in Az.Accounts version : '4.0.0'
+Note : Go to https://aka.ms/azps-changewarnings for steps to suppress this breaking change warning, and other information on breaking changes in Azure PowerShell.
+WARNING: You're using Az.Accounts version 4.0.0. The latest version of Az.Accounts is 4.0.2. Upgrade your Az modules using the following commands:
+  Update-Module Az.* -WhatIf    -- Simulate updating your Az modules.
+  Update-Module Az.*            -- Update your Az modules.
+Invoke-RestMethod : {"error":{"code":"MissingApiVersionParameter","message":"The api-version query parameter (?api-version=) is required for all requests."}}
+At line:20 char:12
++     return Invoke-RestMethod -Uri $url -Method GET -Headers (GetAuthT ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebException
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
+
 function GetAuthToken {
     param (
         [string]$resource = "https://management.azure.com"
