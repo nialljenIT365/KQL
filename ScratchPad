@@ -1,3 +1,7 @@
+$tags = @{"Project"="ECommerce"; "CostCenter"="00123"; "Team"="Web"}
+$resource = Get-AzResource -Name demostorage -ResourceGroup demoGroup
+Update-AzTag -ResourceId $resource.id -Tag $tags -Operation Replace
+
 Get-AzTag -ResourceId /subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourcegroups/testrg/providers/Microsoft.Sql/servers/Server1
 
 Id         : {Id}
