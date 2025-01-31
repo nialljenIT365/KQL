@@ -1,5 +1,7 @@
 Connect-Avd -DeviceCode -TenantID 27b2553d-4a89-4c74-88e1-d1d590624294 -SubscriptionId 58cb357e-51af-4f62-8982-a8c2b9059362
 
+Connect-Avd -DeviceCode -TenantID 27b2553d-4a89-4c74-88e1-d1d590624294 -SubscriptionId 58cb357e-51af-4f62-8982-a8c2b9059362
+
 function GetAuthToken($resource) {
     $context = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile.DefaultContext
     $Token = [Microsoft.Azure.Commands.Common.Authentication.AzureSession]::Instance.AuthenticationFactory.Authenticate($context.Account, $context.Environment, $context.Tenant.Id.ToString(), $null, [Microsoft.Azure.Commands.Common.Authentication.ShowDialog]::Never, $null, $resource).AccessToken
