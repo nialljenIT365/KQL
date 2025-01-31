@@ -1,3 +1,23 @@
+$script = [System.Collections.ArrayList]@()
+$script.Add('Set-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\RDInfraAgent -Name RegistrationToken -Value '+$($hostpoolToken.properties.registrationInfo.token)+'')
+$script.Add('Set-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\RDInfraAgent -Name IsRegistered -Value 0')
+$script.Add('Restart-Service -Name RDAgentBootLoader')
+
+$MoveBody = @{
+    commandId = "RunPowerShellScript"
+    script    = $script
+}
+$url = "https://management.azure.com{0}runCommand?api-version=2021-03-01" -f $sessionHost.properties.resourceId
+$parameters = @{
+    URI     = $url 
+    Method  = "POST"
+    Body    = $MoveBody | ConvertTo-Json
+    Headers = $token
+}
+Invoke-RestMethod @parameters
+
+
+
 function GetAuthToken {
     param ([string]$resource = "https://management.azure.com")
 
