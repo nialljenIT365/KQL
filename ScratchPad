@@ -1,3 +1,29 @@
+function GetAuthToken {
+    param ([string]$resource = "https://management.azure.com")
+
+    # Ensure token is retrieved as a string
+    $tokenObject = Get-AzAccessToken -ResourceUrl $resource
+    $token = $tokenObject.Token
+
+    return @{ Authorization = "Bearer $token" }
+}
+
+
+function Get-AvdSessionHost {
+    param (
+        [string]$HostpoolName,
+        [string]$ResourceGroupName,
+        [string]$SessionHostName
+    )
+    
+    $apiVersion = "2021-04-01"
+    $url = "https://management.azure.com/subscriptions/$script:subscriptionId/resourceGroups/$ResourceGroupName/providers/Microsoft.DesktopVirtualization/hostpools/$HostpoolName/sessionHosts/$SessionHostName?api-version=$apiVersion"
+
+    return Invoke-RestMethod -Uri $url -Method GET -Headers (GetAuthToken)
+}
+
+
+
 Get-AvdSessionHost
 WARNING: Upcoming breaking changes in the cmdlet 'Get-AzAccessToken' :
 The Token property of the output type will be changed from String to SecureString. Add the [-AsSecureString] switch to avoid the impact of this upcoming breaking change.
