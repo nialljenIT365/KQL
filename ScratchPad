@@ -107,7 +107,7 @@ function Move-AvdSessionhost {
     }
 }
 
-
+Move-AvdSessionhost -FromHostpoolName NEU_TST_SSPersistent -FromResourceGroupName rg-EUS-RemoteDesktopDevices-WorkspaceAndStorage-NEU-PRD -ToHostpoolName NEU_PRD_SSPersistent_WO -ToResourceGroupName rg-EUS-RemoteDesktopDevices-WorkspaceAndStorage-NEU-PRD -SessionHostName M01TSSPI0024
 
 exceptions
 | where timestamp between (datetime(2025-01-28T08:00:00) .. datetime(2025-01-28T10:17:00))
