@@ -1,3 +1,40 @@
+function GetAuthToken($resource) {
+    $context = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile.DefaultContext
+    $Token = [Microsoft.Azure.Commands.Common.Authentication.AzureSession]::Instance.AuthenticationFactory.Authenticate($context.Account, $context.Environment, $context.Tenant.Id.ToString(), $null, [Microsoft.Azure.Commands.Common.Authentication.ShowDialog]::Never, $null, $resource).AccessToken
+    $authHeader = @{
+        'Content-Type' = 'application/json'
+        Authorization  = 'Bearer ' + $Token
+    }
+    return $authHeader
+}
+$token = GetAuthToken -resource "https://management.azure.com"
+
+
+$vmName = "M01TSSPI0024"
+$suffix = ".aberdeen.aberdeen-asset.com"
+
+$script = [System.Collections.ArrayList]@()
+$script.Add('Set-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\RDInfraAgent -Name APITest -Value 0')
+
+$MoveBody = @{
+    commandId = "RunPowerShellScript"
+    script    = $script
+}
+$url = "https://management.azure.com{0}runCommand?api-version=2021-03-01" -f (Get-AzWvdSessionHost -ResourceGroupName rg-EUS-RemoteDesktopDevices-WorkspaceAndStorage-NEU-PRD -HostPoolName NEU_TST_SSPersistent -Name "$vmName$suffix").ResourceId
+$parameters = @{
+    URI     = $url 
+    Method  = "POST"
+    Body    = $MoveBody | ConvertTo-Json
+    Headers = $token
+}
+Invoke-RestMethod @parameters
+
+The remote server returned an error: (405) Method Not Allowed.
+
+
+
+
+
 (Get-AzWvdSessionHost -ResourceGroupName rg-EUS-RemoteDesktopDevices-WorkspaceAndStorage-NEU-PRD -HostPoolName NEU_TST_SSPersistent -Name "M01TSSPI0024.aberdeen.aberdeen-asset.com").ResourceId
 
 Get-AzWvdSessionHost -ResourceGroupName rg-EUS-RemoteDesktopDevices-WorkspaceAndStorage-NEU-PRD -HostPoolName NEU_TST_SSPersistent -Name "M01TSSPI0024.aberdeen.aberdeen-asset.com"
