@@ -1,3 +1,29 @@
+#description: HostPool Migration Part 3 of 3 (Run Book)
+#Note: Deletes Entry from current HostPool and updates Nerdio Tag to associate with target host pool
+#execution mode: Combined
+######CHANGE ME############
+#Note: Modify to match current and target pool locations
+$currentHostpoolResourceGroup = "rg-EUS-RemoteDesktopDevices-WorkspaceAndStorage-NEU-PRD"
+$suffix = ".aberdeen.aberdeen-asset.com"
+$targetHostpoolResourceGroup = "rg-EUS-RemoteDesktopDevices-WorkspaceAndStorage-NEU-PRD"
+$targetHostpoolName = "NEU_PRD_SSPersistent_WO"
+######CHANGE ME############
+$targetNMW_ARM_HOST_POOLvalue = "01f03a19-5500-482a-b480-3bb664e0ebc2/$targetHostpoolResourceGroup/$HostPoolName"
+$VMNameShort = "M01TSSPI0023"
+$VMFullName = "M01TSSPI0023.aberdeen.aberdeen-asset.com"
+$VMResourceId = (Get-AzVM -name M01TSSPI0023).Id
+
+$VMResourceId
+
+#Remove-AzWvdSessionHost -HostPoolName $HostPoolName -ResourceGroupName $currentHostpoolResourceGroup -Name $VMFullName -Force
+#Start-Sleep -Seconds 30
+$tags = @{"NMW_ARM_HOST_POOL" = $targetNMW_ARM_HOST_POOLvalue}
+Update-AzTag -ResourceId $VMResourceId -Tag $tags -Operation Replace
+
+
+
+
+
 $tags = @{"Project"="ECommerce"; "CostCenter"="00123"; "Team"="Web"}
 $resource = Get-AzResource -Name demostorage -ResourceGroup demoGroup
 Update-AzTag -ResourceId $resource.id -Tag $tags -Operation Replace
