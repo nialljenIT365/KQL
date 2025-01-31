@@ -1,3 +1,20 @@
+At C:\Windows\TEMP\9af1bb79-fb73-4264-b393-0e2acf91fe77.ps1:69 char:79
++ ... AzureVMName -ResourceGroupName $AzureResourceGroupName).tags.["NMW_AR ...
++                                                                  ~
+Missing property name after reference operator.
+   at System.Management.Automation.ScriptBlock.Create(Parser parser, String fileName, String fileContents)
+   at System.Management.Automation.ExternalScriptInfo.ParseScriptContents(Parser parser, String fileName, String fileContents, Nullable`1 definingLanguageMode)
+   at System.Management.Automation.ExternalScriptInfo.get_ScriptBlock()
+   at System.Management.Automation.CommandDiscovery.CreateCommandProcessorForScript(ExternalScriptInfo scriptInfo, ExecutionContext context, Boolean useNewScope, SessionStateInternal sessionState)
+   at System.Management.Automation.CommandDiscovery.CreateScriptProcessorForSingleShell(ExternalScriptInfo scriptInfo, ExecutionContext context, Boolean useLocalScope, SessionStateInternal sessionState)
+   at System.Management.Automation.CommandDiscovery.LookupCommandProcessor(CommandInfo commandInfo, CommandOrigin commandOrigin, Nullable`1 useLocalScope, SessionStateInternal sessionState)
+   at System.Management.Automation.CommandDiscovery.LookupCommandProcessor(String commandName, CommandOrigin commandOrigin, Nullable`1 useLocalScope)
+   at System.Management.Automation.ExecutionContext.CreateCommand(String command, Boolean dotSource)
+   at System.Management.Automation.PipelineOps.AddCommand(PipelineProcessor pipe, CommandParameterInternal[] commandElements, CommandBaseAst commandBaseAst, CommandRedirection[] redirections, ExecutionContext context)
+   at System.Management.Automation.PipelineOps.InvokePipeline(Object input, Boolean ignoreInput, CommandParameterInternal[][] pipeElements, CommandBaseAst[] pipeElementAsts, CommandRedirection[][] commandRedirections, FunctionContext funcContext)
+   at System.Management.Automation.Interpreter.ActionCallInstruction`6.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)
+
 # Retrieve the tag value for NMW_ARM_HOST_POOL
 $tagValue = $vm.Tags["NMW_ARM_HOST_POOL"]
 
