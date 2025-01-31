@@ -1,3 +1,13 @@
+$vmName = "YourVMName"
+$resourceGroup = "YourResourceGroup"
+
+$vm = Get-AzVM -Name $vmName -ResourceGroupName $resourceGroup
+$vm.Tags
+
+
+
+
+
 (Get-LocalUser | Where-Object { $_.SID -match '-500$' }).Name
 
 
