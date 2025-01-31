@@ -1,3 +1,52 @@
+function GetAuthToken {
+    param (
+        [string]$resource = "https://management.azure.com"
+    )
+
+    $token = (Get-AzAccessToken -ResourceUrl $resource).Token
+    return @{ Authorization = "Bearer $token" }
+}
+
+function Get-AvdSessionHost {
+    param (
+        [string]$HostpoolName,
+        [string]$ResourceGroupName,
+        [string]$SessionHostName
+    )
+
+    $apiVersion = "2021-04-01"
+    $url = "https://management.azure.com/subscriptions/$script:subscriptionId/resourceGroups/$ResourceGroupName/providers/Microsoft.DesktopVirtualization/hostpools/$HostpoolName/sessionHosts/$SessionHostName?api-version=$apiVersion"
+    
+    return Invoke-RestMethod -Uri $url -Method GET -Headers (GetAuthToken)
+}
+
+function Remove-AvdSessionhost {
+    param (
+        [string]$HostpoolName,
+        [string]$ResourceGroupName,
+        [string]$SessionHostName
+    )
+
+    $apiVersion = "2021-04-01"
+    $url = "https://management.azure.com/subscriptions/$script:subscriptionId/resourceGroups/$ResourceGroupName/providers/Microsoft.DesktopVirtualization/hostpools/$HostpoolName/sessionHosts/$SessionHostName?api-version=$apiVersion"
+
+    Invoke-RestMethod -Uri $url -Method DELETE -Headers (GetAuthToken)
+}
+
+function Update-AvdRegistrationToken {
+    param (
+        [string]$HostpoolName,
+        [string]$ResourceGroupName
+    )
+
+    $apiVersion = "2021-04-01"
+    $url = "https://management.azure.com/subscriptions/$script:subscriptionId/resourceGroups/$ResourceGroupName/providers/Microsoft.DesktopVirtualization/hostpools/$HostpoolName/updateRegistrationToken?api-version=$apiVersion"
+
+    return Invoke-RestMethod -Uri $url -Method POST -Headers (GetAuthToken)
+}
+
+
+
 AuthenticationCheck : The term 'AuthenticationCheck' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try 
 again.
 At line:50 char:9
