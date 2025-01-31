@@ -1,3 +1,14 @@
+Get-AzTag -ResourceId /subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourcegroups/testrg/providers/Microsoft.Sql/servers/Server1
+
+Id         : {Id}
+Name       : {Name}
+Type       : {Type}
+Properties :
+             Name     Value
+             =======  =========
+             Dept     Finance
+             Status   Normal
+
 At C:\Windows\TEMP\9af1bb79-fb73-4264-b393-0e2acf91fe77.ps1:69 char:79
 + ... AzureVMName -ResourceGroupName $AzureResourceGroupName).tags.["NMW_AR ...
 +                                                                  ~
