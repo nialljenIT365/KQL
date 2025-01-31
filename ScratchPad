@@ -1,3 +1,34 @@
+Get-AzWvdSessionHost -ResourceGroupName rg-EUS-RemoteDesktopDevices-WorkspaceAndStorage-NEU-PRD -HostPoolName NEU_TST_SSPersistent -Name "M01TSSPI0024.aberdeen.aberdeen-asset.com"
+
+returns 
+
+AgentVersion       : 1.0.10292.900
+AllowNewSession    : True
+AssignedUser       : Niall.Jennings@abrdn.com
+HealthCheckResult  : {DomainJoinedCheck, DomainTrustCheck, SxSStackListenerCheck, UrlsAccessibleCheck...}
+Id                 : /subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-EUS-RemoteDesktopDevices-Work
+                     spaceAndStorage-NEU-PRD/providers/Microsoft.DesktopVirtualization/hostpools/NEU_TST_SSPersistent/se
+                     ssionhosts/M01TSSPI0024.aberdeen.aberdeen-asset.com
+LastHeartBeat      : 1/31/2025 2:20:49 PM
+LastUpdateTime     : 1/30/2025 1:44:14 PM
+Name               : NEU_TST_SSPersistent/M01TSSPI0024.aberdeen.aberdeen-asset.com
+OSVersion          : 10.0.22631.4751
+ObjectId           : c793bea8-41a4-4031-994b-93e3fd9824f2
+ResourceId         : /subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-UATV
+                     irtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01TSSPI0024
+Session            : 0
+Status             : Available
+StatusTimestamp    : 1/30/2025 1:44:14 PM
+SxSStackVersion    : rdp-sxs240705700
+Type               : Microsoft.DesktopVirtualization/hostpools/sessionhosts
+UpdateErrorMessage : 
+UpdateState        : Succeeded
+VirtualMachineId   : 6dce6a72-8df7-438e-99a5-d0494f5ccb5a
+
+how do I parse the output to return 
+/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-UATV
+                     irtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01TSSPI0024
+
 $script = [System.Collections.ArrayList]@()
 $script.Add('Set-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\RDInfraAgent -Name RegistrationToken -Value '+$($hostpoolToken.properties.registrationInfo.token)+'')
 $script.Add('Set-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\RDInfraAgent -Name IsRegistered -Value 0')
