@@ -32,6 +32,41 @@ $response.statuses
 
 
 
+
+function GetAuthToken($resource) {
+    $context = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile.DefaultContext
+    $Token = [Microsoft.Azure.Commands.Common.Authentication.AzureSession]::Instance.AuthenticationFactory.Authenticate($context.Account, $context.Environment, $context.Tenant.Id.ToString(), $null, [Microsoft.Azure.Commands.Common.Authentication.ShowDialog]::Never, $null, $resource).AccessToken
+    return @{ 'Content-Type' = 'application/json'; Authorization  = 'Bearer ' + $Token }
+}
+
+# Get Azure authentication token
+$token = GetAuthToken -resource "https://management.azure.com"
+
+# Define VM parameters
+$vmName = "M01TSSPI0024"
+$suffix = ".aberdeen.aberdeen-asset.com"
+$vmResourceId = (Get-AzVM -Name "$vmName$suffix").Id
+
+# Construct API URL for getting VM instance view (status check)
+$url = "https://management.azure.com$vmResourceId/instanceView?api-version=2021-03-01"
+
+# Define API request parameters
+$parameters = @{
+    URI     = $url 
+    Method  = "GET"
+    Headers = $token
+}
+
+# Make the API request
+$response = Invoke-RestMethod @parameters
+
+# Display the VM status information
+$response.statuses
+
+
+
+
+
 function GetAuthToken($resource) {
     $context = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile.DefaultContext
     $Token = [Microsoft.Azure.Commands.Common.Authentication.AzureSession]::Instance.AuthenticationFactory.Authenticate($context.Account, $context.Environment, $context.Tenant.Id.ToString(), $null, [Microsoft.Azure.Commands.Common.Authentication.ShowDialog]::Never, $null, $resource).AccessToken
