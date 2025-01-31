@@ -1,3 +1,5 @@
+NMW_ARM_HOST_POOL
+
 $vmName = "YourVMName"
 $resourceGroup = "YourResourceGroup"
 
