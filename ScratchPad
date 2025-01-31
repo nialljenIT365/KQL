@@ -1,3 +1,6 @@
+& pwsh.exe -NoProfile -Command "Connect-Avd -DeviceCode -TenantID 27b2553d-4a89-4c74-88e1-d1d590624294 -SubscriptionId 58cb357e-51af-4f62-8982-a8c2b9059362"
+
+
 # Define PowerShell 7 script block
 $PS7Script = @"
 Connect-Avd -DeviceCode -TenantID 27b2553d-4a89-4c74-88e1-d1d590624294 -SubscriptionId 58cb357e-51af-4f62-8982-a8c2b9059362
