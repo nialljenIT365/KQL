@@ -1,3 +1,11 @@
+##Change Me##
+$tags = @{"ABRDN_AUTOSCALE_PRESTAGE" = "TRUE"}
+##Change Me##
+$VMResourceId = Get-AzVM -ResourceGroupName $AzureResourceGroupName -Name $AzureVMName
+Write-Output "VMResourceId is $VMResourceId"
+#Update-AzTag -ResourceId $VMResourceId -Tag $tags -Operation Merge
+
+
 #description: HostPool Migration Part 3 of 3 (Run Book)
 #Note: Deletes Entry from current HostPool and updates Nerdio Tag to associate with target host pool
 #execution mode: Combined
