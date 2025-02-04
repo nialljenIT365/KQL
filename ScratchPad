@@ -1,3 +1,39 @@
+##Change Me##
+$HostPoolName = "NEU_PRD_SSPersistent"
+$HostPoolResourceGroup = "rg-EUS-RemoteDesktopDevices-WorkspaceAndStorage-NEU-PRD"
+$SessionHostResourceGroup = "rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD"
+$PreStageTag = "ABRDN_AUTOSCALE_PRESTAGE"
+##Change Me##
+
+# Get session hosts and extract only the name before the first "."
+$SessionHosts = Get-AzWvdSessionHost -ResourceGroupName $HostPoolResourceGroup -HostPoolName $HostPoolName |
+    Select-Object -ExpandProperty Name | ForEach-Object { ($_ -split "/")[-1] -split "\." | Select-Object -First 1 }
+
+foreach ($SessionHost in $SessionHosts) {
+    # Retrieve VM details and extract the Resource ID
+    $vm = Get-AzVM -ResourceGroupName $SessionHostResourceGroup -Name $SessionHost -ErrorAction SilentlyContinue
+    if ($vm) {
+        $VMResourceId = $vm.Id
+
+        # Retrieve the tags from the VM
+        $VMTags = (Get-AzResource -ResourceId $VMResourceId).Tags.Keys
+
+        # Check if the PreStageTag exists in the list of VM tags
+        if ($VMTags -contains $PreStageTag) {
+            Write-Output "$PreStageTag exists on $SessionHost, proceed with Autoscale"
+        } else {
+            Write-Output "$PreStageTag does not exist on $SessionHost, do not proceed with Autoscale"
+        }
+    } else {
+        Write-Output "VM $SessionHost not found in $SessionHostResourceGroup"
+    }
+}
+
+
+
+
+
+
 
 ##Change Me##
 $HostPoolName = "NEU_PRD_SSPersistent"
