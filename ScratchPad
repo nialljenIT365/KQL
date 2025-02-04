@@ -20,8 +20,10 @@ foreach ($SessionHost in $SessionHosts) {
 
         # Check if the PreStageTag exists in the list of VM tags
         if ($VMTags -contains $PreStageTag) {
+            Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
             Write-Output "$PreStageTag exists on $SessionHost, proceed with Autoscale"
         } else {
+            Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
             Write-Output "$PreStageTag does not exist on $SessionHost, do not proceed with Autoscale"
         }
     } else {
@@ -29,7 +31,7 @@ foreach ($SessionHost in $SessionHosts) {
     }
 }
 
-
+I want to store all the $SessionHost values that -contains $PreStageTag in list called $VMsForAutoscale that can be called once forloop finishes
 
 
 
