@@ -9,6 +9,32 @@ $VMResourceId = $vm.Id
 Write-Output "VM Resource ID is: $VMResourceId"
 
 # Get the existing tags on the VM
+$currentTags = Get-AzTag -ResourceId $VMResourceId
+
+Write-Output "Current tags are: $currentTags"
+
+returns
+
+VM Resource ID is: /subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0101
+
+Current tags are: Microsoft.Azure.Commands.Tags.Model.PSTagResource
+
+
+
+
+
+
+##Change Me##
+$tags = @{"ABRDN_AUTOSCALE_PRESTAGE" = "TRUE"}
+##Change Me##
+
+# Retrieve VM details and extract the Resource ID
+$vm = Get-AzVM -ResourceGroupName $AzureResourceGroupName -Name $AzureVMName
+$VMResourceId = $vm.Id
+
+Write-Output "VM Resource ID is: $VMResourceId"
+
+# Get the existing tags on the VM
 $currentTags = (Get-AzTag -ResourceId $VMResourceId -Detailed).Properties.Tags
 
 # Check if the tag exists
