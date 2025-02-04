@@ -1,3 +1,17 @@
+Get-AzWvdSessionHost -ResourceGroupName ResourceGroupName -HostPoolName HostPoolName
+
+Name                                               Type
+----                                               ----
+HostPoolName/SessionHostName1 Microsoft.DesktopVirtualization/hostpools/sessionhosts
+HostPoolName/SessionHostName2 Microsoft.DesktopVirtualization/hostpools/sessionhosts
+
+
+
+Start-AzVM -ResourceGroupName "ResourceGroup11" -Name "VirtualMachine07" -NoWait
+
+
+
+
 ##Change Me##
 $PreStageTag = "ABRDN_AUTOSCALE_PRESTAGE"
 ##Change Me##
