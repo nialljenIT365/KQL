@@ -1,4 +1,66 @@
-Start-AzVM -ResourceGroupName $AzureResourceGroupName -Name $AzureVMName -Force -NoWait
+Start-AzVM -ResourceGroupName $SessionHostResourceGroup -Name $VMName -Force -NoWait
+
+
+##Change Me##
+$HostPoolName = "NEU_PRD_SSPersistent"
+$HostPoolResourceGroup = "rg-EUS-RemoteDesktopDevices-WorkspaceAndStorage-NEU-PRD"
+$SessionHostResourceGroup = "rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD"
+$PreStageTag = "ABRDN_AUTOSCALE_PRESTAGE"
+##Change Me##
+
+# Initialise $VMsForAutoscale as null and then an empty array
+$VMsForAutoscale = $null
+$VMsForAutoscale = @()
+
+# Get session hosts and extract only the name before the first "."
+$SessionHosts = Get-AzWvdSessionHost -ResourceGroupName $HostPoolResourceGroup -HostPoolName $HostPoolName |
+    Select-Object -ExpandProperty Name | ForEach-Object { ($_ -split "/")[-1] -split "\." | Select-Object -First 1 }
+
+foreach ($SessionHost in $SessionHosts) {
+    # Retrieve VM details and extract the Resource ID
+    $vm = Get-AzVM -ResourceGroupName $SessionHostResourceGroup -Name $SessionHost -ErrorAction SilentlyContinue
+    if ($vm) {
+        $VMResourceId = $vm.Id
+
+        # Retrieve the tags from the VM
+        $VMTags = (Get-AzResource -ResourceId $VMResourceId).Tags.Keys
+
+        # Check if the PreStageTag exists in the list of VM tags
+        if ($VMTags -contains $PreStageTag) {
+            Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
+            Write-Output "$PreStageTag exists on $SessionHost, proceed with Autoscale"
+            
+            # Add the session host to the list for autoscale
+            $VMsForAutoscale += $SessionHost
+        } else {
+            Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
+            Write-Output "$PreStageTag does not exist on $SessionHost, do not proceed with Autoscale"
+        }
+    } else {
+        Write-Output "VM $SessionHost not found in $SessionHostResourceGroup"
+    }
+}
+
+#foreach ($VMName in $VMsForAutoscale) {
+#    $Job = Start-Job -ScriptBlock {
+#        param ($VMName, $SessionHostResourceGroup)
+#        Start-AzVM -ResourceGroupName $SessionHostResourceGroup -Name $VMName -Force -NoWait
+#    } -ArgumentList $VMName, $SessionHostResourceGroup#
+#
+#    $JobList += $Job
+#}
+#
+#Write-Output "Waiting for all Start-AzVM jobs to complete..."
+#Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
+#$JobList | Wait-Job | Out-Null
+#Write-Output "All VMs have been started."
+#Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
+
+
+
+
+
+
 
 ##Change Me##
 $HostPoolName = "NEU_PRD_SSPersistent"
