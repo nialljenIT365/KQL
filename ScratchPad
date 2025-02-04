@@ -1,4 +1,73 @@
 
+##Change Me##
+$HostPoolName = "NEU_PRD_SSPersistent"
+$HostPoolResourceGroup = "rg-EUS-RemoteDesktopDevices-WorkspaceAndStorage-NEU-PRD"
+$SessionHostResourceGroup = "rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD"
+$PreStageTag = "ABRDN_AUTOSCALE_PRESTAGE"
+##Change Me##
+
+$SessionHosts = Get-AzWvdSessionHost -ResourceGroupName ResourceGroupName -HostPoolName HostPoolName | Select-Object @{Name="SessionHostName";Expression={($_.Name -split "/")[-1] -split "\.")[0]}}
+
+foreach ($SessionHost in $SessionHosts) {
+# Retrieve VM details and extract the Resource ID
+$vm = Get-AzVM -ResourceGroupName $SessionHostResourceGroup -Name $SessionHost
+$VMResourceId = $vm.Id
+# Retrieve the tags from the VM
+$VMTags = (Get-AzResource -ResourceId $VMResourceId).Tags.Keys
+# Check if the PreStageTag exists in the list of VM tags
+if ($VMTags -contains $PreStageTag) {
+    Write-Output "$PreStageTag exists on $SessionHost, proceed with Autoscale"
+} else {
+    Write-Output "$PreStageTag does not exist on $SessionHost, do not proceed with Autoscale"
+}
+}
+
+
+System.Management.Automation.ParseException: At C:\Windows\TEMP\8277ad75-166b-47a7-8b40-2f8b09d5f64e.ps1:62 char:154
++ ... oolName | Select-Object @{Name="SessionHostName";Expression={($_.Name ...
++                                                                 ~
+Missing closing '}' in statement block or type definition.
+
+At C:\Windows\TEMP\8277ad75-166b-47a7-8b40-2f8b09d5f64e.ps1:62 char:191
++ ... ssionHostName";Expression={($_.Name -split "/")[-1] -split "\.")[0]}}
++                                                                    ~
+The hash literal was incomplete.
+
+At C:\Windows\TEMP\8277ad75-166b-47a7-8b40-2f8b09d5f64e.ps1:62 char:191
++ ... ssionHostName";Expression={($_.Name -split "/")[-1] -split "\.")[0]}}
++                                                                    ~
+Unexpected token ')' in expression or statement.
+
+At C:\Windows\TEMP\8277ad75-166b-47a7-8b40-2f8b09d5f64e.ps1:62 char:193
++ ... ssionHostName";Expression={($_.Name -split "/")[-1] -split "\.")[0]}}
++                                                                      ~
+Missing type name after '['.
+
+At C:\Windows\TEMP\8277ad75-166b-47a7-8b40-2f8b09d5f64e.ps1:62 char:195
++ ... ssionHostName";Expression={($_.Name -split "/")[-1] -split "\.")[0]}}
++                                                                        ~
+Unexpected token '}' in expression or statement.
+
+At C:\Windows\TEMP\8277ad75-166b-47a7-8b40-2f8b09d5f64e.ps1:62 char:196
++ ... ssionHostName";Expression={($_.Name -split "/")[-1] -split "\.")[0]}}
++                                                                         ~
+Unexpected token '}' in expression or statement.
+   at System.Management.Automation.ScriptBlock.Create(Parser parser, String fileName, String fileContents)
+   at System.Management.Automation.ExternalScriptInfo.ParseScriptContents(Parser parser, String fileName, String fileContents, Nullable`1 definingLanguageMode)
+   at System.Management.Automation.ExternalScriptInfo.get_ScriptBlock()
+   at System.Management.Automation.CommandDiscovery.CreateCommandProcessorForScript(ExternalScriptInfo scriptInfo, ExecutionContext context, Boolean useNewScope, SessionStateInternal sessionState)
+   at System.Management.Automation.CommandDiscovery.CreateScriptProcessorForSingleShell(ExternalScriptInfo scriptInfo, ExecutionContext context, Boolean useLocalScope, SessionStateInternal sessionState)
+   at System.Management.Automation.CommandDiscovery.LookupCommandProcessor(CommandInfo commandInfo, CommandOrigin commandOrigin, Nullable`1 useLocalScope, SessionStateInternal sessionState)
+   at System.Management.Automation.CommandDiscovery.LookupCommandProcessor(String commandName, CommandOrigin commandOrigin, Nullable`1 useLocalScope)
+   at System.Management.Automation.ExecutionContext.CreateCommand(String command, Boolean dotSource)
+   at System.Management.Automation.PipelineOps.AddCommand(PipelineProcessor pipe, CommandParameterInternal[] commandElements, CommandBaseAst commandBaseAst, CommandRedirection[] redirections, ExecutionContext context)
+   at System.Management.Automation.PipelineOps.InvokePipeline(Object input, Boolean ignoreInput, CommandParameterInternal[][] pipeElements, CommandBaseAst[] pipeElementAsts, CommandRedirection[][] commandRedirections, FunctionContext funcContext)
+   at System.Management.Automation.Interpreter.ActionCallInstruction`6.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)
+
+
+
+
 Get-AzWvdSessionHost -ResourceGroupName ResourceGroupName -HostPoolName HostPoolName | Select-Object @{Name="SessionHostName";Expression={($_.Name -split "/")[-1] -split "\.")[0]}}
 
 Get-AzWvdSessionHost -ResourceGroupName ResourceGroupName -HostPoolName HostPoolName | Select-Object @{Name="SessionHostName";Expression={($_.Name -split "/")[-1]}}
