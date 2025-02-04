@@ -1,3 +1,23 @@
+##Change Me##
+$PreStageTag = "ABRDN_AUTOSCALE_PRESTAGE"
+##Change Me##
+
+# Retrieve VM details and extract the Resource ID
+$vm = Get-AzVM -ResourceGroupName $AzureResourceGroupName -Name $AzureVMName
+$VMResourceId = $vm.Id
+
+Write-Output "VM Resource ID is: $VMResourceId"
+
+$VMTags = (Get-AzResource -ResourceId $VMResourceId).Tags.Keys
+
+foreach ($VMTag in $VMTags) {
+   Write-Output "VM Tag is: $VMTag"
+}
+I want to check if any of the values in $VMTags is equal to $PreStageTag 
+
+
+
+
 System.Management.Automation.ParameterBindingException: Parameter set cannot be resolved using the specified named parameters.
    at System.Management.Automation.CmdletParameterBinderController.ThrowAmbiguousParameterSetException(UInt32 parameterSetFlags, MergedCommandParameterMetadata bindableParameters)
    at System.Management.Automation.CmdletParameterBinderController.ValidateParameterSets(Boolean prePipelineInput, Boolean setDefault)
