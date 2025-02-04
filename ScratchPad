@@ -23,10 +23,6 @@ if ($currentTags -and $currentTags.ContainsKey("ABRDN_AUTOSCALE_PRESTAGE")) {
     exit
 }
 
-# Update the tag on the VM
-Update-AzTag -ResourceId $VMResourceId -Tag $tags -Operation Merge
-
-
 
 
 ##Change Me##
