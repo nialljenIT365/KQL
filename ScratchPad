@@ -1,3 +1,7 @@
+Get-AzWvdSessionHost -ResourceGroupName ResourceGroupName -HostPoolName HostPoolName | Select-Object @{Name="SessionHostName";Expression={($_.Name -split "/")[-1]}}
+
+
+
 Get-AzWvdSessionHost -ResourceGroupName ResourceGroupName -HostPoolName HostPoolName
 
 Name                                               Type
