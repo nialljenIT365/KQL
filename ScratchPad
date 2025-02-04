@@ -1,4 +1,5 @@
 
+Get-AzWvdSessionHost -ResourceGroupName ResourceGroupName -HostPoolName HostPoolName | Select-Object @{Name="SessionHostName";Expression={($_.Name -split "/")[-1] -split "\.")[0]}}
 
 Get-AzWvdSessionHost -ResourceGroupName ResourceGroupName -HostPoolName HostPoolName | Select-Object @{Name="SessionHostName";Expression={($_.Name -split "/")[-1]}}
 Name               : NEU_PRD_SSPersistent/M01PSSPI0001.aberdeen.aberdeen-asset.com
