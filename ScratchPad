@@ -8,6 +8,33 @@ $VMResourceId = $vm.Id
 
 Write-Output "VM Resource ID is: $VMResourceId"
 
+# Get existing tags on the VM
+$currentTags = (Get-AzTag -ResourceId $VMResourceId).Properties.Tags
+
+# Check if the tag exists
+if ($currentTags -and $currentTags.ContainsKey("ABRDN_AUTOSCALE_PRESTAGE")) {
+    Write-Output "ABRDN_AUTOSCALE_PRESTAGE exists, proceed with Autoscale"
+} else {
+    Write-Output "Tag does not exist, stopping process."
+    exit
+}
+
+# Update the tag on the VM
+Update-AzTag -ResourceId $VMResourceId -Tag $tags -Operation Merge
+
+
+
+
+##Change Me##
+$tags = @{"ABRDN_AUTOSCALE_PRESTAGE" = "TRUE"}
+##Change Me##
+
+# Retrieve VM details and extract the Resource ID
+$vm = Get-AzVM -ResourceGroupName $AzureResourceGroupName -Name $AzureVMName
+$VMResourceId = $vm.Id
+
+Write-Output "VM Resource ID is: $VMResourceId"
+
 # Update the tag on the VM
 Update-AzTag -ResourceId $VMResourceId -Tag $tags -Operation Merge
 
