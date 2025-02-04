@@ -1,3 +1,5 @@
+Start-AzVM -ResourceGroupName $AzureResourceGroupName -Name $AzureVMName -Force -NoWait
+
 ##Change Me##
 $HostPoolName = "NEU_PRD_SSPersistent"
 $HostPoolResourceGroup = "rg-EUS-RemoteDesktopDevices-WorkspaceAndStorage-NEU-PRD"
