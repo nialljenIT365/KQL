@@ -8,6 +8,35 @@ $VMResourceId = $vm.Id
 
 Write-Output "VM Resource ID is: $VMResourceId"
 
+# Retrieve the tags from the VM
+$VMTags = (Get-AzResource -ResourceId $VMResourceId).Tags.Keys
+
+# Output all existing tags
+foreach ($VMTag in $VMTags) {
+   Write-Output "VM Tag is: $VMTag"
+}
+
+# Check if the PreStageTag exists in the list of VM tags
+if ($VMTags -contains $PreStageTag) {
+    Write-Output "$PreStageTag exists, proceed with Autoscale"
+} else {
+    Write-Output "$PreStageTag does not exist, stopping process"
+}
+
+
+
+
+
+##Change Me##
+$PreStageTag = "ABRDN_AUTOSCALE_PRESTAGE"
+##Change Me##
+
+# Retrieve VM details and extract the Resource ID
+$vm = Get-AzVM -ResourceGroupName $AzureResourceGroupName -Name $AzureVMName
+$VMResourceId = $vm.Id
+
+Write-Output "VM Resource ID is: $VMResourceId"
+
 $VMTags = (Get-AzResource -ResourceId $VMResourceId).Tags.Keys
 
 foreach ($VMTag in $VMTags) {
