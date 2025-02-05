@@ -1,7 +1,7 @@
 ##Change Me##
-$HostPoolName = "NEU_TST_SSPersistent"
+$HostPoolName = "NEU_PRD_SSPersistent"
 $HostPoolResourceGroup = "rg-EUS-RemoteDesktopDevices-WorkspaceAndStorage-NEU-PRD"
-$SessionHostResourceGroup = "rg-EUS-RemoteDesktopDevices-UATVirtualDesktop-NEU-PRD"
+$SessionHostResourceGroup = "rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD"
 $PreStageTag = "ABRDN_AUTOSCALE_PRESTAGE"
 ##Change Me##
 
@@ -15,9 +15,10 @@ $SessionHosts = Get-AzWvdSessionHost -ResourceGroupName $HostPoolResourceGroup -
 
 foreach ($SessionHost in $SessionHosts) {
     # Retrieve VM details and extract the Resource ID
-    $vm = Get-AzVM -ResourceGroupName $SessionHostResourceGroup -Name $SessionHost -ErrorAction SilentlyContinue
+    $vm = Get-AzVM -ResourceGroupName $SessionHostResourceGroup -Name $SessionHost -Status -ErrorAction SilentlyContinue
     if ($vm) {
         $VMResourceId = $vm.Id
+        $VMStatus = $vm.Statuses | Where-Object { $_.Code -like "PowerState/*" } | Select-Object -ExpandProperty DisplayStatus
 
         # Retrieve the tags from the VM
         $VMTags = (Get-AzResource -ResourceId $VMResourceId).Tags.Keys
@@ -26,9 +27,13 @@ foreach ($SessionHost in $SessionHosts) {
         if ($VMTags -contains $PreStageTag) {
             Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
             Write-Output "$PreStageTag exists on $SessionHost, proceed with Autoscale"
-            
-            # Add the session host to the list for autoscale
-            $VMsForAutoscale += $SessionHost
+
+            # Only add to autoscale list if not already running
+            if ($VMStatus -ne "VM running") {
+                $VMsForAutoscale += $SessionHost
+            } else {
+                Write-Output "$SessionHost is already running, skipping start operation."
+            }
         } else {
             Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
             Write-Output "$PreStageTag does not exist on $SessionHost, do not proceed with Autoscale"
@@ -38,22 +43,32 @@ foreach ($SessionHost in $SessionHosts) {
     }
 }
 
+# Execute Start-AzVM in parallel using Start-Job
+$JobList = @()
+
 foreach ($VMName in $VMsForAutoscale) {
-    Write-Output "Autoscaling $VMName"
-    Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
+    Write-Output "$VMName will be autoscaled"
     $Job = Start-Job -ScriptBlock {
         param ($VMName, $SessionHostResourceGroup)
         Start-AzVM -ResourceGroupName $SessionHostResourceGroup -Name $VMName -Force -NoWait
-    } -ArgumentList $VMName, $SessionHostResourceGroup#
+    } -ArgumentList $VMName, $SessionHostResourceGroup
 
     $JobList += $Job
 }
 
+# Optionally, wait for all jobs to complete before continuing
 Write-Output "Waiting for all Start-AzVM jobs to complete..."
 Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
 $JobList | Wait-Job | Out-Null
-Write-Output "All VMs have been started."
+Write-Output "All VMs that needed to be started have been started."
 Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
+
+# Clean up completed jobs
+$JobList | Remove-Job
+
+
+
+
 System.Management.Automation.RuntimeException: Method invocation failed because [System.Management.Automation.PSRemotingJob] does not contain a method named 'op_Addition'.
    at System.Management.Automation.ParserOps.CallMethod(IScriptExtent errorPosition, Object target, String methodName, PSMethodInvocationConstraints invocationConstraints, Object[] paramArray, Boolean callStatic, Object valueToSet)
    at System.Management.Automation.ParserOps.ImplicitOp(Object lval, Object rval, String op, IScriptExtent errorPosition, String errorOp)
