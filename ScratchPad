@@ -1,3 +1,128 @@
+##Change Me##
+$HostPoolName = "NEU_TST_SSPersistent"
+$HostPoolResourceGroup = "rg-EUS-RemoteDesktopDevices-WorkspaceAndStorage-NEU-PRD"
+$SessionHostResourceGroup = "rg-EUS-RemoteDesktopDevices-UATVirtualDesktop-NEU-PRD"
+$PreStageTag = "ABRDN_AUTOSCALE_PRESTAGE"
+##Change Me##
+
+# Initialise $VMsForAutoscale as null and then an empty array
+$VMsForAutoscale = $null
+$VMsForAutoscale = @()
+
+# Get session hosts and extract only the name before the first "."
+$SessionHosts = Get-AzWvdSessionHost -ResourceGroupName $HostPoolResourceGroup -HostPoolName $HostPoolName |
+    Select-Object -ExpandProperty Name | ForEach-Object { ($_ -split "/")[-1] -split "\." | Select-Object -First 1 }
+
+foreach ($SessionHost in $SessionHosts) {
+    # Retrieve VM details and extract the Resource ID
+    $vm = Get-AzVM -ResourceGroupName $SessionHostResourceGroup -Name $SessionHost -ErrorAction SilentlyContinue
+    if ($vm) {
+        $VMResourceId = $vm.Id
+
+        # Retrieve the tags from the VM
+        $VMTags = (Get-AzResource -ResourceId $VMResourceId).Tags.Keys
+
+        # Check if the PreStageTag exists in the list of VM tags
+        if ($VMTags -contains $PreStageTag) {
+            Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
+            Write-Output "$PreStageTag exists on $SessionHost, proceed with Autoscale"
+            
+            # Add the session host to the list for autoscale
+            $VMsForAutoscale += $SessionHost
+        } else {
+            Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
+            Write-Output "$PreStageTag does not exist on $SessionHost, do not proceed with Autoscale"
+        }
+    } else {
+        Write-Output "VM $SessionHost not found in $SessionHostResourceGroup"
+    }
+}
+
+foreach ($VMName in $VMsForAutoscale) {
+    Write-Output "Autoscaling $VMName"
+    Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
+    $Job = Start-Job -ScriptBlock {
+        param ($VMName, $SessionHostResourceGroup)
+        Start-AzVM -ResourceGroupName $SessionHostResourceGroup -Name $VMName -Force -NoWait
+    } -ArgumentList $VMName, $SessionHostResourceGroup#
+
+    $JobList += $Job
+}
+
+Write-Output "Waiting for all Start-AzVM jobs to complete..."
+Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
+$JobList | Wait-Job | Out-Null
+Write-Output "All VMs have been started."
+Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
+System.Management.Automation.RuntimeException: Method invocation failed because [System.Management.Automation.PSRemotingJob] does not contain a method named 'op_Addition'.
+   at System.Management.Automation.ParserOps.CallMethod(IScriptExtent errorPosition, Object target, String methodName, PSMethodInvocationConstraints invocationConstraints, Object[] paramArray, Boolean callStatic, Object valueToSet)
+   at System.Management.Automation.ParserOps.ImplicitOp(Object lval, Object rval, String op, IScriptExtent errorPosition, String errorOp)
+   at System.Dynamic.UpdateDelegates.UpdateAndExecute2[T0,T1,TRet](CallSite site, T0 arg0, T1 arg1)
+   at System.Dynamic.UpdateDelegates.UpdateAndExecute2[T0,T1,TRet](CallSite site, T0 arg0, T1 arg1)
+   at System.Management.Automation.Interpreter.DynamicInstruction`3.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)
+System.Management.Automation.RuntimeException: Method invocation failed because [System.Management.Automation.PSRemotingJob] does not contain a method named 'op_Addition'.
+   at System.Management.Automation.ParserOps.CallMethod(IScriptExtent errorPosition, Object target, String methodName, PSMethodInvocationConstraints invocationConstraints, Object[] paramArray, Boolean callStatic, Object valueToSet)
+   at System.Management.Automation.ParserOps.ImplicitOp(Object lval, Object rval, String op, IScriptExtent errorPosition, String errorOp)
+   at System.Management.Automation.Interpreter.DynamicInstruction`3.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)
+System.Management.Automation.RuntimeException: Method invocation failed because [System.Management.Automation.PSRemotingJob] does not contain a method named 'op_Addition'.
+   at System.Management.Automation.ParserOps.CallMethod(IScriptExtent errorPosition, Object target, String methodName, PSMethodInvocationConstraints invocationConstraints, Object[] paramArray, Boolean callStatic, Object valueToSet)
+   at System.Management.Automation.ParserOps.ImplicitOp(Object lval, Object rval, String op, IScriptExtent errorPosition, String errorOp)
+   at System.Management.Automation.Interpreter.DynamicInstruction`3.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)
+System.Management.Automation.RuntimeException: Method invocation failed because [System.Management.Automation.PSRemotingJob] does not contain a method named 'op_Addition'.
+   at System.Management.Automation.ParserOps.CallMethod(IScriptExtent errorPosition, Object target, String methodName, PSMethodInvocationConstraints invocationConstraints, Object[] paramArray, Boolean callStatic, Object valueToSet)
+   at System.Management.Automation.ParserOps.ImplicitOp(Object lval, Object rval, String op, IScriptExtent errorPosition, String errorOp)
+   at System.Management.Automation.Interpreter.DynamicInstruction`3.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)
+System.Management.Automation.RuntimeException: Method invocation failed because [System.Management.Automation.PSRemotingJob] does not contain a method named 'op_Addition'.
+   at System.Management.Automation.ParserOps.CallMethod(IScriptExtent errorPosition, Object target, String methodName, PSMethodInvocationConstraints invocationConstraints, Object[] paramArray, Boolean callStatic, Object valueToSet)
+   at System.Management.Automation.ParserOps.ImplicitOp(Object lval, Object rval, String op, IScriptExtent errorPosition, String errorOp)
+   at System.Management.Automation.Interpreter.DynamicInstruction`3.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)
+System.Management.Automation.RuntimeException: Method invocation failed because [System.Management.Automation.PSRemotingJob] does not contain a method named 'op_Addition'.
+   at System.Management.Automation.ParserOps.CallMethod(IScriptExtent errorPosition, Object target, String methodName, PSMethodInvocationConstraints invocationConstraints, Object[] paramArray, Boolean callStatic, Object valueToSet)
+   at System.Management.Automation.ParserOps.ImplicitOp(Object lval, Object rval, String op, IScriptExtent errorPosition, String errorOp)
+   at System.Management.Automation.Interpreter.DynamicInstruction`3.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)
+System.Management.Automation.RuntimeException: Method invocation failed because [System.Management.Automation.PSRemotingJob] does not contain a method named 'op_Addition'.
+   at System.Management.Automation.ParserOps.CallMethod(IScriptExtent errorPosition, Object target, String methodName, PSMethodInvocationConstraints invocationConstraints, Object[] paramArray, Boolean callStatic, Object valueToSet)
+   at System.Management.Automation.ParserOps.ImplicitOp(Object lval, Object rval, String op, IScriptExtent errorPosition, String errorOp)
+   at System.Management.Automation.Interpreter.DynamicInstruction`3.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)
+System.Management.Automation.RuntimeException: Method invocation failed because [System.Management.Automation.PSRemotingJob] does not contain a method named 'op_Addition'.
+   at System.Management.Automation.ParserOps.CallMethod(IScriptExtent errorPosition, Object target, String methodName, PSMethodInvocationConstraints invocationConstraints, Object[] paramArray, Boolean callStatic, Object valueToSet)
+   at System.Management.Automation.ParserOps.ImplicitOp(Object lval, Object rval, String op, IScriptExtent errorPosition, String errorOp)
+   at System.Management.Automation.Interpreter.DynamicInstruction`3.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)
+System.Management.Automation.RuntimeException: Method invocation failed because [System.Management.Automation.PSRemotingJob] does not contain a method named 'op_Addition'.
+   at System.Management.Automation.ParserOps.CallMethod(IScriptExtent errorPosition, Object target, String methodName, PSMethodInvocationConstraints invocationConstraints, Object[] paramArray, Boolean callStatic, Object valueToSet)
+   at System.Management.Automation.ParserOps.ImplicitOp(Object lval, Object rval, String op, IScriptExtent errorPosition, String errorOp)
+   at System.Management.Automation.Interpreter.DynamicInstruction`3.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)
+System.Management.Automation.RuntimeException: Method invocation failed because [System.Management.Automation.PSRemotingJob] does not contain a method named 'op_Addition'.
+   at System.Management.Automation.ParserOps.CallMethod(IScriptExtent errorPosition, Object target, String methodName, PSMethodInvocationConstraints invocationConstraints, Object[] paramArray, Boolean callStatic, Object valueToSet)
+   at System.Management.Automation.ParserOps.ImplicitOp(Object lval, Object rval, String op, IScriptExtent errorPosition, String errorOp)
+   at System.Management.Automation.Interpreter.DynamicInstruction`3.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)
+System.Management.Automation.RuntimeException: Method invocation failed because [System.Management.Automation.PSRemotingJob] does not contain a method named 'op_Addition'.
+   at System.Management.Automation.ParserOps.CallMethod(IScriptExtent errorPosition, Object target, String methodName, PSMethodInvocationConstraints invocationConstraints, Object[] paramArray, Boolean callStatic, Object valueToSet)
+   at System.Management.Automation.ParserOps.ImplicitOp(Object lval, Object rval, String op, IScriptExtent errorPosition, String errorOp)
+   at System.Management.Automation.Interpreter.DynamicInstruction`3.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)
+
+
+
+
+
+
+
+
+
+
+
+
 Start-AzVM -ResourceGroupName $SessionHostResourceGroup -Name $VMName -Force -NoWait
 
 
@@ -41,20 +166,20 @@ foreach ($SessionHost in $SessionHosts) {
     }
 }
 
-#foreach ($VMName in $VMsForAutoscale) {
-#    $Job = Start-Job -ScriptBlock {
-#        param ($VMName, $SessionHostResourceGroup)
-#        Start-AzVM -ResourceGroupName $SessionHostResourceGroup -Name $VMName -Force -NoWait
-#    } -ArgumentList $VMName, $SessionHostResourceGroup#
-#
-#    $JobList += $Job
-#}
-#
-#Write-Output "Waiting for all Start-AzVM jobs to complete..."
-#Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
-#$JobList | Wait-Job | Out-Null
-#Write-Output "All VMs have been started."
-#Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
+foreach ($VMName in $VMsForAutoscale) {
+    $Job = Start-Job -ScriptBlock {
+        param ($VMName, $SessionHostResourceGroup)
+        Start-AzVM -ResourceGroupName $SessionHostResourceGroup -Name $VMName -Force -NoWait
+    } -ArgumentList $VMName, $SessionHostResourceGroup#
+
+    $JobList += $Job
+}
+
+Write-Output "Waiting for all Start-AzVM jobs to complete..."
+Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
+$JobList | Wait-Job | Out-Null
+Write-Output "All VMs have been started."
+Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
 
 
 
