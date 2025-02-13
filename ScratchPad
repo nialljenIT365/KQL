@@ -1,3 +1,5 @@
+curl --head -k -w %{certs} https://management.azure.com
+
 nameresolver management.azure.com 1.1.1.1
 
 
