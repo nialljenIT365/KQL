@@ -1,3 +1,136 @@
+# Define the list of users for comparison
+$UserList = @(
+    "Abhijeet.Kumar@abrdn.com",
+    "Adam.Dmochowski@abrdn.com",
+    "Adam.Tabor@abrdn.com",
+    "Aideen.McCormack@abrdn.com",
+    "alan.chisholm@abrdn.com",
+    "Alan.Meechan@abrdn.com",
+    "alan.x.paterson@abrdn.com",
+    "Alex.Potter@abrdn.com",
+    "Alex.Smith@abrdn.com",
+    "Alexander.Metzler@abrdn.com",
+    "Alison.Cooper@abrdn.com",
+    "Amie.MacGruer@abrdn.com",
+    "Ana.FernandezCastro@abrdn.com",
+    "Andrew.Carrie@abrdn.com",
+    "Andrew.Davison@abrdn.com",
+    "Andrew.Frangoullis@abrdn.com",
+    "Andrew.McDermott@abrdn.com",
+    "andrew.x.mason@abrdn.com",
+    "Andy.Hubbard@abrdn.com",
+    "Anirudh.Chippa@abrdn.com",
+    "Anne.Breen@abrdn.com",
+    "Anthony.Merola@abrdn.com",
+    "Ben.Turner1@abrdn.com",
+    "Bhisham.Aggarwal@abrdn.com",
+    "Bob.Finlay@abrdn.com",
+    "Brian.Denyer@abrdn.com",
+    "calum.watson@abrdn.com",
+    "Chandan.KN@abrdn.com",
+    "Chris.Archer@abrdn.com",
+    "Christopher.McCorkell@abrdn.com",
+    "Christopher.Sinclair@abrdn.com",
+    "Conor.Davidson@abrdn.com",
+    "Cory.Zanelli@abrdn.com",
+    "Craig.Martin@abrdn.com",
+    "Daniel.Hall@abrdn.com",
+    "Daniel.Lee@abrdn.com",
+    "David.Sheridan@abrdn.com",
+    "david.x.scott@abrdn.com",
+    "Dhanunjayarao.Nadupuru@abrdn.com",
+    "Douglas.Omond@abrdn.com",
+    "Duncan.Moir@abrdn.com",
+    "Durga.Vallabaswaminathan@abrdn.com",
+    "Ed.Jenkins@abrdn.com",
+    "Edel.Bashir@abrdn.com",
+    "Edgar.Henrici@abrdn.com",
+    "Elizabeth.Chiweshenga@abrdn.com",
+    "Euan.Anderson@abrdn.com",
+    "Euan.Martin@abrdn.com",
+    "Finlay.ONeill@abrdn.com",
+    "Fiona.Christine@abrdn.com",
+    "Fiona.Harney@abrdn.com",
+    "Garry.McKay@abrdn.com",
+    "Gautham.Rajan1@abrdn.com",
+    "Geoff.Webb@abrdn.com",
+    "Georgia.Bostock@abrdn.com",
+    "Glenn.Urquhart@abrdn.com",
+    "Grainne.Kennedy@abrdn.com",
+    "Grant.Robertson@abrdn.com",
+    "Hancy.Arora@abrdn.com",
+    "Harry.John@abrdn.com",
+    "Hugh.Leggat@abrdn.com",
+    "Iain.Leheny@abrdn.com",
+    "Iain.Wilson@abrdn.com",
+    "Ian.Forrest@abrdn.com",
+    "Ian.Perkin@abrdn.com",
+    "James.Beasant@abrdn.com",
+    "James.Duong@abrdn.com",
+    "James.England@abrdn.com",
+    "Jan.Buchan@abrdn.com",
+    "Jay.Carlington@abrdn.com",
+    "jennifer.a.moncrieff@abrdn.com",
+    "Jennifer.Black1@abrdn.com",
+    "jeremy.shek@abrdn.com",
+    "Jim.Stacey@abrdn.com",
+    "John.Brophy@abrdn.com",
+    "John.Hill@abrdn.com",
+    "Juilee.Katkar@abrdn.com",
+    "julia.h.riddoch@abrdn.com",
+    "Julien.Martin@abrdn.com",
+    "Jun.Oishi@abrdn.com",
+    "Kaki.Chandu@abrdn.com",
+    "Karen.Cockburn@abrdn.com",
+    "Karen.Love@abrdn.com",
+    "Karen.McNeill@abrdn.com",
+    "karen.trotter@abrdn.com",
+    "Karthikeyan.D@abrdn.com",
+    "Katie.Beale@abrdn.com",
+    "Keenan.Fishwick@abrdn.com",
+    "Khadijat.Tijani@abrdn.com",
+    "Kieran.Hopkins@abrdn.com",
+    "Kiran.Dhaliwal@abrdn.com",
+    "Kirstin.Duncan@abrdn.com",
+    "Lance.Eddis-Finbow@abrdn.com",
+    "Laoise.Daly@abrdn.com",
+    "Laura.Banks@abrdn.com",
+    "Lauren.Ferrier@abrdn.com",
+    "Lauren.Irvine@abrdn.com",
+    "lauren.x.williamson@abrdn.com",
+    "Lee.Anderson@abrdn.com",
+    "Leigh.Sanderson@abrdn.com",
+    "les.ross@abrdn.com",
+    "Mansoor.Ahmad@abrdn.com",
+    "Manuela.Beck@abrdn.com",
+    "Matthew.Steer@abrdn.com",
+    "Meljin.Joseph@abrdn.com",
+    "Michael.Robertson@abrdn.com",
+    "Michele.Henry@abrdn.com",
+    "Mike.Scott@abrdn.com",
+    "minnie.z.anku@abrdn.com",
+    "Mohd.Abbas@abrdn.com"
+)
+
+# Get the session hosts
+$SessHosts = Get-AzWvdSessionHost -ResourceGroupName "rg-EUS-RemoteDesktopDevices-WorkspaceAndStorage-NEU-PRD" -HostPoolName "NEU_PRD_SSPersistent"
+
+# Compare assigned users with the predefined list
+foreach ($shost in $SessHosts) {
+    $AUser = $shost.AssignedUser
+
+    if ($AUser -in $UserList) {
+        Write-Output "Match Found: $AUser assigned to $($shost.Name)"
+    } else {
+        Write-Output "No Match: $AUser assigned to $($shost.Name)"
+    }
+}
+
+
+
+
+
+
 Users with AVD
 Abhijeet.Kumar@abrdn.com
 Adam.Dmochowski@abrdn.com
