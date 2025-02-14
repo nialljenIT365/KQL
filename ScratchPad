@@ -1,26 +1,37 @@
-$ResourceGroupName = rg-EUS-RemoteDesktopDevices-UATVirtualDesktop-NEU-PRD
+$ResourceGroupName = "rg-EUS-RemoteDesktopDevices-UATVirtualDesktop-NEU-PRD"
 
 ##Change Me##
 $tags = @{"ABRDN_AUTOSCALE_Exclude" = "TRUE"}
 ##Change Me##
 
-# Retrieve VM details and extract the Resource ID
-$VM = Get-AzVM -ResourceGroupName $ResourceGroupName -Name $AzureVMName
-$VMResourceId = $VM.Id
+# Define the list of VM names
+$AzureVMs = @(
+    "M01USSPI0047",
+    "M01USSPI0074",
+    "M01USSPI0086",
+    "M01USSPI0048",
+    "M01USSPI0035",
+    "M01USSPI0044",
+    "M01USSPI0059"
+)
 
-Write-Output "VM Resource ID is: $VMResourceId"
+foreach ($AzureVMName in $AzureVMs) {
+    try {
+        # Retrieve VM details and extract the Resource ID
+        $VM = Get-AzVM -ResourceGroupName $ResourceGroupName -Name $AzureVMName -ErrorAction Stop
+        $VMResourceId = $VM.Id
 
-# Update the tag on the VM
-Update-AzTag -ResourceId $VMResourceId -Tag $tags -Operation Merge
+        Write-Output "Updating VM: $AzureVMName (Resource ID: $VMResourceId)"
 
-Replace $AzureVMName with a list of $AzureVMs
-M01USSPI0047
-M01USSPI0074
-M01USSPI0086
-M01USSPI0048
-M01USSPI0035
-M01USSPI0044
-M01USSPI0059
+        # Update the tag on the VM
+        Update-AzTag -ResourceId $VMResourceId -Tag $tags -Operation Merge
+
+        Write-Output "Successfully updated tags for VM: $AzureVMName"
+    }
+    catch {
+        Write-Output "Failed to update VM: $AzureVMName. Error: $_"
+    }
+}
 
 
 
