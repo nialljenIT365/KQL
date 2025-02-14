@@ -3,7 +3,6 @@ NMW-hybridworker-vm
 https://nmehelp.getnerdio.com/hc/en-us/articles/26124302308109-Scripted-Actions-for-Azure-Runbooks#Install
 nmw-app-kv-
 
-
 function Save-ZipModules {
     param(
         [array]$Modules = @(), # Array of hashtables or a single hashtable, e.g., @{Name="Module1"; Version="1.0.0"} or @(@{Name="Module1"; Version="1.0.0"})
@@ -58,7 +57,7 @@ function Save-ZipModules {
 # Example script to call the function with different inputs
 
 # Single module input
-$Module1 = @{Name="Az.Avd"; Version="3.1.0"}
+$Module1 = @{Name="Az.Resources"; Version="6.5.3"}
 Save-ZipModules -Modules $Module1 -DestinationPath "C:\MyModules" -DeleteExistingContents
 
 # Multiple modules input
