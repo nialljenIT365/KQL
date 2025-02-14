@@ -57,17 +57,26 @@ function Save-ZipModules {
 # Example script to call the function with different inputs
 
 # Single module input
-$Module1 = @{Name="Az.Resources"; Version="6.5.3"}
-Save-ZipModules -Modules $Module1 -DestinationPath "C:\MyModules" -DeleteExistingContents
+#$Module1 = @{Name="Az.Resources"; Version="6.5.3"}
+#Save-ZipModules -Modules $Module1 -DestinationPath "C:\MyModules" -DeleteExistingContents
 
 # Multiple modules input
 $Modules = @(
-    @{Name="Module2"; Version="2.0.0"},
-    @{Name="Module3"; Version="3.1.0"}
+    @{Name="Az.Resources"; Version="6.5.3"},
+    @{Name="Az.Compute"; Version="5.6.0"},
+    @{Name="Az.Accounts"; Version="2.12.1"},
+    @{Name="Az.KeyVault"; Version="4.9.2"},
+    @{Name="Az.DesktopVirtualization"; Version="3.1.1"},
+    @{Name="Az.Avd"; Version="3.1.0"}
 )
-#Save-ZipModules -Modules $Modules -DestinationPath "C:\MyOtherModules"
+Save-ZipModules -Modules $Modules -DestinationPath "C:\MyModules"
 
-Get-ChildItem -Patstarh "C:\Program Files\WindowsPowerShell\Modules\Az.Avd" -Recurse | Unblock-File
+Get-ChildItem -Path "C:\Program Files\WindowsPowerShell\Modules\Az.Resources" -Recurse | Unblock-File
+Get-ChildItem -Path "C:\Program Files\WindowsPowerShell\Modules\Az.Compute" -Recurse | Unblock-File
+Get-ChildItem -Path "C:\Program Files\WindowsPowerShell\Modules\Az.KeyVault" -Recurse | Unblock-File
+Get-ChildItem -Path "C:\Program Files\WindowsPowerShell\Modules\Az.Accounts" -Recurse | Unblock-File
+Get-ChildItem -Path "C:\Program Files\WindowsPowerShell\Modules\Az.DesktopVirtualization" -Recurse | Unblock-File
+Get-ChildItem -Path "C:\Program Files\WindowsPowerShell\Modules\Az.Avd" -Recurse | Unblock-File
 
 
 
