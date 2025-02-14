@@ -1,3 +1,28 @@
+# Define output CSV file path
+$CsvFilePath = "C:\Temp\SessionHosts.csv"
+
+# Retrieve session hosts
+$SessHosts = Get-AzWvdSessionHost -ResourceGroupName "rg-EUS-RemoteDesktopDevices-WorkspaceAndStorage-NEU-PRD" -HostPoolName "NEU_PRD_SSPersistent"
+
+# Create an array to store session host details
+$SessionHostData = @()
+
+# Loop through each session host and collect data
+foreach ($shost in $SessHosts) {
+    $SessionHostData += [PSCustomObject]@{
+        "SessionHostName" = $shost.Name
+        "AssignedUser"    = $shost.AssignedUser
+    }
+}
+
+# Export data to CSV
+$SessionHostData | Export-Csv -Path $CsvFilePath -NoTypeInformation -Encoding UTF8
+
+Write-Output "Session hosts exported to $CsvFilePath"
+
+
+
+
 $SessHosts = Get-AzWvdSessionHost -ResourceGroupName "rg-EUS-RemoteDesktopDevices-WorkspaceAndStorage-NEU-PRD" -HostPoolName "NEU_PRD_SSPersistent"
 foreach ($shost in $SessHosts) {
     $AUser = $shost.AssignedUser
