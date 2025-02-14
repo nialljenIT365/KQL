@@ -1,3 +1,10 @@
+$SessHosts = Get-AzWvdSessionHost -ResourceGroupName "rg-EUS-RemoteDesktopDevices-WorkspaceAndStorage-NEU-PRD" -HostPoolName "NEU_PRD_SSPersistent"
+foreach ($shost in $SessHosts) {
+    $AUser = $shost.AssignedUser
+    Write-Output "$($shost.Name), $AUser"
+}
+
+
 
 https://github.com/nialljenIT365/Scripts/blob/main/Save-ZipModules.ps1
 https://github.com/nialljenIT365/Scripts/blob/main/Unblock-File.ps1
