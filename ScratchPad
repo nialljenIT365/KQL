@@ -1,4 +1,7 @@
 
+Because RunVirtual can only be used for one local EXE and one App-V package per user this has limitations for users that require multiple plugins for the same, you would need to bundle plugins for users with the same requirements rather than package them separate.
+You cant replicate App-V packages across regions in the same way as you can with app attach images so you would need a region specific entry per app in the app attach portal if attaching to hostpools in multiple regions.
+
 https://github.com/nialljenIT365/Scripts/blob/main/Save-ZipModules.ps1
 https://github.com/nialljenIT365/Scripts/blob/main/Unblock-File.ps1
 
