@@ -1,3 +1,79 @@
+#description: Uninstall VMware Carbon Black EDR Sensor
+#execution mode: Individual
+#tags: abrdn, Apps Uninstall
+
+<#
+Notes:
+This script uninstalls the VMware Carbon Black EDR Sensor by:
+1. Checking for the specific registry key.
+2. Executing the uninstallation command found in the registry.
+3. Logging the uninstallation process.
+4. Verifying the removal of the registry key after uninstallation.
+#>
+
+# Define registry path and log file
+$RegistryPath = "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{D39D543C-4B68-4FB7-AD24-6B69A226E275}"
+$LogFile = "C:\Windows\CarbonBlack_Uninstall.log"
+
+# Start logging
+Write-Output "Starting VMware Carbon Black EDR Sensor uninstallation process..." | Tee-Object -FilePath $LogFile -Append
+
+# Check if the registry key exists
+if (Test-Path -Path $RegistryPath) {
+    Write-Output "Registry key found: $RegistryPath" | Tee-Object -FilePath $LogFile -Append
+
+    # Retrieve the UninstallString from the registry
+    try {
+        $UninstallString = (Get-ItemProperty -Path $RegistryPath -Name "UninstallString").UninstallString
+        Write-Output "UninstallString retrieved: $UninstallString" | Tee-Object -FilePath $LogFile -Append
+    } catch {
+        Write-Output "Error retrieving UninstallString: $_" | Tee-Object -FilePath $LogFile -Append
+        Exit 1
+    }
+
+    # Check if UninstallString is not empty
+    if (![string]::IsNullOrEmpty($UninstallString)) {
+        # Execute the uninstallation command silently
+        try {
+            Write-Output "Executing uninstallation command..." | Tee-Object -FilePath $LogFile -Append
+            $Process = Start-Process -FilePath $UninstallString -ArgumentList "/S" -NoNewWindow -Wait -PassThru -RedirectStandardOutput $LogFile -RedirectStandardError $LogFile
+
+            # Log the process exit code
+            Write-Output "Uninstaller process exit code: $($Process.ExitCode)" | Tee-Object -FilePath $LogFile -Append
+
+            if ($Process.ExitCode -eq 0) {
+                Write-Output "Uninstallation completed successfully." | Tee-Object -FilePath $LogFile -Append
+            } else {
+                Write-Output "Uninstallation encountered issues. Exit code: $($Process.ExitCode)" | Tee-Object -FilePath $LogFile -Append
+            }
+        } catch {
+            Write-Output "Error during uninstallation execution: $_" | Tee-Object -FilePath $LogFile -Append
+            Exit 1
+        }
+    } else {
+        Write-Output "UninstallString is empty. Cannot proceed with uninstallation." | Tee-Object -FilePath $LogFile -Append
+        Exit 1
+    }
+
+    # Verify if the registry key has been removed
+    if (-not (Test-Path -Path $RegistryPath)) {
+        Write-Output "Registry key successfully removed." | Tee-Object -FilePath $LogFile -Append
+    } else {
+        Write-Output "Registry key still exists after uninstallation." | Tee-Object -FilePath $LogFile -Append
+    }
+} else {
+    Write-Output "Registry key not found: $RegistryPath. VMware Carbon Black EDR Sensor may not be installed." | Tee-Object -FilePath $LogFile -Append
+}
+
+Write-Output "Uninstallation process completed." | Tee-Object -FilePath $LogFile -Append
+
+### End Script ###
+
+
+
+
+
+
 Windows Registry Editor Version 5.00
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{D39D543C-4B68-4FB7-AD24-6B69A226E275}]
