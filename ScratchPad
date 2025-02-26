@@ -1,3 +1,62 @@
+#description: Uninstall Carbon Black with logging
+#execution mode: Individual
+#tags: abrdn, Apps Uninstall
+
+<#
+Notes:
+- This script uninstalls Carbon Black and captures the process output to a log file.
+- It includes error handling and checks to prevent running the uninstaller if it does not exist.
+- Output is logged both to standard output and a log file.
+#>
+
+# Define paths
+$CarbonBlackPath = "C:\Windows\CarbonBlack"
+$Uninstaller = "$CarbonBlackPath\uninst.exe"
+$LogFile = "C:\Windows\CarbonBlack_Uninstall.log"
+
+# Start logging
+Write-Output "Starting Carbon Black uninstallation process..." | Tee-Object -FilePath $LogFile -Append
+
+# Check if the Carbon Black directory exists
+if (Test-Path -Path $CarbonBlackPath) {
+    Write-Output "Carbon Black directory found: $CarbonBlackPath" | Tee-Object -FilePath $LogFile -Append
+
+    # Check if the uninstaller exists
+    if (Test-Path -Path $Uninstaller) {
+        Write-Output "Uninstaller found: $Uninstaller" | Tee-Object -FilePath $LogFile -Append
+
+        try {
+            # Run the uninstaller and capture output
+            Write-Output "Running Carbon Black uninstaller..." | Tee-Object -FilePath $LogFile -Append
+            $process = Start-Process -FilePath $Uninstaller -ArgumentList "/uninstall /S" -NoNewWindow -Wait -PassThru -RedirectStandardOutput $LogFile -RedirectStandardError $LogFile
+
+            # Log the process exit code
+            Write-Output "Uninstaller process exit code: $($process.ExitCode)" | Tee-Object -FilePath $LogFile -Append
+
+            if ($process.ExitCode -eq 0) {
+                Write-Output "Carbon Black uninstallation completed successfully." | Tee-Object -FilePath $LogFile -Append
+            } else {
+                Write-Output "Carbon Black uninstallation may have encountered an issue. Exit code: $($process.ExitCode)" | Tee-Object -FilePath $LogFile -Append
+            }
+        } catch {
+            Write-Output "Error during uninstallation: $_" | Tee-Object -FilePath $LogFile -Append
+            Exit 1
+        }
+    } else {
+        Write-Output "Error: Uninstaller not found at $Uninstaller" | Tee-Object -FilePath $LogFile -Append
+        Exit 1
+    }
+} else {
+    Write-Output "Error: Carbon Black installation directory not found at $CarbonBlackPath. Exiting." | Tee-Object -FilePath $LogFile -Append
+    Exit 1
+}
+
+### End Script ###
+
+
+
+
+
 #description: Uninstall Carbon Black
 #execution mode: Individual
 #tags: abrdn, Apps install
