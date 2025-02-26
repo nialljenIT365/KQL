@@ -1,3 +1,16 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{D39D543C-4B68-4FB7-AD24-6B69A226E275}]
+"DisplayName"="VMware Carbon Black EDR Sensor"
+"UninstallString"="C:\\Windows\\CarbonBlack\\uninst.exe"
+"DisplayIcon"="C:\\Windows\\CarbonBlack\\cb.exe"
+"DisplayVersion"="7.4.1.18957"
+"Publisher"="VMware, Inc."
+
+
+
+
+
 #description: Uninstall Carbon Black with logging
 #execution mode: Individual
 #tags: abrdn, Apps Uninstall
