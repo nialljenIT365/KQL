@@ -9,6 +9,18 @@ Perf
 
 
 
+
+let daysAgo = 1d;
+Perf
+| where TimeGenerated > ago(daysAgo)
+| where ObjectName contains "User Input Delay per Process"
+| where Computer contains "M01UMSNI0002"
+| where InstanceName contains "rdpvchost.exe"
+| extend SessionId = extract(@"^(\d+):", 1, InstanceName)
+| extend SessionHostKey = tolower(substring(Computer, 0, 8))
+
+
+
 let daysAgo = 1d;
 Perf
 | where TimeGenerated > ago(daysAgo)
