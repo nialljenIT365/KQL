@@ -6,6 +6,20 @@ Perf
 | where InstanceName contains "rdpvchost.exe"
 | extend SessionId = extract(@"^(\d+):", 1, InstanceName)
 | extend SessionHostKey = tolower(substring(Computer, 0, 8))
+| summarize DistinctSessionCount = dcount(SessionId) by bin(TimeGenerated, 1h), SessionHostKey
+
+
+
+
+
+let daysAgo = 1h;
+Perf
+| where TimeGenerated > ago(daysAgo)
+| where ObjectName contains "User Input Delay per Process"
+| where Computer contains "M01UMSNI0003"
+| where InstanceName contains "rdpvchost.exe"
+| extend SessionId = extract(@"^(\d+):", 1, InstanceName)
+| extend SessionHostKey = tolower(substring(Computer, 0, 8))
 | summarize DistinctSessionCount = dcount(SessionId) by bin(TimeGenerated, 1h), Computer
 
 
