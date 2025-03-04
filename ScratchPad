@@ -1,3 +1,5 @@
+| extend SessionIdWithHost = strcat(SessionId, "_", SessionHostKey)  // Appending SessionHostKey to SessionId
+
 let HostPoolMapping = datatable(SessionHostKey: string, HostPoolName: string)
 [
     "m01plcri", "neu_prd_low_crims_rmpooled",
