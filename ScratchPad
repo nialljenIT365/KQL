@@ -2,6 +2,7 @@ Perf
 | where ObjectName contains "User Input Delay per Process"
 | where Computer contains "M01UMSNI0002"
 | where InstanceName contains "rdpvchost.exe"
+| extend ProcessId = extract(@"^(\d+):", 1, InstanceName)
 
 Returns below I want to truncate column InstanceName  to return only digits in front of the :
 
