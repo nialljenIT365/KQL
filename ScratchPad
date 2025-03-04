@@ -1,3 +1,5 @@
+Working but not for single Session
+
 let HostPoolMapping = datatable(SessionHostKey: string, HostPoolName: string)
 [
     "m01plcri", "neu_prd_low_crims_rmpooled",
@@ -26,7 +28,6 @@ let HostPoolMapping = datatable(SessionHostKey: string, HostPoolName: string)
     "m14usspi", "neu_uat_sspersistent",
     "m01ohcri", "neu_oat_high_crims_rmpooled"
 ];
-
 Perf
 | where ObjectName == "User Input Delay per Process"
 | where InstanceName contains "rdpvchost.exe"
@@ -35,78 +36,7 @@ Perf
 | join kind=leftouter HostPoolMapping on SessionHostKey
 | summarize DistinctSessionCount = dcount(SessionId) by bin(TimeGenerated, 1h), SessionHostKey, HostPoolName
 | order by TimeGenerated desc
-
-
-
-Perf
-| where ObjectName == "User Input Delay per Process"
-| where InstanceName contains "rdpvchost.exe"
-| extend SessionId = extract(@"^(\d+):", 1, InstanceName)
-| extend SessionHostKey = tolower(substring(Computer, 0, 8))
-| summarize DistinctSessionCount = dcount(SessionId) by bin(TimeGenerated, 1h), SessionHostKey
-| order by TimeGenerated desc
-
-
-
-
-let daysAgo = 1d;
-Perf
-| where TimeGenerated > ago(daysAgo)
-| where ObjectName contains "User Input Delay per Process"
-| where Computer contains "M01UMSNI0002"
-| where InstanceName contains "rdpvchost.exe"
-| extend SessionId = extract(@"^(\d+):", 1, InstanceName)
-| extend SessionHostKey = tolower(substring(Computer, 0, 8))
-| summarize DistinctSessionCount = dcount(SessionId) by bin(TimeGenerated, 1h), SessionHostKey
-| project TimeGenerated, SessionHostKey, DistinctSessionCount
-| order by TimeGenerated asc
-
-
-
-
-
-let daysAgo = 1d;
-Perf
-| where TimeGenerated > ago(daysAgo)
-| where ObjectName contains "User Input Delay per Process"
-| where Computer contains "M01UMSNI0002"
-| where InstanceName contains "rdpvchost.exe"
-| extend SessionId = extract(@"^(\d+):", 1, InstanceName)
-| extend SessionHostKey = tolower(substring(Computer, 0, 8))
-
-
-
-let daysAgo = 1d;
-Perf
-| where TimeGenerated > ago(daysAgo)
-| where ObjectName contains "User Input Delay per Process"
-| where Computer contains "M01UMSNI0002"
-| where InstanceName contains "rdpvchost.exe"
-| extend SessionId = extract(@"^(\d+):", 1, InstanceName)
-
-
-
-
-let daysAgo = 1d;
-Perf
-| where TimeGenerated > ago(daysAgo)
-| where ObjectName contains "User Input Delay per Process"
-| where Computer contains "M01UMSNI0002"
-| where InstanceName contains "rdpvchost.exe"
-| extend SessionId = extract(@"^(\d+):", 1, InstanceName)
-| summarize DistinctSessionCount = dcount(SessionId) by bin(TimeGenerated, 1h)
-| project TimeGenerated, DistinctSessionCount
-
-
-let daysAgo = 31d;
-WVDConnections 
-| where TimeGenerated > ago(daysAgo)
-| where State == "Connected" 
-| project _ResourceId, UserName 
-| project-rename Hostpool = _ResourceId 
-| summarize DistinctUsers= dcount(UserName) by Hostpool 
-| extend HostPool=toupper(strcat(split(Hostpool, "/")[4], ".", split(Hostpool, "/")[8])) 
-| project HostPool, DistinctUsers
+| project TimeGenerated,HostPoolName, SessionHostKey, DistinctSessionCount
 
 
 https://getnerdio.com/resources/?utm_term=get+nerdio&utm_campaign=Search+-+EMEA+-+Brand&utm_source=bing&utm_medium=ppc&utm_content=EMEA+-+Brand
