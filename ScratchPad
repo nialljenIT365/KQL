@@ -5,56 +5,8 @@ Perf
 | where Computer contains "M01UMSNI0002"
 | where InstanceName contains "rdpvchost.exe"
 | extend SessionId = extract(@"^(\d+):", 1, InstanceName)
-| project TimeGenerated, SessionId, Computer, _ResourceId
-
-
-
-returns thhe below
-Can you modify KQL to return a distinct count of SessionIDs for each hour
-
-TimeGenerated [UTC]	SessionId	Computer	_ResourceId
-04/03/2025, 13:49:35.904	2	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 13:49:35.904	4	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 13:49:35.904	3	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 13:49:35.904	6	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 13:49:35.904	13	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 13:49:35.904	8	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 13:49:35.904	14	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 13:49:35.904	10	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 13:49:35.904	15	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 13:49:35.904	19	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 13:49:35.904	28	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 13:57:35.938	2	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 13:57:35.938	4	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 13:57:35.938	3	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 13:57:35.938	6	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 13:57:35.938	13	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 13:57:35.938	31	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 13:57:35.938	8	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 13:57:35.938	14	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 13:57:35.938	10	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 13:57:35.938	15	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 13:57:35.938	19	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 13:57:35.938	28	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 14:05:36.075	2	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 14:05:36.075	4	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 14:05:36.075	3	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 14:05:36.075	6	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 14:05:36.075	13	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 14:05:36.075	31	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 14:05:36.075	8	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 14:05:36.075	14	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 14:05:36.075	10	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 14:05:36.075	15	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 14:05:36.075	19	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 14:05:36.075	28	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 14:17:36.006	2	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 14:17:36.006	4	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-04/03/2025, 14:17:36.006	3	M01UMSNI0002.aberdeen.aberdeen-asset.com	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-uatvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01umsni0002
-
-
-
-
+| summarize DistinctSessionCount = dcount(SessionId) by bin(TimeGenerated, 1h)
+| project TimeGenerated, DistinctSessionCount
 
 
 let daysAgo = 31d;
