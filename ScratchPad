@@ -6,6 +6,10 @@ Perf
 | where InstanceName contains "rdpvchost.exe"
 | extend SessionId = extract(@"^(\d+):", 1, InstanceName)
 | extend SessionHostKey = tolower(substring(Computer, 0, 8))
+| summarize DistinctSessionCount = dcount(SessionId) by bin(TimeGenerated, 1h), SessionHostKey
+| project TimeGenerated, SessionHostKey, DistinctSessionCount
+| order by TimeGenerated asc
+
 
 
 
