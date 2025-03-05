@@ -1,3 +1,64 @@
+M06PSSPG0004
+M06PSSPG0079
+M06PSSPG0022
+M06PSSPG0082
+M06PSSPG0042
+M06PSSPG0040
+M06PSSPG0078
+M06PSSPG0006
+M06PSSPG0005
+M06PSSPG0002
+M06PSSPG0034
+M06PSSPG0013
+M06PSSPG0050
+M06PSSPG0049
+M06PSSPG0062
+M06PSSPG0018
+M06PSSPG0070
+M06PSSPG0065
+M06PSSPG0037
+M06PSSPG0081
+
+
+$ResourceGroupName = "rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-EUS2-PRD"
+
+##Change Me##
+$tags = @{"ABRDN_AUTOSCALE_Exclude" = "TRUE"}
+##Change Me##
+
+# Define the list of VM names
+$AzureVMs = @(
+    "M06PSSPG0004", "M06PSSPG0079", "M06PSSPG0022", "M06PSSPG0082", "M06PSSPG0042",
+    "M06PSSPG0040", "M06PSSPG0078", "M06PSSPG0006", "M06PSSPG0005", "M06PSSPG0002",
+    "M06PSSPG0034", "M06PSSPG0013", "M06PSSPG0050", "M06PSSPG0049", "M06PSSPG0062",
+    "M06PSSPG0018", "M06PSSPG0070", "M06PSSPG0065", "M06PSSPG0037", "M06PSSPG0081"
+)
+
+foreach ($AzureVMName in $AzureVMs) {
+    try {
+        # Retrieve VM details and extract the Resource ID
+        $VM = Get-AzVM -ResourceGroupName $ResourceGroupName -Name $AzureVMName -ErrorAction Stop
+        $VMResourceId = $VM.Id
+
+        Write-Output "Updating VM: $AzureVMName (Resource ID: $VMResourceId)"
+
+        # Update the tag on the VM
+        Update-AzTag -ResourceId $VMResourceId -Tag $tags -Operation Merge
+
+        Write-Output "Successfully updated tags for VM: $AzureVMName"
+    }
+    catch {
+        Write-Output "Failed to update VM: $AzureVMName. Error: $_"
+    }
+}
+
+
+
+
+
+
+
+
 let
     Source = List.Numbers(1, 8184),
     TableFromList = Table.FromList(Source, Splitter.SplitByNothing(), {"Index"})
