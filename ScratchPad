@@ -1,3 +1,11 @@
+let
+    Source = List.Numbers(1, 8184),
+    TableFromList = Table.FromList(Source, Splitter.SplitByNothing(), {"Index"})
+in
+    TableFromList
+
+
+
 $ResourceGroupName = "rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD"
 
 ##Change Me##
