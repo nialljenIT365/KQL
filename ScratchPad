@@ -1,3 +1,15 @@
+TimeGenerated [UTC]	SessionHostName	HealthCheckName	HealthCheckResult	ErrorType	ErrorDetail
+20/03/2025, 07:28:22.350	M01PSSPI1296.aberdeen.aberdeen-asset.com	10	2	Native error 1816	SessionHost needs assistance: The following MSIX packages have failed to properly stage: [ManagementStudioClient-2023.355.689-001A_2023.355.690.0_x64__nmvg3h6wsd778, (Native error 1816
+20/03/2025, 07:28:52.416	M01PSSPI1296.aberdeen.aberdeen-asset.com	10	2	Native error 1816	SessionHost needs assistance: The following MSIX packages have failed to properly stage: [ManagementStudioClient-2023.355.689-001A_2023.355.690.0_x64__nmvg3h6wsd778, (Native error 1816
+20/03/2025, 07:26:52.187	M01PSSPI1296.aberdeen.aberdeen-asset.com	10	2	Native error 1816	SessionHost needs assistance: The following MSIX packages have failed to properly stage: [ManagementStudioClient-2023.355.689-001A_2023.355.690.0_x64__nmvg3h6wsd778, (Native error 1816
+20/03/2025, 07:27:22.241	M01PSSPI1296.aberdeen.aberdeen-asset.com	10	2	Native error 1816	SessionHost needs assistance: The following MSIX packages have failed to properly stage: [ManagementStudioClient-2023.355.689-001A_2023.355.690.0_x64__nmvg3h6wsd778, (Native error 1816
+20/03/2025, 07:27:52.301	M01PSSPI1296.aberdeen.aberdeen-asset.com	10	2	Native error 1816	SessionHost needs assistance: The following MSIX packages have failed to properly stage: [ManagementStudioClient-2023.355.689-001A_2023.355.690.0_x64__nmvg3h6wsd778, (Native error 1816
+20/03/2025, 07:29:24.424	M01PSSPI1296.aberdeen.aberdeen-asset.com	10	2	Native error 1816	SessionHost needs assistance: The following MSIX packages have failed to properly stage: [ManagementStudioClient-2023.355.689-001A_2023.355.690.0_x64__nmvg3h6wsd778, (Native error 1816
+20/03/2025, 07:29:54.462	M01PSSPI1296.aberdeen.aberdeen-asset.com	10	2	Native error 1816	SessionHost needs assistance: The following MSIX packages have failed to properly stage: [ManagementStudioClient-2023.355.689-001A_2023.355.690.0_x64__nmvg3h6wsd778, (Native error 1816
+
+
+
+
 WVDAgentHealthStatus
 | extend ParsedHealthChecks = parse_json(SessionHostHealthCheckResult) 
 | mv-expand ParsedHealthChecks
