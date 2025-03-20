@@ -29,7 +29,7 @@ WVDAgentHealthStatus
          Package18 = tostring(UniquePackages[17]),
          Package19 = tostring(UniquePackages[18]),
          Package20 = tostring(UniquePackages[19]),
-         RemainingPackages = iff(PackageCount > 20, strcat_array(slice(UniquePackages, 20, PackageCount), "; "), "")
+         RemainingPackages = iff(PackageCount > 20, strcat_array(UniquePackages[20:], "; "), "")
 | project StatusTimeStamp, SessionHostName, ErrorType, PackageCount, 
           Package1, Package2, Package3, Package4, Package5, 
           Package6, Package7, Package8, Package9, Package10,
