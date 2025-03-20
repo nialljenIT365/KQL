@@ -1,3 +1,18 @@
+WVDAgentHealthStatus
+| extend ParsedHealthChecks = parse_json(SessionHostHealthCheckResult) 
+| mv-expand ParsedHealthChecks
+| extend HealthCheckName = tostring(ParsedHealthChecks.HealthCheckName),
+         HealthCheckResult = tostring(ParsedHealthChecks.HealthCheckResult),
+         ErrorMessage = tostring(ParsedHealthChecks.AdditionalFailureDetails.Message)
+| where ErrorMessage contains "MSIX packages have failed to properly stage"
+| extend PackagesList = extract_all(@"\[(.*?), \(", ErrorMessage)
+| mv-expand PackagesList
+| extend MSIXPackageName = tostring(PackagesList)
+| project TimeGenerated, SessionHostName, HealthCheckName, HealthCheckResult, ErrorType="MSIX Package Failure", MSIXPackageName
+
+
+
+
 TimeGenerated [UTC]	SessionHostName	HealthCheckName	HealthCheckResult	ErrorType	ErrorDetail
 20/03/2025, 07:28:22.350	M01PSSPI1296.aberdeen.aberdeen-asset.com	10	2	Native error 1816	SessionHost needs assistance: The following MSIX packages have failed to properly stage: [ManagementStudioClient-2023.355.689-001A_2023.355.690.0_x64__nmvg3h6wsd778, (Native error 1816
 20/03/2025, 07:28:52.416	M01PSSPI1296.aberdeen.aberdeen-asset.com	10	2	Native error 1816	SessionHost needs assistance: The following MSIX packages have failed to properly stage: [ManagementStudioClient-2023.355.689-001A_2023.355.690.0_x64__nmvg3h6wsd778, (Native error 1816
