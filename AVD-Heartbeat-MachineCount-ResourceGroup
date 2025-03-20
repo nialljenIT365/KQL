@@ -1,0 +1,4 @@
+Heartbeat
+| extend NormalizedResourceGroup = tolower(ResourceGroup)  // Convert ResourceGroup to lowercase
+| summarize MachineCount = dcount(Computer) by bin(TimeGenerated, 1h), NormalizedResourceGroup
+| sort by TimeGenerated desc, NormalizedResourceGroup
