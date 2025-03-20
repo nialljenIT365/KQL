@@ -8,6 +8,23 @@ WVDAgentHealthStatus
 | extend PackagesList = extract_all(@"\[(.*?), \(", ErrorMessage)
 | mv-expand PackagesList
 | extend MSIXPackageName = tostring(PackagesList)
+| summarize MSIXPackagesList = make_set(MSIXPackageName) by StatusTimeStamp, SessionHostName, ErrorType="MSIX Package Failure"
+| project StatusTimeStamp, SessionHostName, ErrorType, MSIXPackagesList
+| order by StatusTimeStamp desc
+
+
+
+
+WVDAgentHealthStatus
+| extend ParsedHealthChecks = parse_json(SessionHostHealthCheckResult) 
+| mv-expand ParsedHealthChecks
+| extend HealthCheckName = tostring(ParsedHealthChecks.HealthCheckName),
+         HealthCheckResult = tostring(ParsedHealthChecks.HealthCheckResult),
+         ErrorMessage = tostring(ParsedHealthChecks.AdditionalFailureDetails.Message)
+| where ErrorMessage contains "MSIX packages have failed to properly stage"
+| extend PackagesList = extract_all(@"\[(.*?), \(", ErrorMessage)
+| mv-expand PackagesList
+| extend MSIXPackageName = tostring(PackagesList)
 | project StatusTimeStamp, SessionHostName, ErrorType="MSIX Package Failure", MSIXPackageName
 | order by StatusTimeStamp desc
 
