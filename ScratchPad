@@ -1,3 +1,6 @@
+| extend ResourceGroup = extract(@"/resourcegroups/([^/]+)/", 1, _ResourceId)
+
+
 let HostPoolMapping = datatable(SessionHostKey: string, HostPoolName: string)
 [
     "m01plcri", "neu_prd_low_crims_rmpooled",
