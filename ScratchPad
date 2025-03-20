@@ -1,3 +1,16 @@
+WVDManagement
+| where Route == "ArmSessionHost::GetSessionHost"
+| extend SplitAll=split(_ResourceId, '/')
+| extend HostPool=SplitAll[8]
+| where HostPool contains "neu_prd_sspersistent"
+| summarize DistinctSessionHostCount = dcount(ArmObjectScope) 
+        by bin(TimeGenerated, 30m), HostPool
+
+
+Summarize group key 'HostPool' is of a 'dynamic' type. Please use an explicit cast (for example, 'summarize ... by tostring(HostPool)') as grouping by a 'dynamic' type is not supported.
+Request id: 17cb6bb7-0e61-46c0-814a-931c0a583172
+
+
 // Step 1: Define Host Pool Mapping Table
 let HostPoolMapping = datatable(SessionHostKey: string, HostPoolName: string)
 [
