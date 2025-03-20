@@ -1,0 +1,63 @@
+// Step 1: Define Host Pool Mapping Table
+let HostPoolMapping = datatable(SessionHostKey: string, HostPoolName: string)
+[
+    "m01plcri", "neu_prd_low_crims_rmpooled",
+    "m01tmsni", "neu_tst_mspooled",
+    "m01nacri", "neu_npa_crims_rmpooled",
+    "m01pqnt0", "neu_prod_quantum_rmpooled",
+    "m14pmsni", "sea_prd_mspooled",
+    "m14psspi", "sea_prd_sspersistent",
+    "m01tsspi", "neu_tst_sspersistent",
+    "m01padm0", "neu_prd_adm_rmpooled",
+    "m01phcri", "neu_prd_high_crims_rmpooled",
+    "m01umsni", "neu_uat_multisession",
+    "m06psspg", "eus2_prd_sspersistent",
+    "m01usspi", "neu_uat_sspersistent",
+    "m01psspi", "neu_prd_sspersistent",
+    "m01pmsni", "neu_prd_mspooled",
+    "m14umsni", "sea_uat_mspooled",
+    "m06usspg", "eus2_uat_sspersistent",
+    "m01uqnt0", "neu_uat_quantum_rmpooled",
+    "m01uadm0", "neu_uat_adm_rmpooled",
+    "m01pmcri", "neu_prd_med_crims_rmpooled",
+    "m01dvldt", "neu_dev_sspersistent",
+    "m01nbcri", "neu_npb_crims_rmpooled",
+    "m01olcri", "neu_oat_low_crims_rmpooled",
+    "m01omcri", "neu_oat_med_crims_rmpooled",
+    "m14usspi", "neu_uat_sspersistent",
+    "m01ohcri", "neu_oat_high_crims_rmpooled",
+    "m01dvssp", "neu_developer_sspersistent",
+    "m06usspi", "eus2_uat_sspersistent",
+    "m06psspi", "eus2_prd_sspersistent"
+];
+// Step 2: Compute Distinct User Session Counts from the Perf Table
+let UserSessionCounts = materialize(
+    Perf
+    | where ObjectName == "User Input Delay per Process"
+    | where InstanceName has "rdpvchost.exe"
+    | extend SessionId = extract(@"^(\d+)", 1, InstanceName)
+    | extend SessionHostKey = tolower(substring(Computer, 0, 8))
+    | extend SessionHostName = iff(strlen(Computer) >= 12, tolower(substring(Computer, 0, 12)), tolower(Computer))
+    | extend SessionHostRG = extract(@"/resourcegroups/([^/]+)/", 1, _ResourceId)
+    | join kind=leftouter (HostPoolMapping) on SessionHostKey
+    | extend SessionId = strcat(SessionId, ":", SessionHostName)
+    | summarize DistinctUserSessionCount = dcount(SessionId) 
+        by bin(TimeGenerated, 30m), HostPoolName, SessionHostRG
+);
+// Step 3: Compute Distinct Session Host Counts from the Heartbeat Table
+let SessionHostCounts = materialize(
+    Heartbeat
+    | extend SessionHostKey = tolower(substring(Computer, 0, 8))
+    | extend SessionHostName = iff(strlen(Computer) >= 12, tolower(substring(Computer, 0, 12)), tolower(Computer))
+    | extend SessionHostRG = iff(isnotempty(ResourceGroup), tolower(ResourceGroup), "Unknown_RG")
+    | join kind=leftouter (HostPoolMapping) on SessionHostKey
+    | summarize DistinctSessionHostCount = dcount(SessionHostName) 
+        by bin(TimeGenerated, 30m), HostPoolName, SessionHostRG
+);
+// Step 4: Merge Both Queries Using a Full Outer Join
+UserSessionCounts
+| join kind=fullouter (SessionHostCounts) on TimeGenerated, HostPoolName, SessionHostRG
+| project TimeGenerated, HostPoolName, SessionHostRG, 
+          DistinctUserSessionCount, DistinctSessionHostCount
+| order by TimeGenerated desc
+| where HostPoolName contains "neu_prd_sspersistent"
