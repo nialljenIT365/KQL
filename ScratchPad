@@ -1,3 +1,59 @@
+let HostPoolMapping = datatable(SessionHostKey: string, HostPoolName: string)
+[
+    "m01plcri", "neu_prd_low_crims_rmpooled",
+    "m01tmsni", "neu_tst_mspooled",
+    "m01nacri", "neu_npa_crims_rmpooled",
+    "m01pqnt0", "neu_prod_quantum_rmpooled",
+    "m14pmsni", "sea_prd_mspooled",
+    "m14psspi", "sea_prd_sspersistent",
+    "m01tsspi", "neu_tst_sspersistent",
+    "m01padm0", "neu_prd_adm_rmpooled",
+    "m01phcri", "neu_prd_high_crims_rmpooled",
+    "m01umsni", "neu_uat_multisession",
+    "m06psspg", "eus2_prd_sspersistent",
+    "m01usspi", "neu_uat_sspersistent",
+    "m01psspi", "neu_prd_sspersistent",
+    "m01pmsni", "neu_prd_mspooled",
+    "m14umsni", "sea_uat_mspooled",
+    "m06usspg", "eus2_uat_sspersistent",
+    "m01uqnt0", "neu_uat_quantum_rmpooled",
+    "m01uadm0", "neu_uat_adm_rmpooled",
+    "m01pmcri", "neu_prd_med_crims_rmpooled",
+    "m01dvldt", "neu_dev_sspersistent",
+    "m01nbcri", "neu_npb_crims_rmpooled",
+    "m01olcri", "neu_oat_low_crims_rmpooled",
+    "m01omcri", "neu_oat_med_crims_rmpooled",
+    "m14usspi", "neu_uat_sspersistent",
+    "m01ohcri", "neu_oat_high_crims_rmpooled"
+];
+Perf
+//| where TimeGenerated between (datetime(2025-03-04T19:35:00Z) .. datetime(2025-03-04T20:00:00Z))
+| where ObjectName == "User Input Delay per Process"
+| where InstanceName contains "rdpvchost.exe"
+| extend SessionId = extract(@"^(\d+):", 1, InstanceName)
+| extend SessionHostKey = tolower(substring(Computer, 0, 8))
+| extend SessionHostName = tolower(substring(Computer, 0, 12))
+
+
+TenantId	Computer	ObjectName	CounterName	InstanceName	Min	Max	SampleCount	CounterValue	TimeGenerated [UTC]	BucketStartTime [UTC]	BucketEndTime [UTC]	SourceSystem	CounterPath	MG	Type	_ResourceId	SessionId	SessionHostKey	SessionHostName
+ce4e1e84-3765-4cfe-ac40-5de8d7633df4	M01PSSPI0382.aberdeen.aberdeen-asset.com	User Input Delay per Process	Max Input Delay	2:9468 <rdpvchost.exe>				0	20/03/2025, 06:42:17.653			OpsManager	\\M01PSSPI0382.aberdeen.aberdeen-asset.com\User Input Delay per Process(2:9468 <rdpvchost.exe>)\Max Input Delay	00000000-0000-0000-0000-000000000001	Perf	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-persistentvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01psspi0382	2	m01psspi	m01psspi0382
+ce4e1e84-3765-4cfe-ac40-5de8d7633df4	M01PLCRI0002.aberdeen.aberdeen-asset.com	User Input Delay per Process	Max Input Delay	30:10024 <rdpvchost.exe>				0	20/03/2025, 06:42:08.585			OpsManager	\\M01PLCRI0002.aberdeen.aberdeen-asset.com\User Input Delay per Process(30:10024 <rdpvchost.exe>)\Max Input Delay	00000000-0000-0000-0000-000000000001	Perf	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-remoteappvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01plcri0002	30	m01plcri	m01plcri0002
+ce4e1e84-3765-4cfe-ac40-5de8d7633df4	M01PLCRI0002.aberdeen.aberdeen-asset.com	User Input Delay per Process	Max Input Delay	39:29412 <rdpvchost.exe>				0	20/03/2025, 06:42:08.585			OpsManager	\\M01PLCRI0002.aberdeen.aberdeen-asset.com\User Input Delay per Process(39:29412 <rdpvchost.exe>)\Max Input Delay	00000000-0000-0000-0000-000000000001	Perf	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-remoteappvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01plcri0002	39	m01plcri	m01plcri0002
+ce4e1e84-3765-4cfe-ac40-5de8d7633df4	M01PLCRI0002.aberdeen.aberdeen-asset.com	User Input Delay per Process	Max Input Delay	28:37064 <rdpvchost.exe>				0	20/03/2025, 06:42:08.585			OpsManager	\\M01PLCRI0002.aberdeen.aberdeen-asset.com\User Input Delay per Process(28:37064 <rdpvchost.exe>)\Max Input Delay	00000000-0000-0000-0000-000000000001	Perf	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-remoteappvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01plcri0002	28	m01plcri	m01plcri0002
+ce4e1e84-3765-4cfe-ac40-5de8d7633df4	M01PLCRI0002.aberdeen.aberdeen-asset.com	User Input Delay per Process	Max Input Delay	29:44636 <rdpvchost.exe>				0	20/03/2025, 06:42:08.585			OpsManager	\\M01PLCRI0002.aberdeen.aberdeen-asset.com\User Input Delay per Process(29:44636 <rdpvchost.exe>)\Max Input Delay	00000000-0000-0000-0000-000000000001	Perf	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-remoteappvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01plcri0002	29	m01plcri	m01plcri0002
+ce4e1e84-3765-4cfe-ac40-5de8d7633df4	M01PLCRI0002.aberdeen.aberdeen-asset.com	User Input Delay per Process	Max Input Delay	36:47184 <rdpvchost.exe>				0	20/03/2025, 06:42:08.585			OpsManager	\\M01PLCRI0002.aberdeen.aberdeen-asset.com\User Input Delay per Process(36:47184 <rdpvchost.exe>)\Max Input Delay	00000000-0000-0000-0000-000000000001	Perf	/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourcegroups/rg-eus-remotedesktopdevices-remoteappvirtualdesktop-neu-prd/providers/microsoft.compute/virtualmachines/m01plcri0002	36	m01plcri	m01plcri0002
+
+I would also like to extract ResourceGroup Name from _ResourceId
+
+
+
+
+
+
+
+
+
+
 https://learn.microsoft.com/en-us/windows/security/identity-protection/credential-guard/configure?tabs=reg
 
 
