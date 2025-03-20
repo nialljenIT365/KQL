@@ -1,3 +1,43 @@
+WVDAgentHealthStatus
+| extend ParsedHealthChecks = parse_json(SessionHostHealthCheckResult) 
+| mv-expand ParsedHealthChecks
+| extend HealthCheckName = tostring(ParsedHealthChecks.HealthCheckName),
+         HealthCheckResult = tostring(ParsedHealthChecks.HealthCheckResult),
+         ErrorMessage = tostring(ParsedHealthChecks.AdditionalFailureDetails.Message)
+| where ErrorMessage contains "MSIX packages have failed to properly stage"
+| extend MSIXPackagesList = extract(@"The following MSIX packages have failed to properly stage: (.*?)$", 1, ErrorMessage)
+| extend PackagesArray = split(MSIXPackagesList, ", ")  // Splitting based on ", " delimiter if multiple packages exist
+| summarize UniquePackages = make_set(PackagesArray) 
+    by StatusTimeStamp, SessionHostName, ErrorType="MSIX Package Failure"
+| extend PackageCount = array_length(UniquePackages)
+| extend Package1 = tostring(UniquePackages[0]),
+         Package2 = tostring(UniquePackages[1]),
+         Package3 = tostring(UniquePackages[2]),
+         Package4 = tostring(UniquePackages[3]),
+         Package5 = tostring(UniquePackages[4]),
+         Package6 = tostring(UniquePackages[5]),
+         Package7 = tostring(UniquePackages[6]),
+         Package8 = tostring(UniquePackages[7]),
+         Package9 = tostring(UniquePackages[8]),
+         Package10 = tostring(UniquePackages[9]),
+         Package11 = tostring(UniquePackages[10]),
+         Package12 = tostring(UniquePackages[11]),
+         Package13 = tostring(UniquePackages[12]),
+         Package14 = tostring(UniquePackages[13]),
+         Package15 = tostring(UniquePackages[14]),
+         Package16 = tostring(UniquePackages[15]),
+         Package17 = tostring(UniquePackages[16]),
+         Package18 = tostring(UniquePackages[17]),
+         Package19 = tostring(UniquePackages[18]),
+         Package20 = tostring(UniquePackages[19])
+| project StatusTimeStamp, SessionHostName, ErrorType, PackageCount, 
+          Package1, Package2, Package3, Package4, Package5, 
+          Package6, Package7, Package8, Package9, Package10,
+          Package11, Package12, Package13, Package14, Package15,
+          Package16, Package17, Package18, Package19, Package20
+| order by StatusTimeStamp desc
+
+
 
 Function 'make_list' cannot be invoked in current context
 Request id: 594001d9-5de3-486e-9013-5e9acdb66f3d
