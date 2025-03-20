@@ -1,3 +1,11 @@
+
+
+Token: ]
+Line: 32
+Position: 84
+Request id: 55c8c914-7b93-467d-910e-6ecb3e146c3c
+
+
 WVDAgentHealthStatus
 | extend ParsedHealthChecks = parse_json(SessionHostHealthCheckResult) 
 | mv-expand ParsedHealthChecks
