@@ -1,3 +1,6 @@
+'join' operator: Failed to resolve table or column expression named 'HostPoolMapping'
+Request id: 03735590-04f4-4e58-a693-aa97499ca38e
+
 let TimeBinSize = 30m;  // Change this to modify the bin size
 
 // HostPool Mapping with "Not Found" default entry
