@@ -1,3 +1,229 @@
+let HostPoolMapping = datatable(SessionHostKey: string, HostPoolName: string)
+[
+    "m01plcri", "neu_prd_low_crims_rmpooled",
+    "m01tmsni", "neu_tst_mspooled",
+    "m01nacri", "neu_npa_crims_rmpooled",
+    "m01pqnt0", "neu_prod_quantum_rmpooled",
+    "m14pmsni", "sea_prd_mspooled",
+    "m14psspi", "sea_prd_sspersistent",
+    "m01tsspi", "neu_tst_sspersistent",
+    "m01padm0", "neu_prd_adm_rmpooled",
+    "m01phcri", "neu_prd_high_crims_rmpooled",
+    "m01umsni", "neu_uat_multisession",
+    "m06psspg", "eus2_prd_sspersistent",
+    "m01usspi", "neu_uat_sspersistent",
+    "m01psspi", "neu_prd_sspersistent",
+    "m01pmsni", "neu_prd_mspooled",
+    "m14umsni", "sea_uat_mspooled",
+    "m06usspg", "eus2_uat_sspersistent",
+    "m01uqnt0", "neu_uat_quantum_rmpooled",
+    "m01uadm0", "neu_uat_adm_rmpooled",
+    "m01pmcri", "neu_prd_med_crims_rmpooled",
+    "m01dvldt", "neu_dev_sspersistent",
+    "m01nbcri", "neu_npb_crims_rmpooled",
+    "m01olcri", "neu_oat_low_crims_rmpooled",
+    "m01omcri", "neu_oat_med_crims_rmpooled",
+    "m14usspi", "neu_uat_sspersistent",
+    "m01ohcri", "neu_oat_high_crims_rmpooled",
+    "m01dvssp", "neu_developer_sspersistent",
+    "m06usspi", "eus2_uat-sspersistent",
+    "m06psspi", "eus2_prd-sspersistent"
+];
+WVDConnections
+| where State == "Connected"
+| extend SessionHostKey = tolower(substring(SessionHostName, 0, 8))
+| extend SessionHostName = tolower(substring(SessionHostName, 0, 12))
+| extend SessionHostRG = extract(@"/resourcegroups/([^/]+)/", 1, _ResourceId)
+| join kind=leftouter HostPoolMapping on SessionHostKey
+| project TimeGenerated, HostPoolName, SessionHostName, SessionHostKey, SessionHostRG, UserName
+| order by TimeGenerated desc
+| where HostPoolName contains "neu_prd_sspersistent"
+
+
+TimeGenerated [UTC]	HostPoolName	SessionHostName	SessionHostKey	SessionHostRG	UserName
+20/03/2025, 12:13:04.177	neu_prd_sspersistent	m01psspi1519	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Sachin.Jain@abrdn.com
+20/03/2025, 12:11:37.881	neu_prd_sspersistent	m01psspi1471	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Senthilkumaran.S@abrdn.com
+20/03/2025, 12:10:33.839	neu_prd_sspersistent	m01psspi0917	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	peter.skolnik@abrdn.com
+20/03/2025, 12:10:26.567	neu_prd_sspersistent	m01psspi0722	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Floricica.Turnea@abrdn.com
+20/03/2025, 12:10:20.369	neu_prd_sspersistent	m01psspi1570	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Suchismita.Chaudhuri@abrdn.com
+20/03/2025, 12:09:39.877	neu_prd_sspersistent	m01psspi1375	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Bradley.Nutley@abrdn.com
+20/03/2025, 12:09:36.480	neu_prd_sspersistent	m01psspi0213	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Ben.Heatley@abrdn.com
+20/03/2025, 12:09:36.088	neu_prd_sspersistent	m01psspi1316	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Jayaprakash.Godli1@abrdn.com
+20/03/2025, 12:09:12.126	neu_prd_sspersistent	m01psspi0332	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Raghavendra.Kadiri@abrdn.com
+20/03/2025, 12:08:48.022	neu_prd_sspersistent	m01psspi0681	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Kim.Semper@abrdn.com
+20/03/2025, 12:08:26.283	neu_prd_sspersistent	m01psspi1309	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Bhargavi.Gangavaram@abrdn.com
+20/03/2025, 12:08:10.478	neu_prd_sspersistent	m01psspi1286	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Praveen.X.Kumar@abrdn.com
+20/03/2025, 12:08:04.941	neu_prd_sspersistent	m01psspi0031	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Kai.Williams@abrdn.com
+20/03/2025, 12:08:02.683	neu_prd_sspersistent	m01psspi0736	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Jon.McEwen@abrdn.com
+20/03/2025, 12:07:29.785	neu_prd_sspersistent	m01psspi1478	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Anadhi.Venkatasubramanian@abrdn.com
+20/03/2025, 12:07:13.669	neu_prd_sspersistent	m01psspi1586	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Gopal.Lakshmanan@abrdn.com
+20/03/2025, 12:06:58.107	neu_prd_sspersistent	m01psspi0749	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Dimple.Melwani@abrdn.com
+20/03/2025, 12:06:19.692	neu_prd_sspersistent	m01psspi1369	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Allamesh.KJ@abrdn.com
+20/03/2025, 12:06:00.388	neu_prd_sspersistent	m01psspi0045	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Pooja.Khatekar@abrdn.com
+20/03/2025, 12:05:52.479	neu_prd_sspersistent	m01psspi0232	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Vivek.Balachandran@abrdn.com
+20/03/2025, 12:05:50.888	neu_prd_sspersistent	m01psspi1168	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Ben.Goodsell@abrdn.com
+20/03/2025, 12:05:04.183	neu_prd_sspersistent	m01psspi0962	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Nick.Fischer@abrdn.com
+20/03/2025, 12:04:51.177	neu_prd_sspersistent	m01psspi0437	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Akshita.Kothari@abrdn.com
+20/03/2025, 12:04:38.519	neu_prd_sspersistent	m01psspi0626	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Alan.McAlpine@abrdn.com
+20/03/2025, 12:04:35.013	neu_prd_sspersistent	m01psspi0036	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Ankitha.Krishnakumar@abrdn.com
+20/03/2025, 12:04:28.894	neu_prd_sspersistent	m01psspi1284	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Ravi.Gulhane@abrdn.com
+20/03/2025, 12:04:17.674	neu_prd_sspersistent	m01psspi0870	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Vishnudas.KB@abrdn.com
+20/03/2025, 12:04:13.146	neu_prd_sspersistent	m01psspi0808	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Sathyaprabhahar.S@abrdn.com
+20/03/2025, 12:03:59.847	neu_prd_sspersistent	m01psspi1453	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Venkatesh.Ravikumar@abrdn.com
+20/03/2025, 12:03:53.622	neu_prd_sspersistent	m01psspi1309	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Bhargavi.Gangavaram@abrdn.com
+20/03/2025, 12:03:48.401	neu_prd_sspersistent	m01psspi1699	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Sravan.J@abrdn.com
+20/03/2025, 12:03:45.277	neu_prd_sspersistent	m01psspi1567	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Saikat.Roychowdhury@abrdn.com
+20/03/2025, 12:03:43.365	neu_prd_sspersistent	m01psspi1399	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Riya.Yadav@abrdn.com
+20/03/2025, 12:03:02.892	neu_prd_sspersistent	m01psspi0401	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Heather.Clayton@abrdn.com
+20/03/2025, 12:02:49.275	neu_prd_sspersistent	m01psspi1452	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Balaji.Gopalan@abrdn.com
+20/03/2025, 12:02:39.119	neu_prd_sspersistent	m01psspi0036	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Ankitha.Krishnakumar@abrdn.com
+20/03/2025, 12:02:06.666	neu_prd_sspersistent	m01psspi1645	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Vipasha.Vasisht@abrdn.com
+20/03/2025, 12:01:28.791	neu_prd_sspersistent	m01psspi0988	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Clarissa.Chan@abrdn.com
+20/03/2025, 12:00:56.945	neu_prd_sspersistent	m01psspi1683	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Joseph.Banda@abrdn.com
+20/03/2025, 12:00:44.192	neu_prd_sspersistent	m01psspi1534	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Diana.Kennedy@abrdn.com
+20/03/2025, 12:00:43.388	neu_prd_sspersistent	m01psspi0437	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Akshita.Kothari@abrdn.com
+20/03/2025, 12:00:32.927	neu_prd_sspersistent	m01psspi1489	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Deepika.Anand@abrdn.com
+20/03/2025, 12:00:28.387	neu_prd_sspersistent	m01psspi1399	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Riya.Yadav@abrdn.com
+20/03/2025, 12:00:08.667	neu_prd_sspersistent	m01psspi0437	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Akshita.Kothari@abrdn.com
+20/03/2025, 11:59:59.751	neu_prd_sspersistent	m01psspi1694	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Prashant.Muthiya@abrdn.com
+20/03/2025, 11:59:38.207	neu_prd_sspersistent	m01psspi1447	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Manjeet.KaurSpal@abrdn.com
+20/03/2025, 11:59:13.880	neu_prd_sspersistent	m01psspi0988	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Clarissa.Chan@abrdn.com
+20/03/2025, 11:58:50.089	neu_prd_sspersistent	m01psspi1461	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Lulu.Wang@abrdn.com
+20/03/2025, 11:58:18.200	neu_prd_sspersistent	m01psspi0254	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Padmavathi.Dabbara@abrdn.com
+20/03/2025, 11:58:11.284	neu_prd_sspersistent	m01psspi1625	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Karl.Bessell@abrdn.com
+20/03/2025, 11:57:52.154	neu_prd_sspersistent	m01psspi1392	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Parul.Sharma@abrdn.com
+20/03/2025, 11:57:26.239	neu_prd_sspersistent	m01psspi1136	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Anita.Lo@abrdn.com
+20/03/2025, 11:57:17.118	neu_prd_sspersistent	m01psspi1421	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Chethan.KM@abrdn.com
+20/03/2025, 11:57:07.576	neu_prd_sspersistent	m01psspi1085	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Onkar.Walwadkar@abrdn.com
+20/03/2025, 11:56:42.095	neu_prd_sspersistent	m01psspi0432	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Divya.Nadukuru@abrdn.com
+20/03/2025, 11:56:32.147	neu_prd_sspersistent	m01psspi0129	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Ben.Shrewsbury@abrdn.com
+20/03/2025, 11:55:30.902	neu_prd_sspersistent	m01psspi0279	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Sarah.Lowe@abrdn.com
+20/03/2025, 11:55:30.302	neu_prd_sspersistent	m01psspi0883	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Srivarshini.Nalla@abrdn.com
+20/03/2025, 11:55:19.435	neu_prd_sspersistent	m01psspi0956	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Jonathan.Mondillo@abrdn.com
+20/03/2025, 11:55:15.976	neu_prd_sspersistent	m01psspi0579	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Mark.Anderson@abrdn.com
+20/03/2025, 11:54:54.535	neu_prd_sspersistent	m01psspi0390	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Vija.Sathi@abrdn.com
+20/03/2025, 11:54:42.415	neu_prd_sspersistent	m01psspi0129	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Ben.Shrewsbury@abrdn.com
+20/03/2025, 11:54:34.515	neu_prd_sspersistent	m01psspi0524	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	nasos.plevris@abrdn.com
+20/03/2025, 11:54:30.747	neu_prd_sspersistent	m01psspi1136	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Anita.Lo@abrdn.com
+20/03/2025, 11:54:23.261	neu_prd_sspersistent	m01psspi0457	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Deepak.Booshan@abrdn.com
+20/03/2025, 11:54:06.644	neu_prd_sspersistent	m01psspi0457	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Deepak.Booshan@abrdn.com
+20/03/2025, 11:53:52.574	neu_prd_sspersistent	m01psspi0194	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Cerys.Middleton@abrdn.com
+20/03/2025, 11:53:50.936	neu_prd_sspersistent	m01psspi0129	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Ben.Shrewsbury@abrdn.com
+20/03/2025, 11:53:41.026	neu_prd_sspersistent	m01psspi0685	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Thomas.Moore@abrdn.com
+20/03/2025, 11:52:55.693	neu_prd_sspersistent	m01psspi1680	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Pablo.Garcia@abrdn.com
+20/03/2025, 11:52:53.041	neu_prd_sspersistent	m01psspi0159	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Bhagya.Gandla@abrdn.com
+20/03/2025, 11:52:37.959	neu_prd_sspersistent	m01psspi1723	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Andy.Whyte@abrdn.com
+20/03/2025, 11:52:28.915	neu_prd_sspersistent	m01psspi0068	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Ram.Sathvik@abrdn.com
+20/03/2025, 11:52:08.810	neu_prd_sspersistent	m01psspi0566	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Muthamilselvan.P@abrdn.com
+20/03/2025, 11:51:00.113	neu_prd_sspersistent	m01psspi0914	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Matt.Spring@abrdn.com
+20/03/2025, 11:50:14.351	neu_prd_sspersistent	m01psspi0685	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Thomas.Moore@abrdn.com
+20/03/2025, 11:50:10.331	neu_prd_sspersistent	m01psspi1098	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Remya.Rajan@abrdn.com
+20/03/2025, 11:49:58.466	neu_prd_sspersistent	m01psspi0693	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Pramod.Pagolu@abrdn.com
+20/03/2025, 11:49:55.684	neu_prd_sspersistent	m01psspi0685	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Thomas.Moore@abrdn.com
+20/03/2025, 11:49:32.874	neu_prd_sspersistent	m01psspi0684	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Sakthivel.Subramaniyan@abrdn.com
+20/03/2025, 11:49:21.532	neu_prd_sspersistent	m01psspi0883	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Srivarshini.Nalla@abrdn.com
+20/03/2025, 11:48:50.116	neu_prd_sspersistent	m01psspi1135	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Aarti.Madhekar@abrdn.com
+20/03/2025, 11:48:45.344	neu_prd_sspersistent	m01psspi0414	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Robert.Deringer@abrdn.com
+20/03/2025, 11:48:37.442	neu_prd_sspersistent	m01psspi1412	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Jamuna.Natarajan@abrdn.com
+20/03/2025, 11:48:28.054	neu_prd_sspersistent	m01psspi1511	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Mounika.B@abrdn.com
+20/03/2025, 11:48:22.766	neu_prd_sspersistent	m01psspi0645	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Keith.Wilkie@abrdn.com
+20/03/2025, 11:48:19.029	neu_prd_sspersistent	m01psspi0405	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	siddharth.dahiya@abrdn.com
+20/03/2025, 11:48:08.759	neu_prd_sspersistent	m01psspi0916	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Pete.Savitscus@abrdn.com
+20/03/2025, 11:48:04.914	neu_prd_sspersistent	m01psspi0669	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Louise.Dodds@abrdn.com
+20/03/2025, 11:48:02.208	neu_prd_sspersistent	m01psspi1694	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Prashant.Muthiya@abrdn.com
+20/03/2025, 11:47:46.459	neu_prd_sspersistent	m01psspi0109	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Nick.Gaskell@abrdn.com
+20/03/2025, 11:47:19.802	neu_prd_sspersistent	m01psspi1639	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Alison.Wood2@abrdn.com
+20/03/2025, 11:46:51.735	neu_prd_sspersistent	m01psspi1442	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Logesh.V@abrdn.com
+20/03/2025, 11:45:37.080	neu_prd_sspersistent	m01psspi1278	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Despina.Agisilaou@abrdn.com
+20/03/2025, 11:45:01.998	neu_prd_sspersistent	m01psspi0269	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	R.Vignesh@abrdn.com
+20/03/2025, 11:44:36.043	neu_prd_sspersistent	m01psspi0303	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	jack.taylor_1@abrdn.com
+20/03/2025, 11:44:29.319	neu_prd_sspersistent	m01psspi1733	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Lauren.Hassett@abrdn.com
+20/03/2025, 11:44:10.914	neu_prd_sspersistent	m01psspi1410	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Ranjith.Subramaniyam@abrdn.com
+20/03/2025, 11:43:53.704	neu_prd_sspersistent	m01psspi1439	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Immanuel.A@abrdn.com
+20/03/2025, 11:43:10.999	neu_prd_sspersistent	m01psspi0147	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	max.wolman@abrdn.com
+20/03/2025, 11:43:06.389	neu_prd_sspersistent	m01psspi1065	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Nishant.Shukla@abrdn.com
+20/03/2025, 11:42:35.991	neu_prd_sspersistent	m01psspi1550	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Hari.K@abrdn.com
+20/03/2025, 11:41:16.958	neu_prd_sspersistent	m01psspi0739	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Bandaru.Nagaraju@abrdn.com
+20/03/2025, 11:41:00.105	neu_prd_sspersistent	m01psspi0093	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Aditi.Bhatt@abrdn.com
+20/03/2025, 11:40:22.222	neu_prd_sspersistent	m01psspi1019	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Vinit.Kumar@abrdn.com
+20/03/2025, 11:40:20.662	neu_prd_sspersistent	m01psspi0566	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Muthamilselvan.P@abrdn.com
+20/03/2025, 11:39:57.729	neu_prd_sspersistent	m01psspi0820	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Thilagavathy.G@abrdn.com
+20/03/2025, 11:39:38.776	neu_prd_sspersistent	m01psspi1077	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Vijay.Ravi@abrdn.com
+20/03/2025, 11:39:28.178	neu_prd_sspersistent	m01psspi1570	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Suchismita.Chaudhuri@abrdn.com
+20/03/2025, 11:39:18.244	neu_prd_sspersistent	m01psspi0566	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Muthamilselvan.P@abrdn.com
+20/03/2025, 11:39:09.135	neu_prd_sspersistent	m01psspi1555	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Sangeetha.J@abrdn.com
+20/03/2025, 11:38:59.157	neu_prd_sspersistent	m01psspi0269	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	R.Vignesh@abrdn.com
+20/03/2025, 11:38:46.853	neu_prd_sspersistent	m01psspi1305	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Lalit.Joshi@abrdn.com
+20/03/2025, 11:38:40.110	neu_prd_sspersistent	m01psspi1685	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Alexandre.Carreau1@abrdn.com
+20/03/2025, 11:38:32.605	neu_prd_sspersistent	m01psspi0556	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Megan.Adamson@abrdn.com
+20/03/2025, 11:38:24.476	neu_prd_sspersistent	m01psspi1383	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Cameryn.Davidson@abrdn.com
+20/03/2025, 11:38:23.197	neu_prd_sspersistent	m01psspi0058	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Mukul.Kumar@abrdn.com
+20/03/2025, 11:38:21.006	neu_prd_sspersistent	m01psspi1227	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Joanne.MacCawley@abrdn.com
+20/03/2025, 11:38:20.529	neu_prd_sspersistent	m01psspi1136	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Anita.Lo@abrdn.com
+20/03/2025, 11:37:56.226	neu_prd_sspersistent	m01psspi1563	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Ravindranadh.Manepalli1@abrdn.com
+20/03/2025, 11:37:50.896	neu_prd_sspersistent	m01psspi1593	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Soorya.Narayanan@abrdn.com
+20/03/2025, 11:37:40.113	neu_prd_sspersistent	m01psspi0277	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Rebecca.Shaw@abrdn.com
+20/03/2025, 11:37:29.158	neu_prd_sspersistent	m01psspi1136	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Anita.Lo@abrdn.com
+20/03/2025, 11:37:29.077	neu_prd_sspersistent	m01psspi1006	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Bhuvaneshwari.A@abrdn.com
+20/03/2025, 11:37:28.526	neu_prd_sspersistent	m01psspi0339	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Mahendra.S@abrdn.com
+20/03/2025, 11:37:18.038	neu_prd_sspersistent	m01psspi0159	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Bhagya.Gandla@abrdn.com
+20/03/2025, 11:36:56.311	neu_prd_sspersistent	m01psspi1296	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Ramaaditya.Yerrapragada@abrdn.com
+20/03/2025, 11:35:56.645	neu_prd_sspersistent	m01psspi0395	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Annareddyyuva.Reddy@abrdn.com
+20/03/2025, 11:35:50.171	neu_prd_sspersistent	m01psspi1304	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Dipesh.Devlekar@abrdn.com
+20/03/2025, 11:35:28.606	neu_prd_sspersistent	m01psspi1699	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Sravan.J@abrdn.com
+20/03/2025, 11:35:18.846	neu_prd_sspersistent	m01psspi0714	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	richard.barnes@abrdn.com
+20/03/2025, 11:34:58.391	neu_prd_sspersistent	m01psspi1631	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Gokul.Tv@abrdn.com
+20/03/2025, 11:34:49.126	neu_prd_sspersistent	m01psspi1689	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Thomas.Yang@abrdn.com
+20/03/2025, 11:34:29.689	neu_prd_sspersistent	m01psspi1645	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Vipasha.Vasisht@abrdn.com
+20/03/2025, 11:33:45.729	neu_prd_sspersistent	m01psspi1147	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	abhijeet.shelke@abrdn.com
+20/03/2025, 11:33:41.573	neu_prd_sspersistent	m01psspi1603	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Chinari.Subudhi@abrdn.com
+20/03/2025, 11:33:21.824	neu_prd_sspersistent	m01psspi0711	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Krishna.Agili@abrdn.com
+20/03/2025, 11:33:08.410	neu_prd_sspersistent	m01psspi0597	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Priyanka.Sake@abrdn.com
+20/03/2025, 11:32:57.896	neu_prd_sspersistent	m01psspi1465	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Lorna.Davies@abrdn.com
+20/03/2025, 11:32:44.090	neu_prd_sspersistent	m01psspi0058	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Mukul.Kumar@abrdn.com
+20/03/2025, 11:32:20.439	neu_prd_sspersistent	m01psspi1724	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Radhakrishnan.Ramajeyam@abrdn.com
+20/03/2025, 11:32:10.065	neu_prd_sspersistent	m01psspi1456	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Dinesh.G1@abrdn.com
+20/03/2025, 11:32:02.011	neu_prd_sspersistent	m01psspi0913	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Matt.Clark@abrdn.com
+20/03/2025, 11:32:01.776	neu_prd_sspersistent	m01psspi1339	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Pushpalatha.Karnam@abrdn.com
+20/03/2025, 11:31:33.115	neu_prd_sspersistent	m01psspi1461	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Lulu.Wang@abrdn.com
+20/03/2025, 11:31:24.710	neu_prd_sspersistent	m01psspi0305	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Venkatesh.Banoth@abrdn.com
+20/03/2025, 11:31:18.122	neu_prd_sspersistent	m01psspi0684	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Sakthivel.Subramaniyan@abrdn.com
+20/03/2025, 11:31:07.795	neu_prd_sspersistent	m01psspi0518	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Ankit.Chrungu@abrdn.com
+20/03/2025, 11:30:42.457	neu_prd_sspersistent	m01psspi1446	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Snehal.Thakur@abrdn.com
+20/03/2025, 11:30:14.455	neu_prd_sspersistent	m01psspi1711	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Viknesh.Ponnuthurai@abrdn.com
+20/03/2025, 11:30:13.991	neu_prd_sspersistent	m01psspi0566	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Muthamilselvan.P@abrdn.com
+20/03/2025, 11:30:01.578	neu_prd_sspersistent	m01psspi1070	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Yash.Chouhan@abrdn.com
+20/03/2025, 11:28:51.252	neu_prd_sspersistent	m01psspi1609	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Mayur.Verma@abrdn.com
+20/03/2025, 11:28:29.810	neu_prd_sspersistent	m01psspi1655	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Siddhant.Fulzele@abrdn.com
+20/03/2025, 11:27:42.149	neu_prd_sspersistent	m01psspi0720	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Benjamin.Talmage@abrdn.com
+20/03/2025, 11:27:29.835	neu_prd_sspersistent	m01psspi0339	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Mahendra.S@abrdn.com
+20/03/2025, 11:26:57.365	neu_prd_sspersistent	m01psspi1655	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Siddhant.Fulzele@abrdn.com
+20/03/2025, 11:26:54.390	neu_prd_sspersistent	m01psspi1382	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	nalaka.desilva@abrdn.com
+20/03/2025, 11:26:54.303	neu_prd_sspersistent	m01psspi0812	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Jason.Day@abrdn.com
+20/03/2025, 11:25:57.847	neu_prd_sspersistent	m01psspi1453	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Venkatesh.Ravikumar@abrdn.com
+20/03/2025, 11:25:45.378	neu_prd_sspersistent	m01psspi1453	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Venkatesh.Ravikumar@abrdn.com
+20/03/2025, 11:25:44.051	neu_prd_sspersistent	m01psspi0339	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Mahendra.S@abrdn.com
+20/03/2025, 11:25:40.448	neu_prd_sspersistent	m01psspi0911	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Bruce.Marcolina@abrdn.com
+20/03/2025, 11:25:28.410	neu_prd_sspersistent	m01psspi0045	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Pooja.Khatekar@abrdn.com
+20/03/2025, 11:24:58.752	neu_prd_sspersistent	m01psspi1412	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Jamuna.Natarajan@abrdn.com
+20/03/2025, 11:24:58.737	neu_prd_sspersistent	m01psspi0541	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	paulina.urbaniak@abrdn.com
+20/03/2025, 11:24:48.386	neu_prd_sspersistent	m01psspi0871	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Indumathi.Ashok@abrdn.com
+20/03/2025, 11:24:26.590	neu_prd_sspersistent	m01psspi0339	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Mahendra.S@abrdn.com
+20/03/2025, 11:24:22.410	neu_prd_sspersistent	m01psspi0152	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Paul.Bateman@abrdn.com
+20/03/2025, 11:24:05.280	neu_prd_sspersistent	m01psspi1002	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Uma.A@abrdn.com
+20/03/2025, 11:23:54.829	neu_prd_sspersistent	m01psspi0058	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Mukul.Kumar@abrdn.com
+20/03/2025, 11:23:34.868	neu_prd_sspersistent	m01psspi1245	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Naga.Thulasi.Eragamreddy@abrdn.com
+20/03/2025, 11:23:25.017	neu_prd_sspersistent	m01psspi0378	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Deboshree.Roy@abrdn.com
+20/03/2025, 11:23:18.994	neu_prd_sspersistent	m01psspi1570	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Suchismita.Chaudhuri@abrdn.com
+20/03/2025, 11:22:47.178	neu_prd_sspersistent	m01psspi1245	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Naga.Thulasi.Eragamreddy@abrdn.com
+20/03/2025, 11:22:31.977	neu_prd_sspersistent	m01psspi1036	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Kevin.Smith@abrdn.com
+20/03/2025, 11:22:09.773	neu_prd_sspersistent	m01psspi0339	m01psspi	rg-eus-remotedesktopdevices-workspaceandstorage-neu-prd	Mahendra.S@abrdn.com
+
+
+
+
+
+
 WVDManagement
 | where Route == "ArmSessionHost::GetSessionHost"
 | extend SplitAll = split(_ResourceId, '/')
