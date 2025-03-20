@@ -6,12 +6,13 @@ WVDAgentHealthStatus
          ErrorMessage = tostring(ParsedHealthChecks.AdditionalFailureDetails.Message)
 | where ErrorMessage contains "MSIX packages have failed to properly stage"
 | extend PackagesList = extract_all(@"\[(.*?), \(", ErrorMessage)
-| extend PackagesList = array_distinct(PackagesList) // Remove duplicates
-| summarize MSIXPackagesList = make_set(PackagesList) by StatusTimeStamp, SessionHostName, ErrorType="MSIX Package Failure"
-| extend MSIXPackagesList = strcat_array(MSIXPackagesList, "; ") // Convert array to readable string
-| extend PackageCount = array_length(split(MSIXPackagesList, "; ")) // Count the number of packages
+| mv-expand PackagesList // Expand to individual rows
+| summarize UniquePackages = make_set(PackagesList) by StatusTimeStamp, SessionHostName, ErrorType="MSIX Package Failure"
+| extend MSIXPackagesList = strcat_array(UniquePackages, "; ") // Convert list to readable string
+| extend PackageCount = array_length(UniquePackages) // Count unique packages
 | project StatusTimeStamp, SessionHostName, ErrorType, PackageCount, MSIXPackagesList
 | order by StatusTimeStamp desc
+
 
 
 
