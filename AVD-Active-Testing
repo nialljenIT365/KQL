@@ -1,0 +1,15 @@
+Perf
+| where ObjectName == "User Input Delay per Process"
+| where InstanceName contains "rdpvchost.exe"
+//| summarize LatestInstanceName = arg_max(TimeGenerated, InstanceName) by bin(TimeGenerated, 30m), Computer
+//| project-away LatestInstanceName
+| where Computer contains "M01PSSPI0101"
+
+//| extend SessionId = extract(@"^(\d+):", 1, InstanceName)
+//| extend SessionHostKey = tolower(substring(Computer, 0, 8))
+//| extend SessionHostName = tolower(substring(Computer, 0, 12))
+//| extend SessionHostRG = extract(@"/resourcegroups/([^/]+)/", 1, _ResourceId)
+//| join kind=leftouter HostPoolMapping on SessionHostKey
+//| extend SessionId = strcat(SessionId, ":", SessionHostName)
+//| project TimeGenerated, HostPoolName, SessionHostName, Computer, SessionId, SessionHostRG
+//| summarize DistinctUserSessionCount = dcount(SessionId) by bin(TimeGenerated, 30m), HostPoolName, SessionHostRG
