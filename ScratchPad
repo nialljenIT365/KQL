@@ -1,3 +1,6 @@
+
+evaluate bag_unpack(): the following error(s) occurred while evaluating the output schema: evaluate bag_unpack(): argument #1 expected to be a reference to a dynamic column
+
 WVDAgentHealthStatus
 | extend ParsedHealthChecks = parse_json(SessionHostHealthCheckResult) 
 | mv-expand ParsedHealthChecks
