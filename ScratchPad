@@ -1,3 +1,12 @@
+Perf
+| where ObjectName == "User Input Delay per Process"
+| where InstanceName contains "rdpvchost.exe"
+| extend TimeBin = bin(TimeGenerated, 30m)  // Group into 30-minute bins
+| summarize FirstEntry = min(TimeGenerated) by TimeBin, InstanceName, Computer
+| order by TimeBin asc, FirstEntry asc
+
+
+
 let HostPoolMapping = datatable(SessionHostKey: string, HostPoolName: string)
 [
     "m01plcri", "neu_prd_low_crims_rmpooled",
