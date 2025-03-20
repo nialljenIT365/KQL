@@ -1,5 +1,15 @@
 WVDManagement
 | where Route == "ArmSessionHost::GetSessionHost"
+| extend SplitAll = split(_ResourceId, '/')
+| extend HostPool = tostring(SplitAll[8])  // Explicitly cast HostPool to string
+| where HostPool contains "neu_prd_sspersistent"
+| summarize DistinctSessionHostCount = dcount(ArmObjectScope) 
+        by bin(TimeGenerated, 30m), HostPool
+
+
+
+WVDManagement
+| where Route == "ArmSessionHost::GetSessionHost"
 | extend SplitAll=split(_ResourceId, '/')
 | extend HostPool=SplitAll[8]
 | where HostPool contains "neu_prd_sspersistent"
