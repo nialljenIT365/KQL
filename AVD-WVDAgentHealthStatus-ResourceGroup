@@ -1,0 +1,5 @@
+WVDAgentHealthStatus
+    | project TimeGenerated, SessionHostName, SessionHostResourceId, Status, StatusTimeStamp, LastHeartBeat, EndpointState, ActiveSessions, InactiveSessions
+    | extend SplitAll=split(SessionHostResourceId, '/')
+    | extend ResourceGroup=SplitAll[4]
+    | summarize by tostring(ResourceGroup), SessionHostName, ActiveSessions, InactiveSessions, Status
