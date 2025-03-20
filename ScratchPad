@@ -1,4 +1,7 @@
 
+Function 'make_list' cannot be invoked in current context
+Request id: 594001d9-5de3-486e-9013-5e9acdb66f3d
+
 WVDAgentHealthStatus
 | extend ParsedHealthChecks = parse_json(SessionHostHealthCheckResult) 
 | mv-expand ParsedHealthChecks
