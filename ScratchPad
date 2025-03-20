@@ -1,3 +1,18 @@
+WVDConnections
+| where State == "Connected"
+| extend SessionHostKey = tolower(substring(SessionHostName, 0, 8))
+| extend SessionHostName = tolower(substring(SessionHostName, 0, 12))
+| extend SessionHostRG = extract(@"/resourcegroups/([^/]+)/", 1, _ResourceId)
+| join kind=leftouter HostPoolMapping on SessionHostKey
+| project TimeGenerated, HostPoolName, SessionHostName, SessionHostKey, SessionHostRG, UserName
+| summarize UniqueCount = dcount(UserName) by bin(TimeGenerated, 30m), HostPoolName
+| order by TimeGenerated asc
+| extend CumulativeUniqueCount = sum(UniqueCount) over (order by TimeGenerated asc)
+
+
+
+
+
 let HostPoolMapping = datatable(SessionHostKey: string, HostPoolName: string)
 [
     "m01plcri", "neu_prd_low_crims_rmpooled",
