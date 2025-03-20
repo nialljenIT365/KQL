@@ -1,3 +1,15 @@
+WVDAgentHealthStatus
+| extend ParsedHealthChecks = parse_json(SessionHostHealthCheckResult) 
+| mv-expand ParsedHealthChecks
+| extend HealthCheckName = tostring(ParsedHealthChecks.HealthCheckName),
+         HealthCheckResult = tostring(ParsedHealthChecks.HealthCheckResult),
+         ErrorMessage = tostring(ParsedHealthChecks.AdditionalFailureDetails.Message)
+| extend ErrorType = extract(@"(Unexpected network error|Native error \d+|NeedsAssistance)", 0, ErrorMessage),
+         ErrorDetail = extract(@"(.*?NeedsAssistance|.*?Native error \d+)", 0, ErrorMessage)
+| project TimeGenerated, SessionHostName, HealthCheckName, HealthCheckResult, ErrorType, ErrorDetail
+
+
+
 KQL below returns
 WVDAgentHealthStatus
 
