@@ -8,6 +8,35 @@ WVDAgentHealthStatus
 | extend PackagesList = extract_all(@"\[(.*?), \(", ErrorMessage)
 | mv-expand PackagesList
 | extend MSIXPackageName = tostring(PackagesList)
+| project StatusTimeStamp, SessionHostName, ErrorType="MSIX Package Failure", MSIXPackageName
+| order by StatusTimeStamp desc
+
+
+returns 
+
+StatusTimeStamp [UTC]	SessionHostName	ErrorType	MSIXPackageName
+19/03/2025, 17:41:01.874	M01USSPI0019.aberdeen.aberdeen-asset.com	MSIX Package Failure	ManagementStudioClient-2023.355.689-001A_2023.355.690.0_x64__nmvg3h6wsd778
+19/03/2025, 17:41:01.874	M01USSPI0019.aberdeen.aberdeen-asset.com	MSIX Package Failure	ManagementStudioClient-2023.355.689-001A_2023.355.690.0_x64__nmvg3h6wsd778
+19/03/2025, 17:41:01.874	M01USSPI0019.aberdeen.aberdeen-asset.com	MSIX Package Failure	ManagementStudioClient-2023.355.689-001A_2023.355.690.0_x64__nmvg3h6wsd778
+19/03/2025, 17:41:01.874	M01USSPI0019.aberdeen.aberdeen-asset.com	MSIX Package Failure	ManagementStudioClient-2023.355.689-001A_2023.355.690.0_x64__nmvg3h6wsd778
+19/03/2025, 17:41:01.874	M01USSPI0019.aberdeen.aberdeen-asset.com	MSIX Package Failure	ManagementStudioClient-2023.355.689-001A_2023.355.690.0_x64__nmvg3h6wsd778
+
+Can I rationalise for a single line for StatusTimeStamp [UTC], SessionHostName and MSIXPackageName
+
+
+
+
+
+WVDAgentHealthStatus
+| extend ParsedHealthChecks = parse_json(SessionHostHealthCheckResult) 
+| mv-expand ParsedHealthChecks
+| extend HealthCheckName = tostring(ParsedHealthChecks.HealthCheckName),
+         HealthCheckResult = tostring(ParsedHealthChecks.HealthCheckResult),
+         ErrorMessage = tostring(ParsedHealthChecks.AdditionalFailureDetails.Message)
+| where ErrorMessage contains "MSIX packages have failed to properly stage"
+| extend PackagesList = extract_all(@"\[(.*?), \(", ErrorMessage)
+| mv-expand PackagesList
+| extend MSIXPackageName = tostring(PackagesList)
 | project TimeGenerated, SessionHostName, HealthCheckName, HealthCheckResult, ErrorType="MSIX Package Failure", MSIXPackageName
 
 
