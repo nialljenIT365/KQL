@@ -1,3 +1,19 @@
+WVDCheckpoints
+| where UserName == "Niall.Jennings@abrdn.com"
+| extend strParameters = tostring(Parameters)
+| extend json_raw = tostring(Parameters.json)
+| extend json = parse_json(json_raw)
+| project
+    Name,
+    addressFamily = json.addressFamily,
+    msInitialRTO = json.msInitialRTO,
+    maxRetries = json.maxRetries,
+    turnServers = json.turn,
+    interfaces = json.interfaces
+
+
+
+
 | extend interfaces_raw = tostring(json.interfaces)
 | extend interfaces_json = parse_json(interfaces_raw)
 | project interfaces_json["10.110.88.105:62116"].stun
