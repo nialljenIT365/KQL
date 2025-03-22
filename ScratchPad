@@ -1,3 +1,9 @@
+| extend strParameters = tostring(Parameters)
+| extend parsedParams = parse_json(strParameters)
+| extend Install_ClientCBS = parsedParams["install::MicrosoftWindows.Client.CBS_cw5n1h2txyewy"]
+
+
+
 WVDCheckpoints
 | where UserName == "Niall.Jennings@abrdn.com"
 | sort by TimeGenerated desc
