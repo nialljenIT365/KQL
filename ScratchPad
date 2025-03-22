@@ -1,3 +1,6 @@
+{"DisconnectCode":"0x1","DisconnectProxyCode":"0x0","DisconnectMessage":"User Initiated a Disconnect.","DisconnectCodeSymbolic":"UserInitiatedDisconnect","DisconnectOperation":"ClientRDPConnect","IsInternal":"False","IsUserInitiated":"1","IsProxyServerInitiated":"0","IsServerStackInitiated":"0","PopErrorUI":"0","TimeToDetectDisconnectActual":"661","TimeToDetectDisconnectNominal":"","EHNumRequests":"10","EHNumResponses":"9","EHNumErrors":"0","EHCriticalRequests":"4","EHHttpCodes":"200:1;201:7;401:1"}
+
+
 WVDCheckpoints
 | where UserName == "Niall.Jennings@abrdn.com"
 | sort by TimeGenerated desc 
