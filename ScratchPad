@@ -4,6 +4,168 @@ WVDCheckpoints
     Param_Outcome = tostring(Parameters.LoadBalanceOutcome),
     Param_TotalLogon = todouble(Parameters.WinLogon_Total),
     Param_ShellTasks = todouble(Parameters.ShellInitTasks)
+| project TimeGenerated, UserName, Name, Source, Param_Outcome, Param_TotalLogon, Param_ShellTasks
+| sort by TimeGenerated desc
+//| where Param_Outcome == "Disconnected"
+//| where Name contains "RdpStackLogon"
+//| where Name contains "TransportConnecting"
+//| where Name contains "LoadBalancedNewConnection"
+//| where Name contains "Discon"
+
+returns
+
+
+TimeGenerated [UTC]	UserName	Name	Source	Param_Outcome	Param_TotalLogon	Param_ShellTasks
+22/03/2025, 05:45:17.174	Niall.Jennings@abrdn.com	FirstGraphicsFrame	RDStack			
+22/03/2025, 05:45:16.764	Niall.Jennings@abrdn.com	RdpStackLogon	RDStack			
+22/03/2025, 05:45:15.741	Niall.Jennings@abrdn.com	FirstGraphicsFramePresented	Client			
+22/03/2025, 05:45:15.037	Niall.Jennings@abrdn.com	OnCoreApiLoginComplete	Client			
+22/03/2025, 05:45:13.962	Niall.Jennings@abrdn.com	OnServerSupportsDynamicResolution	Client			
+22/03/2025, 05:45:12.131	Niall.Jennings@abrdn.com	RdpStackConnectionEstablished	RDStack			
+22/03/2025, 05:45:11.944	Niall.Jennings@abrdn.com	OnCoreApiConnected	Client			
+22/03/2025, 05:45:11.606	Niall.Jennings@abrdn.com	ShortpathFallbackToGatewayTransport	RDStack			
+22/03/2025, 05:45:11.542	Niall.Jennings@abrdn.com	RdpStackLicenseChecked	RDStack			
+22/03/2025, 05:45:11.487	Niall.Jennings@abrdn.com	RdpStackAuthorization	RDStack			
+22/03/2025, 05:45:11.484	Niall.Jennings@abrdn.com	RdpStackAuthenticaticatedUser	RDStack			
+22/03/2025, 05:45:10.717	Niall.Jennings@abrdn.com	OnSecurityHandshakeCompleted	Client			
+22/03/2025, 05:45:09.346	Niall.Jennings@abrdn.com	OnCredentialsAcquisitionCompleted	Client			
+22/03/2025, 05:44:59.949	Niall.Jennings@abrdn.com	OnCredentialsAcquisitionStarted	Client			
+22/03/2025, 05:44:59.760	Niall.Jennings@abrdn.com	OnSecurityProviderNegotiated	Client			
+22/03/2025, 05:44:59.502	Niall.Jennings@abrdn.com	OnWebSocketConnectionCompletion	Client			
+22/03/2025, 05:44:58.780	Niall.Jennings@abrdn.com	OrchestrationCompleted	Client			
+22/03/2025, 05:44:58.763	Niall.Jennings@abrdn.com	ShortpathPublicLocalCandidatesReady	RDStack			
+22/03/2025, 05:44:58.714	Niall.Jennings@abrdn.com	ShortpathPublicConfigurationReceived	RDStack			
+22/03/2025, 05:44:58.669	Niall.Jennings@abrdn.com	TransportConnected	RDStack			
+22/03/2025, 05:44:58.622	Niall.Jennings@abrdn.com	TransportConnecting	RDStack			
+22/03/2025, 05:44:58.083	Niall.Jennings@abrdn.com	LoadBalancedNewConnection	RDBroker	Disconnected		
+22/03/2025, 05:44:57.229	Niall.Jennings@abrdn.com	StartOrchestration::WVDOrchestrationLauncher::LaunchOrchestration with gatewayUrl: https://afdfp-rdgateway-r1.wvd.microsoft.com/api/arm/v2/connections	Client			
+22/03/2025, 05:40:10.314	Niall.Jennings@abrdn.com	RdpStackDisconnect	RDStack			
+22/03/2025, 05:40:09.464	Niall.Jennings@abrdn.com	OnClientDisconnected	Client			
+22/03/2025, 05:40:09.271	Niall.Jennings@abrdn.com	NetworkStatusOnDisconnect	Client			
+22/03/2025, 05:19:53.826	Niall.Jennings@abrdn.com	FirstGraphicsFramePresented	Client			
+22/03/2025, 05:19:53.692	Niall.Jennings@abrdn.com	FirstGraphicsFrame	RDStack			
+22/03/2025, 05:19:52.764	Niall.Jennings@abrdn.com	OnClientDisconnected	Client			
+22/03/2025, 05:19:52.579	Niall.Jennings@abrdn.com	NetworkStatusOnDisconnect	Client			
+22/03/2025, 05:19:52.519	Niall.Jennings@abrdn.com	RdpStackLogon	RDStack			
+22/03/2025, 05:19:52.185	Niall.Jennings@abrdn.com	OnCoreApiLoginComplete	Client			
+22/03/2025, 05:19:51.963	Niall.Jennings@abrdn.com	OnServerSupportsDynamicResolution	Client			
+22/03/2025, 05:19:51.300	Niall.Jennings@abrdn.com	LogonDelay	winlogon		182.14	
+22/03/2025, 05:19:50.231	Niall.Jennings@abrdn.com	RdpStackConnectionEstablished	RDStack			
+22/03/2025, 05:19:48.364	Niall.Jennings@abrdn.com	RdpStackDisconnect	RDStack			
+22/03/2025, 05:19:48.078	Niall.Jennings@abrdn.com	ShortpathFallbackToGatewayTransport	RDStack			
+22/03/2025, 05:19:47.991	Niall.Jennings@abrdn.com	RdpStackLicenseChecked	RDStack			
+22/03/2025, 05:19:47.351	Niall.Jennings@abrdn.com	RdpStackAuthenticaticatedUser	RDStack			
+22/03/2025, 05:19:47.350	Niall.Jennings@abrdn.com	RdpStackAuthorization	RDStack			
+22/03/2025, 05:19:46.992	Niall.Jennings@abrdn.com	OnSecurityHandshakeCompleted	Client			
+22/03/2025, 05:19:46.196	Niall.Jennings@abrdn.com	OnSecurityProviderNegotiated	Client			
+22/03/2025, 05:19:45.946	Niall.Jennings@abrdn.com	OnWebSocketConnectionCompletion	Client			
+22/03/2025, 05:19:44.718	Niall.Jennings@abrdn.com	OrchestrationCompleted	Client			
+22/03/2025, 05:19:44.696	Niall.Jennings@abrdn.com	ShortpathPublicLocalCandidatesReady	RDStack			
+22/03/2025, 05:19:44.668	Niall.Jennings@abrdn.com	ShortpathPublicConfigurationReceived	RDStack			
+22/03/2025, 05:19:44.645	Niall.Jennings@abrdn.com	TransportConnected	RDStack			
+22/03/2025, 05:19:44.620	Niall.Jennings@abrdn.com	TransportConnecting	RDStack			
+22/03/2025, 05:19:44.013	Niall.Jennings@abrdn.com	LoadBalancedNewConnection	RDBroker	Active		
+22/03/2025, 05:19:43.374	Niall.Jennings@abrdn.com	StartOrchestration::WVDOrchestrationLauncher::LaunchOrchestration with gatewayUrl: https://afdfp-rdgateway-r1.wvd.microsoft.com/api/arm/v2/connections	Client			
+22/03/2025, 05:19:42.771	Niall.Jennings@abrdn.com	OnClientDisconnected	Client			
+22/03/2025, 05:19:42.583	Niall.Jennings@abrdn.com	NetworkStatusOnDisconnect	Client			
+22/03/2025, 05:19:42.105	Niall.Jennings@abrdn.com	OnCoreApiAutoReconnecting	Client			
+22/03/2025, 05:06:10.124	Niall.Jennings@abrdn.com	FirstGraphicsFrame	RDStack			
+22/03/2025, 05:06:10.023	Niall.Jennings@abrdn.com	FirstGraphicsFramePresented	Client			
+22/03/2025, 05:06:08.041	Niall.Jennings@abrdn.com	RdpStackLogon	RDStack			
+22/03/2025, 05:06:07.410	Niall.Jennings@abrdn.com	OnCoreApiLoginComplete	Client			
+22/03/2025, 05:06:07.117	Niall.Jennings@abrdn.com	OnServerSupportsDynamicResolution	Client			
+22/03/2025, 05:06:05.471	Niall.Jennings@abrdn.com	RdpStackConnectionEstablished	RDStack			
+22/03/2025, 05:06:04.994	Niall.Jennings@abrdn.com	OnCoreApiConnected	Client			
+22/03/2025, 05:06:04.738	Niall.Jennings@abrdn.com	ShortpathFallbackToGatewayTransport	RDStack			
+22/03/2025, 05:06:04.676	Niall.Jennings@abrdn.com	RdpStackLicenseChecked	RDStack			
+22/03/2025, 05:06:04.617	Niall.Jennings@abrdn.com	RdpStackAuthorization	RDStack			
+22/03/2025, 05:06:04.583	Niall.Jennings@abrdn.com	RdpStackAuthenticaticatedUser	RDStack			
+22/03/2025, 05:06:03.900	Niall.Jennings@abrdn.com	OnSecurityHandshakeCompleted	Client			
+22/03/2025, 05:06:02.368	Niall.Jennings@abrdn.com	OnCredentialsAcquisitionCompleted	Client			
+22/03/2025, 05:05:15.939	Niall.Jennings@abrdn.com	OnCredentialsAcquisitionStarted	Client			
+22/03/2025, 05:05:15.765	Niall.Jennings@abrdn.com	OnSecurityProviderNegotiated	Client			
+22/03/2025, 05:05:15.579	Niall.Jennings@abrdn.com	OnWebSocketConnectionCompletion	Client			
+22/03/2025, 05:05:15.388	Niall.Jennings@abrdn.com	TransportConnected	RDStack			
+22/03/2025, 05:05:14.753	Niall.Jennings@abrdn.com	OrchestrationCompleted	Client			
+22/03/2025, 05:05:14.552	Niall.Jennings@abrdn.com	ShortpathPublicLocalCandidatesReady	RDStack			
+22/03/2025, 05:05:14.489	Niall.Jennings@abrdn.com	ShortpathPublicConfigurationReceived	RDStack			
+22/03/2025, 05:05:14.384	Niall.Jennings@abrdn.com	TransportConnecting	RDStack			
+22/03/2025, 05:05:13.166	Niall.Jennings@abrdn.com	LoadBalancedNewConnection	RDBroker	Disconnected		
+22/03/2025, 05:05:12.187	Niall.Jennings@abrdn.com	StartOrchestration::WVDOrchestrationLauncher::LaunchOrchestration with gatewayUrl: https://afdfp-rdgateway-r1.wvd.microsoft.com/api/arm/v2/connections	Client			
+22/03/2025, 05:00:11.643	Niall.Jennings@abrdn.com	OnClientDisconnected	Client			
+22/03/2025, 05:00:11.431	Niall.Jennings@abrdn.com	NetworkStatusOnDisconnect	Client			
+22/03/2025, 05:00:10.944	Niall.Jennings@abrdn.com	RdpStackDisconnect	RDStack			
+22/03/2025, 04:46:27.585	Niall.Jennings@abrdn.com	OnServerSupportsDynamicResolution	Client			
+22/03/2025, 04:46:26.528	Niall.Jennings@abrdn.com	FirstGraphicsFrame	RDStack			
+22/03/2025, 04:46:26.443	Niall.Jennings@abrdn.com	RdpStackLogon	RDStack			
+22/03/2025, 04:46:25.014	Niall.Jennings@abrdn.com	FirstGraphicsFramePresented	Client			
+22/03/2025, 04:46:24.650	Niall.Jennings@abrdn.com	NetworkStatusOnDisconnect	Client			
+22/03/2025, 04:46:24.269	Niall.Jennings@abrdn.com	OnCoreApiLoginComplete	Client			
+22/03/2025, 04:46:21.586	Niall.Jennings@abrdn.com	OnCoreApiConnected	Client			
+22/03/2025, 04:46:21.389	Niall.Jennings@abrdn.com	RdpStackConnectionEstablished	RDStack			
+22/03/2025, 04:46:21.142	Niall.Jennings@abrdn.com	ShortpathFallbackToGatewayTransport	RDStack			
+22/03/2025, 04:46:21.096	Niall.Jennings@abrdn.com	RdpStackLicenseChecked	RDStack			
+22/03/2025, 04:46:20.394	Niall.Jennings@abrdn.com	RdpStackAuthorization	RDStack			
+22/03/2025, 04:46:20.389	Niall.Jennings@abrdn.com	RdpStackAuthenticaticatedUser	RDStack			
+22/03/2025, 04:46:20.351	Niall.Jennings@abrdn.com	OnSecurityHandshakeCompleted	Client			
+22/03/2025, 04:46:18.717	Niall.Jennings@abrdn.com	OnCredentialsAcquisitionCompleted	Client			
+22/03/2025, 04:45:58.616	Niall.Jennings@abrdn.com	OnCredentialsAcquisitionStarted	Client			
+22/03/2025, 04:45:58.442	Niall.Jennings@abrdn.com	OnSecurityProviderNegotiated	Client			
+22/03/2025, 04:45:58.241	Niall.Jennings@abrdn.com	OnWebSocketConnectionCompletion	Client			
+22/03/2025, 04:45:57.441	Niall.Jennings@abrdn.com	OrchestrationCompleted	Client			
+22/03/2025, 04:45:57.334	Niall.Jennings@abrdn.com	TransportConnected	RDStack			
+22/03/2025, 04:45:57.315	Niall.Jennings@abrdn.com	ShortpathPublicLocalCandidatesReady	RDStack			
+22/03/2025, 04:45:57.298	Niall.Jennings@abrdn.com	ShortpathPublicConfigurationReceived	RDStack			
+22/03/2025, 04:45:57.283	Niall.Jennings@abrdn.com	TransportConnecting	RDStack			
+22/03/2025, 04:45:56.621	Niall.Jennings@abrdn.com	LoadBalancedNewConnection	RDBroker	Disconnected		
+22/03/2025, 04:45:55.858	Niall.Jennings@abrdn.com	StartOrchestration::WVDOrchestrationLauncher::LaunchOrchestration with gatewayUrl: https://afdfp-rdgateway-r1.wvd.microsoft.com/api/arm/v2/connections	Client			
+22/03/2025, 04:44:48.713	Niall.Jennings@abrdn.com	RdpStackDisconnect	RDStack			
+22/03/2025, 03:22:23.888	Niall.Jennings@abrdn.com	AppReadinessDelay	WinShell			
+22/03/2025, 03:21:01.818	Niall.Jennings@abrdn.com	ShellTasks	WinShell			5031
+22/03/2025, 03:21:01.772	Niall.Jennings@abrdn.com	ShellReady	WinShell			
+22/03/2025, 03:19:53.983	Niall.Jennings@abrdn.com	ShellStart	WinShell			
+22/03/2025, 03:19:47.501	Niall.Jennings@abrdn.com	OnServerSupportsDynamicResolution	Client			
+22/03/2025, 03:19:45.162	Niall.Jennings@abrdn.com	LogonDelay	RDAgent		7962.21	
+22/03/2025, 03:19:45.107	Niall.Jennings@abrdn.com	RdpStackLogon	RDStack			
+22/03/2025, 03:19:44.221	Niall.Jennings@abrdn.com	OnCoreApiLoginComplete	Client			
+22/03/2025, 03:19:31.891	Niall.Jennings@abrdn.com	FirstGraphicsFrame	RDStack			
+22/03/2025, 03:19:31.675	Niall.Jennings@abrdn.com	FirstGraphicsFramePresented	Client			
+22/03/2025, 03:19:26.891	Niall.Jennings@abrdn.com	RdpStackConnectionEstablished	RDStack			
+22/03/2025, 03:19:26.481	Niall.Jennings@abrdn.com	OnCoreApiConnected	Client			
+22/03/2025, 03:19:26.011	Niall.Jennings@abrdn.com	ShortpathFallbackToGatewayTransport	RDStack			
+22/03/2025, 03:19:25.932	Niall.Jennings@abrdn.com	RdpStackLicenseChecked	RDStack			
+22/03/2025, 03:19:24.967	Niall.Jennings@abrdn.com	RdpStackAuthorization	RDStack			
+22/03/2025, 03:19:24.942	Niall.Jennings@abrdn.com	RdpStackAuthenticaticatedUser	RDStack			
+22/03/2025, 03:19:24.666	Niall.Jennings@abrdn.com	OnSecurityHandshakeCompleted	Client			
+22/03/2025, 03:19:23.405	Niall.Jennings@abrdn.com	OnCredentialsAcquisitionCompleted	Client			
+22/03/2025, 03:19:10.486	Niall.Jennings@abrdn.com	OnCredentialsAcquisitionStarted	Client			
+22/03/2025, 03:19:10.311	Niall.Jennings@abrdn.com	OnSecurityProviderNegotiated	Client			
+22/03/2025, 03:19:10.140	Niall.Jennings@abrdn.com	TransportConnected	RDStack			
+22/03/2025, 03:19:10.131	Niall.Jennings@abrdn.com	OnWebSocketConnectionCompletion	Client			
+22/03/2025, 03:19:10.108	Niall.Jennings@abrdn.com	ShortpathPublicLocalCandidatesReady	RDStack			
+22/03/2025, 03:19:09.938	Niall.Jennings@abrdn.com	OrchestrationCompleted	Client			
+22/03/2025, 03:19:09.927	Niall.Jennings@abrdn.com	ShortpathPublicConfigurationReceived	RDStack			
+22/03/2025, 03:19:09.839	Niall.Jennings@abrdn.com	TransportConnecting	RDStack			
+22/03/2025, 03:19:07.449	Niall.Jennings@abrdn.com	LoadBalancedNewConnection	RDBroker	NewSession		
+22/03/2025, 03:16:04.085	Niall.Jennings@abrdn.com	VMStarting	RDBroker			
+22/03/2025, 03:16:02.631	Niall.Jennings@abrdn.com	StartOrchestration::WVDOrchestrationLauncher::LaunchOrchestration with gatewayUrl: https://afdfp-rdgateway-r1.wvd.microsoft.com/api/arm/v2/connections	Client			
+
+
+
+
+
+
+
+
+
+
+
+WVDCheckpoints
+| where UserName == "Niall.Jennings@abrdn.com"
+| extend 
+    Param_Outcome = tostring(Parameters.LoadBalanceOutcome),
+    Param_TotalLogon = todouble(Parameters.WinLogon_Total),
+    Param_ShellTasks = todouble(Parameters.ShellInitTasks)
 | project TimeGenerated, Name, Source, Param_Outcome, Param_TotalLogon, Param_ShellTasks
 | sort by TimeGenerated desc
 
