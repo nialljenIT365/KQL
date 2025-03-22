@@ -1,3 +1,7 @@
+| extend rawJson = tostring(parse_json(tostring(Parameters)).json)
+| extend parsed = parse_json(rawJson)
+
+
 WVDCheckpoints
 | where UserName == "Niall.Jennings@abrdn.com"
 | sort by TimeGenerated desc
