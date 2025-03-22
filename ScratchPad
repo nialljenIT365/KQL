@@ -1,3 +1,6 @@
+| extend GatewayUrl = extract(@"gatewayUrl:\s*(https?://\S+)", 1, Name)
+
+
 WVDCheckpoints
 | where UserName == "Niall.Jennings@abrdn.com"
 | extend RawLoginType = tostring(Parameters.LoadBalanceOutcome)
