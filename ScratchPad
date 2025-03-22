@@ -1,3 +1,18 @@
+
+WVDCheckpoints
+| where UserName == "Niall.Jennings@abrdn.com"
+| where Parameters has "json"
+| extend rawJson = parse_json(tostring(Parameters))["json"]
+| extend parsedParams = parse_json(rawJson)
+| extend addressFamily = parsedParams.addressFamily
+| extend turn = parsedParams.turn
+| extend estimateSuccess = parsedParams.estimateSuccess
+| project TimeGenerated, Name, addressFamily, turn, estimateSuccess
+
+
+
+
+
 | extend rawJson = tostring(parse_json(tostring(Parameters)).json)
 | extend parsed = parse_json(rawJson)
 
