@@ -1,3 +1,197 @@
+Parameters
+{}
+{}
+{}
+{}
+{}
+{}
+{}
+{"FallbackReason":"NotSupported"}
+{}
+{}
+{}
+{"CredSSPSecurityProtocol":"NTLM","ClientAuthDeferred":"False"}
+{"Success":"True","DurationMS":"11329","CredentialType":"FreshPassword"}
+{}
+{"SecurityProtocol":"CREDSSP-EX"}
+{}
+{}
+{"json":"{ \"addressFamily\": \"both\", \"options\": [ ], \"stun\": [ ], \"turn\": [ \"20.202.248.2\"], \"msCandidatePacing\": 50, \"msInitialRTO\": 100, \"maxRetries\": 3"}
+{"json":"{ \"interfaces\": { \"10.110.88.105:60388\": { \"stun\": [ \"52.169.10.218:32128\"], \"coneShapedNat\": true, \"turn\": [ \"20.202.1.73:52662\"], \"estimate\": \"UDP OK. NAT indeterminate. Cannot predict success.\", \"estimateCode\": \"SUXT\"}, \"172.20.192.1:60387\": { \"estimate\": \"UDP FAIL. Very likely FAIL.\", \"estimateCode\": \"FXXX\"}}, \"hasStun\": true, \"hasTurn\": true, \"hasManual\": false, \"estimateSuccess\": false}"}
+{}
+{}
+{"LoadBalanceOutcome":"NewSession"}
+{"StartVMOnConnect":"VMConnected"}
+{"LoadBalanceOutcome":"Disconnected"}
+{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"856","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0101"}
+{"LoadBalanceOutcome":"Disconnected"}
+{}
+{"disconnectSource":"3","code":"15","codeSymbolic":"ClientInitiatedDisconnect"}
+{}
+{"NetworkConnectivityLevel":"NetworkConnectivityLevelHintInternetAccess","ServiceConnectivityStatus":"Succeeded"}
+{}
+{}
+{}
+{}
+{}
+{}
+{"FallbackReason":"NotSupported"}
+{}
+{}
+{}
+{"CredSSPSecurityProtocol":"NTLM","ClientAuthDeferred":"False"}
+{"Success":"True","DurationMS":"17036","CredentialType":"FreshPassword"}
+{}
+{"SecurityProtocol":"CREDSSP-EX"}
+{}
+{}
+{"json":"{ \"addressFamily\": \"both\", \"options\": [ ], \"stun\": [ ], \"turn\": [ \"20.202.248.2\"], \"msCandidatePacing\": 50, \"msInitialRTO\": 100, \"maxRetries\": 3"}
+{"json":"{ \"interfaces\": { \"10.110.88.105:55548\": { \"stun\": [ \"52.169.10.218:46131\"], \"coneShapedNat\": true, \"turn\": [ \"20.202.1.103:52073\"], \"estimate\": \"UDP OK. NAT indeterminate. Cannot predict success.\", \"estimateCode\": \"SUXT\"}, \"172.20.192.1:55549\": { \"estimate\": \"UDP FAIL. Very likely FAIL.\", \"estimateCode\": \"FXXX\"}}, \"hasStun\": true, \"hasTurn\": true, \"hasManual\": false, \"estimateSuccess\": false}"}
+{}
+{}
+{"LoadBalanceOutcome":"Disconnected"}
+{}
+{"disconnectSource":"3","code":"66","codeSymbolic":"ReverseConnectGracefulCloseByPeer"}
+{}
+{}
+{}
+{}
+{}
+{}
+{}
+{"FallbackReason":"NotSupported"}
+{}
+{}
+{}
+{"CredSSPSecurityProtocol":"NTLM","ClientAuthDeferred":"False"}
+{"Success":"True","DurationMS":"9573","CredentialType":"FreshPassword"}
+{}
+{"SecurityProtocol":"CREDSSP-EX"}
+{}
+{}
+{"json":"{ \"interfaces\": { \"10.110.88.105:58282\": { \"stun\": [ \"52.169.10.218:1714\"], \"coneShapedNat\": true, \"turn\": [ \"20.202.1.213:50399\"], \"estimate\": \"UDP OK. NAT indeterminate. Cannot predict success.\", \"estimateCode\": \"SUXT\"}, \"172.20.192.1:58283\": { \"estimate\": \"UDP FAIL. Very likely FAIL.\", \"estimateCode\": \"FXXX\"}}, \"hasStun\": true, \"hasTurn\": true, \"hasManual\": false, \"estimateSuccess\": false}"}
+{"json":"{ \"addressFamily\": \"both\", \"options\": [ ], \"stun\": [ ], \"turn\": [ \"20.202.248.2\"], \"msCandidatePacing\": 50, \"msInitialRTO\": 100, \"maxRetries\": 3"}
+{}
+{}
+{"LoadBalanceOutcome":"Disconnected"}
+{}
+{"disconnectSource":"2","code":"37","codeSymbolic":"ServerAdminInitiatedDisconnect"}
+{"DisconnectCode":"0x3","DisconnectProxyCode":"0x0","DisconnectMessage":"Session Host Initiated a Disconnect.","DisconnectCodeSymbolic":"StackInitiatedDisconnect","DisconnectOperation":"ClientRDPConnect","IsInternal":"True","IsUserInitiated":"0","IsProxyServerInitiated":"0","IsServerStackInitiated":"1","PopErrorUI":"1","TimeToDetectDisconnectActual":"322","TimeToDetectDisconnectNominal":"","EHNumRequests":"6","EHNumResponses":"3","EHNumErrors":"0","EHCriticalRequests":"3","EHHttpCodes":"201:3"}
+{"NetworkConnectivityLevel":"NetworkConnectivityLevelHintInternetAccess","ServiceConnectivityStatus":"Succeeded"}
+{}
+{}
+{"DisconnectCode":"0x904","DisconnectProxyCode":"0x0","DisconnectMessage":"The client network connection to the Windows Virtual Desktop service was terminated unexpectedly.","DisconnectCodeSymbolic":"SocketConnectionClosed","DisconnectOperation":"NetworkConnection","IsInternal":"False","IsUserInitiated":"0","IsProxyServerInitiated":"0","IsServerStackInitiated":"0","PopErrorUI":"1","TimeToDetectDisconnectActual":"322","TimeToDetectDisconnectNominal":"","EHNumRequests":"7","EHNumResponses":"5","EHNumErrors":"0","EHCriticalRequests":"3","EHHttpCodes":"200:1;201:3;401:1"}
+{"NetworkConnectivityLevel":"NetworkConnectivityLevelHintNone","ServiceConnectivityStatus":"Failed","ServiceConnectivityError":"0x80072ee7 connecting to https://rdweb-g-eu-r1.wvd.microsoft.com/api/arm/DiagnosticEvents/v1/api/health"}
+{}
+{}
+{}
+{"WinLogon_Total":"182.14","WinLogon_Logon":"182.14","WinLogonPid":"9820","WinLogon_Logon_SessionEnv":"54.22","WinLogon_Logon_Sens":"127.90","LogonType":"TemporarySession"}
+{}
+{"disconnectSource":"2","code":"16","codeSymbolic":"LogoffByOtherConnection"}
+{"FallbackReason":"NotSupported"}
+{}
+{}
+{}
+{"CredSSPSecurityProtocol":"NTLM","ClientAuthDeferred":"False"}
+{"SecurityProtocol":"CREDSSP-EX"}
+{}
+{}
+{"json":"{ \"interfaces\": { \"10.110.88.105:63836\": { \"stun\": [ \"52.169.10.218:26702\"], \"coneShapedNat\": true, \"turn\": [ \"20.202.1.110:52252\"], \"estimate\": \"UDP OK. NAT indeterminate. Cannot predict success.\", \"estimateCode\": \"SUXT\"}, \"172.20.192.1:63837\": { \"estimate\": \"UDP FAIL. Very likely FAIL.\", \"estimateCode\": \"FXXX\"}}, \"hasStun\": true, \"hasTurn\": true, \"hasManual\": false, \"estimateSuccess\": false}"}
+{"json":"{ \"addressFamily\": \"both\", \"options\": [ ], \"stun\": [ ], \"turn\": [ \"20.202.248.2\"], \"msCandidatePacing\": 50, \"msInitialRTO\": 100, \"maxRetries\": 3"}
+{}
+{}
+{"LoadBalanceOutcome":"Active"}
+{}
+{"DisconnectCode":"0x300002e","DisconnectProxyCode":"0x0","DisconnectMessage":"Client network connection to the Windows Virtual Desktop service was lost.","DisconnectCodeSymbolic":"ClientNetworkLost","DisconnectOperation":"NetworkConnection","IsInternal":"False","IsUserInitiated":"0","IsProxyServerInitiated":"0","IsServerStackInitiated":"0","PopErrorUI":"1","TimeToDetectDisconnectActual":"","TimeToDetectDisconnectNominal":"","EHNumRequests":"11","EHNumResponses":"8","EHNumErrors":"1","EHCriticalRequests":"5","EHHttpCodes":"200:1;201:5;401:1","EHErrorCodes":"0x80004005:1"}
+{"NetworkConnectivityLevel":"NetworkConnectivityLevelHintNone","ServiceConnectivityStatus":"Succeeded"}
+{}
+{}
+{}
+{}
+{}
+{}
+{}
+{}
+{"FallbackReason":"NotSupported"}
+{}
+{}
+{}
+{"CredSSPSecurityProtocol":"NTLM","ClientAuthDeferred":"False"}
+{"Success":"True","DurationMS":"46590","CredentialType":"FreshPassword"}
+{}
+{"SecurityProtocol":"CREDSSP-EX"}
+{}
+{}
+{}
+{"json":"{ \"interfaces\": { \"10.110.88.105:63134\": { \"stun\": [ \"52.169.10.218:35973\"], \"coneShapedNat\": true, \"turn\": [ \"20.202.1.226:50468\"], \"estimate\": \"UDP OK. NAT indeterminate. Cannot predict success.\", \"estimateCode\": \"SUXT\"}, \"172.20.192.1:63135\": { \"estimate\": \"UDP FAIL. Very likely FAIL.\", \"estimateCode\": \"FXXX\"}}, \"hasStun\": true, \"hasTurn\": true, \"hasManual\": false, \"estimateSuccess\": false}"}
+{"json":"{ \"addressFamily\": \"both\", \"options\": [ ], \"stun\": [ ], \"turn\": [ \"20.202.248.2\"], \"msCandidatePacing\": 50, \"msInitialRTO\": 100, \"maxRetries\": 3"}
+{}
+{"LoadBalanceOutcome":"Disconnected"}
+{}
+{"DisconnectCode":"0x1","DisconnectProxyCode":"0x0","DisconnectMessage":"User Initiated a Disconnect.","DisconnectCodeSymbolic":"UserInitiatedDisconnect","DisconnectOperation":"ClientRDPConnect","IsInternal":"False","IsUserInitiated":"1","IsProxyServerInitiated":"0","IsServerStackInitiated":"0","PopErrorUI":"0","TimeToDetectDisconnectActual":"661","TimeToDetectDisconnectNominal":"","EHNumRequests":"10","EHNumResponses":"9","EHNumErrors":"0","EHCriticalRequests":"4","EHHttpCodes":"200:1;201:7;401:1"}
+{"NetworkConnectivityLevel":"NetworkConnectivityLevelHintInternetAccess","ServiceConnectivityStatus":"Succeeded"}
+{"disconnectSource":"3","code":"15","codeSymbolic":"ClientInitiatedDisconnect"}
+{}
+{}
+{}
+{}
+{"NetworkConnectivityLevel":"NetworkConnectivityLevelHintInternetAccess","ServiceConnectivityStatus":"Succeeded"}
+{}
+{}
+{}
+{"FallbackReason":"NotSupported"}
+{}
+{}
+{}
+{"CredSSPSecurityProtocol":"NTLM","ClientAuthDeferred":"False"}
+{"Success":"True","DurationMS":"20264","CredentialType":"FreshPassword"}
+{}
+{"SecurityProtocol":"CREDSSP-EX"}
+{}
+{}
+{}
+{"json":"{ \"interfaces\": { \"10.110.88.105:62116\": { \"stun\": [ \"52.169.10.218:15869\"], \"coneShapedNat\": true, \"turn\": [ \"20.202.1.12:51501\"], \"estimate\": \"UDP OK. NAT indeterminate. Cannot predict success.\", \"estimateCode\": \"SUXT\"}, \"172.20.192.1:62117\": { \"estimate\": \"UDP FAIL. Very likely FAIL.\", \"estimateCode\": \"FXXX\"}}, \"hasStun\": true, \"hasTurn\": true, \"hasManual\": false, \"estimateSuccess\": false}"}
+{"json":"{ \"addressFamily\": \"both\", \"options\": [ ], \"stun\": [ ], \"turn\": [ \"20.202.248.2\"], \"msCandidatePacing\": 50, \"msInitialRTO\": 100, \"maxRetries\": 3"}
+{}
+{"LoadBalanceOutcome":"Disconnected"}
+{}
+{"disconnectSource":"3","code":"15","codeSymbolic":"ClientInitiatedDisconnect"}
+{"install::MicrosoftWindows.Client.CBS_cw5n1h2txyewy":"1535.00","install::Microsoft.Windows.ShellExperienceHost_cw5n1h2txyewy":"5004.00","UserLogon":"5004.00","PreviewTiles":"16.00","install::Microsoft.LockApp_cw5n1h2txyewy":"81218.00","OemFirstRun":"0.00","Total":"5020.00"}
+{"UpdatePCSettingsShellInit":"0.00","ShellHandwriting":"17.00","LaunchExperienceHostPostStart":"0.00","RemoveTempOOBEUser":"16.00","WSXRegistryInitPreStart":"0.00","UndockedShellUpdate":"16.00","ActiveSetup":"0.00","RunOnce":"18.00","AssignedAccessAutoLaunch":"78.00","FamilySync":"0.00","CreateYourPhoneShortcutsIfNeededPostStart":"0.00","NotifyTrayStartIsReady":"16.00","CloudDataUpdateProfileName":"0.00","AppResolver":"33969.00","ShellInitTasks":"5031.00","CDSDataMigration":"31.00","LaunchContentDeliveryManagerStart":"0.00","OEMFirstRunTelemetry":"0.00","PostStartTasks":"140.00","GetLanguageOverlayPackage":"16.00","AssignedAccessLogonTaskAgentPreStart":"8063.00","AppReadinessPreShellGroup":"34938.00","RefreshOneSettingsFeatureConfigurations":"0.00","AllLogonTasks":"54172.00","StartSkydriveSync":"16.00","CreateEdgeIconIfNeededPostStart":"0.00","PreShellTasks":"33906.00","LaunchPeopleExperiencePostStart":"0.00","AppReadinessLogonGroup":"5015.00","ResumeAppRestore":"0.00","WSXRegistryInit":"0.00","WaitForMSAConnected":"14.00","UpdatePCSettingsPreStart":"0.00","FamilyMembersNotification":"16.00","AppReadinessNotifyLogonComplete":"312.00","InstallPWAs":"5015.00","DefaultAssociations":"16.00","StartLayoutInit":"46766.00","EnterpriseProvisioning":"0.00","PerUserSetup":"8078.00","PreRoamingTasks":"1062.00","LaunchLockScreenCacheImageRestorePostStart":"0.00","InitializeBrowserSsoCookie":"47.00","LaunchCustomShell":"31.00","DownloadEduThemes":"14.00","LaunchLockAppHostPostStart":"0.00","AppReadinessPreRoamingGroup":"1014.00","PerUserSetupPostStart":"0.00","PerformSignInSuggestionsStart":"0.00","UgradeTaskFlowPolicy":"0.00"}
+{"DurationMs":"67749.93","DurationMsFromTimestamps":"67228.18"}
+{}
+{}
+{"WinLogon_Total":"7962.21","AuthenticateUser":"1834.17","WinLogon_Logon_Profiles":"1769.39","WinLogon_Logon":"3957.47","WinLogonPid":"9820","WinLogon_Logon_SessionEnv":"1.49","WinLogon_StartShell":"140.74","WinLogon_Logon_Sens":"11.56","WinLogon_Logon_TermSrv":"2173.88","WinLogon_Logon_GPClient":"1.14","LogonType":"DirectSession"}
+{}
+{}
+{}
+{}
+{}
+{}
+{"FallbackReason":"NotSupported"}
+{}
+{}
+{}
+{"CredSSPSecurityProtocol":"NTLM","ClientAuthDeferred":"False"}
+{"Success":"True","DurationMS":"13133","CredentialType":"FreshPassword"}
+{}
+{"SecurityProtocol":"CREDSSP-EX"}
+{}
+{}
+{"json":"{ \"interfaces\": { \"10.110.88.105:50336\": { \"stun\": [ \"52.169.10.218:22775\"], \"coneShapedNat\": true, \"turn\": [ \"20.202.1.9:52639\"], \"estimate\": \"UDP OK. NAT indeterminate. Cannot predict success.\", \"estimateCode\": \"SUXT\"}, \"172.17.48.1:50337\": { \"estimate\": \"UDP FAIL. Very likely FAIL.\", \"estimateCode\": \"FXXX\"}}, \"hasStun\": true, \"hasTurn\": true, \"hasManual\": false, \"estimateSuccess\": false}"}
+{}
+{"json":"{ \"addressFamily\": \"both\", \"options\": [ ], \"stun\": [ ], \"turn\": [ \"20.202.248.2\"], \"msCandidatePacing\": 50, \"msInitialRTO\": 100, \"maxRetries\": 3"}
+{}
+{"LoadBalanceOutcome":"NewSession"}
+{"StartVMOnConnect":"VMStarting","StartVMOnConnectComputeAPIDuration":"561","SessionHostArmComputePath":"/subscriptions/01f03a19-5500-482a-b480-3bb664e0ebc2/resourceGroups/rg-EUS-RemoteDesktopDevices-PersistentVirtualDesktop-NEU-PRD/providers/Microsoft.Compute/virtualMachines/M01PSSPI0101"}
+{}
+{"disconnectSource":"2","code":"63","codeSymbolic":"ServerReboot"}
+
+
+
+
+
+
 WVDCheckpoints
 | where UserName == "Niall.Jennings@abrdn.com"
 | extend strParameters = tostring(Parameters)
