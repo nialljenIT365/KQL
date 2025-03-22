@@ -1,3 +1,7 @@
+{"json":"{ \"interfaces\": { \"10.110.88.105:50336\": { \"stun\": [ \"52.169.10.218:22775\"], \"coneShapedNat\": true, \"turn\": [ \"20.202.1.9:52639\"], \"estimate\": \"UDP OK. NAT indeterminate. Cannot predict success.\", \"estimateCode\": \"SUXT\"}, \"172.17.48.1:50337\": { \"estimate\": \"UDP FAIL. Very likely FAIL.\", \"estimateCode\": \"FXXX\"}}, \"hasStun\": true, \"hasTurn\": true, \"hasManual\": false, \"estimateSuccess\": false}"}
+
+
+
 | extend Rawjson = tostring(Parameters.json)
 | extend StunIP = strcat("RDStackInitiatedStunIP:" , extract(@'"stun"\s*:\s*\[\s*"((?:\d{1,3}\.){3}\d{1,3})"', 1, Rawjson))
 
