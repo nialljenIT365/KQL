@@ -1,3 +1,10 @@
+| extend 
+    ResourceGroup = extract(@"resourceGroups/([^/]+)", 1, _ResourceId),
+    HostPoolName = extract(@"hostpools/([^/]+)", 1, _ResourceId)
+| distinct ResourceGroup, HostPoolName
+
+
+
 Perf
 | where ObjectName == "User Input Delay per Process"
 | where InstanceName contains "rdpvchost.exe"
