@@ -1,3 +1,6 @@
+| extend TurnIPCandidate = strcat("RDStackInitiatedTurnRelay: ", extract(@"\""turn\""\s*:\s*\[\s*\""(?:\d{1,3}\.){3}\d{1,3}:\d{1,5}\""\]", 0, Rawjson))
+
+
 | extend TurnIP = strcat("RDStackInitiatedTurnRelay: ", extract(@"\""turn\""\s*:\s*\[\s*\""(?:\d{1,3}\.){3}\d{1,3}:\d{1,5}\""\]", 0, Rawjson))
 
 
