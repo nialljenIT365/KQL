@@ -1,6 +1,22 @@
 WVDCheckpoints
 | where UserName == "Niall.Jennings@abrdn.com"
 | extend 
+    RawLoginType = tostring(Parameters.LoadBalanceOutcome),
+    LoginType = case(
+        RawLoginType == "Disconnected", "UserInitiatedReconnect",
+        RawLoginType == "Active", "ClientInitiatedAutoReconnect",
+        RawLoginType == "NewSession", "NewSession",
+        RawLoginType // fallback
+    )
+| where Name contains "LoadBalancedNewConnection"
+| project TimeGenerated, UserName, Name, Source, LoginType, CorrelationId
+| sort by TimeGenerated desc
+
+
+
+WVDCheckpoints
+| where UserName == "Niall.Jennings@abrdn.com"
+| extend 
     Param_Outcome = tostring(Parameters.LoadBalanceOutcome),
     Param_TotalLogon = todouble(Parameters.WinLogon_Total),
     Param_ShellTasks = todouble(Parameters.ShellInitTasks)
