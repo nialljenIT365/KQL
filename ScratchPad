@@ -1,3 +1,9 @@
+| extend interfaces_raw = tostring(json.interfaces)
+| extend interfaces_json = parse_json(interfaces_raw)
+| project interfaces_json["10.110.88.105:62116"].stun
+
+
+
 | extend TurnIPCandidate = strcat("RDStackInitiatedTurnRelay: ", extract(@'"turn"\s*:\s*\[\s*"((?:\d{1,3}\.){3}\d{1,3}:\d{1,5})"\s*\]', 1, Rawjson))
 
 
