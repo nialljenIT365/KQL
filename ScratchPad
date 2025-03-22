@@ -1,3 +1,12 @@
+WVDCheckpoints
+| where Source == "RDBroker"
+| where Name == "LoadBalancedNewConnection"
+| extend ParametersString = tostring(Parameters)
+| distinct ParametersString
+
+
+
+
 extract(@"[rR]esource[Gg]roups/([^/]+)", 1, _ResourceId)
 
 | extend 
