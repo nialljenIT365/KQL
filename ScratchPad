@@ -1,3 +1,78 @@
+WVDCheckpoints
+| where UserName == "Niall.Jennings@abrdn.com"
+| sort by TimeGenerated desc
+| extend strParameters = tostring(Parameters)
+//| distinct strParameters
+| extend FallBackReason = parse_json(strParameters).FallbackReason
+| extend CredSSPSecurityProtocol = parse_json(strParameters).CredSSPSecurityProtocol
+| extend ClientAuthDeferred = parse_json(strParameters).ClientAuthDeferred
+| extend DisconnectCode = parse_json(strParameters).DisconnectCode
+| extend DisconnectProxyCode = parse_json(strParameters).DisconnectProxyCode
+| extend DisconnectMessage = parse_json(strParameters).DisconnectMessage
+| extend DisconnectCodeSymbolic = parse_json(strParameters).DisconnectCodeSymbolic
+| extend DisconnectOperation = parse_json(strParameters).DisconnectOperation
+| extend IsInternal = parse_json(strParameters).IsInternal
+| extend IsUserInitiated = parse_json(strParameters).IsUserInitiated
+| extend IsProxyServerInitiated = parse_json(strParameters).IsProxyServerInitiated
+| extend IsServerStackInitiated = parse_json(strParameters).IsServerStackInitiated
+| extend PopErrorUI = parse_json(strParameters).PopErrorUI
+| extend TimeToDetectDisconnectActual = parse_json(strParameters).TimeToDetectDisconnectActual
+| extend TimeToDetectDisconnectNominal = parse_json(strParameters).TimeToDetectDisconnectNominal
+| extend EHNumRequests = parse_json(strParameters).EHNumRequests
+| extend EHNumResponses = parse_json(strParameters).EHNumResponses
+| extend EHNumErrors = parse_json(strParameters).EHNumErrors
+| extend EHCriticalRequests = parse_json(strParameters).EHCriticalRequests
+| extend EHHttpCodes = parse_json(strParameters).EHHttpCodes
+| extend EHErrorCodes = parse_json(strParameters).EHErrorCodes
+| extend Success = parse_json(strParameters).Success
+| extend DurationMS = parse_json(strParameters).DurationMS
+| extend CredentialType = parse_json(strParameters).CredentialType
+| extend SecurityProtocol = parse_json(strParameters).SecurityProtocol
+| extend LoadBalanceOutcome = parse_json(strParameters).LoadBalanceOutcome
+| extend StartVMOnConnect = parse_json(strParameters).StartVMOnConnect
+| extend StartVMOnConnectComputeAPIDuration = parse_json(strParameters).StartVMOnConnectComputeAPIDuration
+| extend SessionHostArmComputePath = parse_json(strParameters).SessionHostArmComputePath
+| extend disconnectSource = parse_json(strParameters).disconnectSource
+| extend codeSymbolic = parse_json(strParameters).codeSymbolic
+| extend NetworkConnectivityLevel = parse_json(strParameters).NetworkConnectivityLevel
+| extend ServiceConnectivityStatus = parse_json(strParameters).ServiceConnectivityStatus
+| extend ServiceConnectivityError = parse_json(strParameters).ServiceConnectivityError
+| extend codeSymbolic = parse_json(strParameters).codeSymbolic
+| extend WinLogon_Total = parse_json(strParameters).WinLogon_Total
+| extend WinLogon_Logon = parse_json(strParameters).WinLogon_Logon
+| extend WinLogonPid = parse_json(strParameters).WinLogonPid
+| extend WinLogon_Logon_SessionEnv = parse_json(strParameters).WinLogon_Logon_SessionEnv
+| extend WinLogon_Logon_Sens = parse_json(strParameters).WinLogon_Logon_Sens
+| extend LogonType = parse_json(strParameters).LogonType
+//| extend install = parse_json(strParameters).install
+| where isempty(FallBackReason)
+| where isempty(CredSSPSecurityProtocol)
+| where isempty(ClientAuthDeferred)
+| where isempty(Success)
+| where isempty(DurationMS)
+| where isempty(CredentialType)
+| where isempty( SecurityProtocol)
+| where isempty( LoadBalanceOutcome)
+| where isempty( StartVMOnConnect)
+| where isempty( StartVMOnConnectComputeAPIDuration)
+| where isempty( SessionHostArmComputePath)
+| where isempty( disconnectSource)
+| where isempty( codeSymbolic)
+| where isempty( NetworkConnectivityLevel)
+| where isempty( ServiceConnectivityError)
+| where isempty( ServiceConnectivityStatus)
+| where isempty( DisconnectCode)
+| where isempty( WinLogon_Total)
+//| where isnotempty( install)
+| where Name contains "AppReadinessDelay"
+
+returns 
+
+TimeGenerated [UTC]	strParameters	FallBackReason	CredSSPSecurityProtocol	ClientAuthDeferred	DisconnectCode	DisconnectProxyCode	DisconnectMessage	DisconnectCodeSymbolic	DisconnectOperation	IsInternal	IsUserInitiated	IsProxyServerInitiated	IsServerStackInitiated	PopErrorUI	TimeToDetectDisconnectActual	TimeToDetectDisconnectNominal	EHNumRequests	EHNumResponses	EHNumErrors
+22/03/2025, 03:22:23.888	{"install::MicrosoftWindows.Client.CBS_cw5n1h2txyewy":"1535.00","install::Microsoft.Windows.ShellExperienceHost_cw5n1h2txyewy":"5004.00","UserLogon":"5004.00","PreviewTiles":"16.00","install::Microsoft.LockApp_cw5n1h2txyewy":"81218.00","OemFirstRun":"0.00","Total":"5020.00"}																		
+
+How can I parse install::MicrosoftWindows.Client.CBS_cw5n1h2txyewy as the | extend LogonType = parse_json(strParameters).LogonType option does not work due to the special characters
+
 DisconnectCode: 0x1  
 DisconnectProxyCode: 0x0  
 DisconnectMessage: User Initiated a Disconnect.  
