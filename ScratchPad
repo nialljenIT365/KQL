@@ -1,4 +1,16 @@
 WVDCheckpoints
+| where UserName == "Niall.Jennings@abrdn.com"
+| extend 
+    Param_Outcome = tostring(Parameters.LoadBalanceOutcome),
+    Param_TotalLogon = todouble(Parameters.WinLogon_Total),
+    Param_ShellTasks = todouble(Parameters.ShellInitTasks)
+| project TimeGenerated, Name, Source, Param_Outcome, Param_TotalLogon, Param_ShellTasks
+| sort by TimeGenerated desc
+
+
+
+
+WVDCheckpoints
 //| where Source == "RDBroker"
 //| where Name == "LoadBalancedNewConnection"
 | extend ParametersString = tostring(Parameters)
