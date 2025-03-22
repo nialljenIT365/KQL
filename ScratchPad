@@ -1,3 +1,14 @@
+YourTable
+| where isnotempty(Parameters)
+| extend parsed = parse_json(Parameters)
+| extend topLevel = bag_keys(parsed)
+| extend innerJson = parse_json(parsed["json"]) 
+| extend hasInner = iff("json" in topLevel and isnotempty(innerJson), true, false)
+| extend unpacked = iff(hasInner, innerJson, parsed)
+| evaluate bag_unpack(unpacked)
+
+
+
 Parameters
 {}
 {}
