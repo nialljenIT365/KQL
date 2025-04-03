@@ -12,11 +12,11 @@ To learn more about the process this script does,
 See https://docs.microsoft.com/en-us/azure/virtual-desktop/install-office-on-wvd-master-image 
 #>
 
-# create directory on D: Drive (Temp drive for Azure VM, is removed regularly)
-mkdir D:\temp\odt\raw
+# create directory on C: Drive (Temp drive for Azure VM, is removed regularly)
+mkdir C:\temp\odt\raw
 
 # parse through the MS Download Center page to get the most up-to-date download link
-$MSDlSite2 = Invoke-WebRequest "https://www.microsoft.com/en-us/download/confirmation.aspx?id=49117" -UseBasicParsing
+$MSDlSite2 = Invoke-WebRequest "https://www.microsoft.com/en-us/download/details.aspx?id=49117" -UseBasicParsing
 ForEach ($Href in $MSDlSite2.Links.Href)
 {
     if ($Href -match "officedeploymenttool" ){
@@ -25,12 +25,12 @@ ForEach ($Href in $MSDlSite2.Links.Href)
 }
 
 # Download office deployment tool using up-to-date link grabed eariler
-Invoke-WebRequest -Uri $DLink -OutFile "D:\temp\odt.exe" -UseBasicParsing
+Invoke-WebRequest -Uri $DLink -OutFile "C:\temp\odt.exe" -UseBasicParsing
 
 # unpack the ODT executable to get the setup.exe
-$app = 'D:\temp\odt.exe'
+$app = 'C:\temp\odt.exe'
 $arg1 = '/quiet'
-$arg2 = '/extract:D:\temp\odt\raw'
+$arg2 = '/extract:C:\temp\odt\raw'
 & $app $arg1 $arg2
 
 # create a base config XML for ODT to use, this one has auto-update disabled
@@ -38,12 +38,31 @@ $ODTConfig = @"
 <Configuration>
   <Add OfficeClientEdition="64" Channel="MonthlyEnterprise">
     <Product ID="O365ProPlusRetail">
-      <Language ID="en-US" />
+      <Language ID="en-gb" />
       <Language ID="MatchOS" />
       <ExcludeApp ID="Groove" />
       <ExcludeApp ID="Lync" />
       <ExcludeApp ID="OneDrive" />
       <ExcludeApp ID="Teams" />
+      <ExcludeApp ID="Publisher" />
+    </Product>
+    <Product ID="VisioProRetail">
+      <Language ID="en-gb" />
+      <Language ID="MatchOS" />
+      <ExcludeApp ID="Groove" />
+      <ExcludeApp ID="Lync" />
+      <ExcludeApp ID="OneDrive" />
+      <ExcludeApp ID="Teams" />
+      <ExcludeApp ID="Publisher" />
+    </Product>
+    <Product ID="ProjectProRetail">
+      <Language ID="en-gb" />
+      <Language ID="MatchOS" />
+      <ExcludeApp ID="Groove" />
+      <ExcludeApp ID="Lync" />
+      <ExcludeApp ID="OneDrive" />
+      <ExcludeApp ID="Teams" />
+      <ExcludeApp ID="Publisher" />
     </Product>
   </Add>
   <RemoveMSI/>
@@ -54,14 +73,13 @@ $ODTConfig = @"
   <Property Name="SharedComputerLicensing" Value="1"/>
 </Configuration>
 "@ 
-$ODTConfig | Out-File "D:\temp\odt\raw\odtconfig.xml"
+$ODTConfig | Out-File "C:\temp\odt\raw\odtconfig.xml"
 
 # execute odt.exe using the newly created odtconfig.xml. This updates/installs office (takes a while)
-$app2 = 'D:\temp\odt\raw\setup.exe'
+$app2 = 'C:\temp\odt\raw\setup.exe'
 $arg21 = '/configure'
-$arg22 = 'D:\temp\odtconfig.xml'
+$arg22 = 'C:\temp\odtconfig.xml'
 & $app2 $arg21 $arg22
-
 
 
 
