@@ -1,3 +1,31 @@
+# Import the group names from the file
+$groupNames = Get-Content "C:\Path\To\file.txt"  # Replace with actual path if not running inline
+
+# Prepare an empty list to store results
+$results = @()
+
+foreach ($group in $groupNames) {
+    Write-Output "Processing group: $group"
+    try {
+        $members = Get-ADGroupMember -Identity $group -ErrorAction Stop
+        foreach ($member in $members) {
+            $results += [PSCustomObject]@{
+                GroupName       = $group
+                MemberName      = $member.Name
+                SamAccountName  = $member.SamAccountName
+                ObjectClass     = $member.objectClass
+            }
+        }
+    }
+    catch {
+        Write-Warning "Could not retrieve members of group: $group. Error: $_"
+    }
+}
+
+# Export results to CSV
+$results | Export-Csv -Path "$env:USERPROFILE\Desktop\GroupMembers.csv" -NoTypeInformation
+
+
 <# 
 This script will update Microsoft 365 apps on an Image VM without turning on automatic updates.
 It downloads automatically downloads the latest version of ODT and uses it to update M35 Apps.
