@@ -1,3 +1,11 @@
+Resources
+| where type == "microsoft.desktopvirtualization/sessionhosts"
+| extend SessionHostPoolName = tolower(tostring(split(name, "/")[0]))
+| extend SessionHostName = tolower(tostring(split(name, "/")[1]))
+| project SessionHostPoolName, SessionHostName, name, type
+
+| extend NormalizedResourceGroup = tolower(ResourceGroup)  // Convert ResourceGroup to lowercase
+
 # Import the group names from the file
 $groupNames = Get-Content "C:\Path\To\file.txt"  # Replace with actual path if not running inline
 
