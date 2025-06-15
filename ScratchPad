@@ -1,5 +1,25 @@
 let vmComputers = resources
 | where type == "microsoft.compute/virtualmachines"
+| where subscriptionId in~ ("60c0cd08-fdaf-435e-8033-9d125ef789b9", "b3804abf-ec73-4789-ba07-07ae2eb49721")
+| extend ComputerName = tolower(name)
+| project ComputerName, VM_ResourceGroup = resourceGroup, VM_SubscriptionId = subscriptionId, VM_Id = id;
+
+let avdSessionHosts = desktopvirtualizationresources
+| extend SessionHostPoolName = tolower(tostring(split(name, "/")[0]))
+| extend SessionHostName     = tolower(tostring(split(name, "/")[1]))
+| extend ComputerName        = tostring(split(SessionHostName, ".")[0])
+| project ComputerName, SessionHostPoolName, SessionHostName, AVD_SubscriptionId = subscriptionId, AVD_Id = id;
+
+// Join on ComputerName (shared across both tables)
+vmComputers
+| join kind=leftouter (avdSessionHosts) on ComputerName
+| extend IsSessionHost = iff(isempty(SessionHostName), "No", "Yes")
+| project ComputerName, IsSessionHost, SessionHostPoolName, SessionHostName,
+          VM_ResourceGroup, VM_SubscriptionId, AVD_SubscriptionId
+
+
+let vmComputers = resources
+| where type == "microsoft.compute/virtualmachines"
 | extend ComputerName = tolower(name)
 | project ComputerName;
 let avdComputers = desktopvirtualizationresources
