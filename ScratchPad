@@ -1,3 +1,22 @@
+// Query - Virtual Machines
+let vmComputers = resources
+| where type == "microsoft.compute/virtualmachines"
+| extend ComputerName = tolower(name)
+| project ComputerName;
+
+// Query - AVD Session Hosts
+let avdComputers = desktopvirtualizationresources
+| extend SessionHostName = tolower(tostring(split(name, "/")[1]))
+| extend ComputerName = tostring(split(SessionHostName, ".")[0])
+| project ComputerName;
+
+// Compare - Return VMs that are not AVD session hosts
+vmComputers
+| join kind=leftanti (avdComputers) on ComputerName
+
+
+
+
 desktopvirtualizationresources
 | extend SessionHostPoolName = tolower(tostring(split(name, "/")[0]))
 | extend SessionHostName = tolower(tostring(split(name, "/")[1]))
