@@ -1,3 +1,14 @@
+resources
+| where type == "microsoft.compute/virtualmachines"
+| where subscriptionId == "60cadc08-fdaf-435e-8033-9d125ef789b9" or subscriptionId == "b3804abf-ec73-4789-ba07-07ae2eb49b2a"
+| extend ComputerName = tolower(name)
+| join kind=leftantisemi (
+    desktopvirtualizationresources
+    | extend SessionHostName = tolower(tostring(split(name, "/")[1]))
+    | extend ComputerName = tostring(split(SessionHostName, ".")[0])
+) on ComputerName
+
+
 let vmComputers = resources
 | where type == "microsoft.compute/virtualmachines"
 | where subscriptionId in~ ("60c0cd08-fdaf-435e-8033-9d125ef789b9", "b3804abf-ec73-4789-ba07-07ae2eb49721")
