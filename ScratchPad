@@ -2,6 +2,19 @@ resources
 | where type == "microsoft.compute/virtualmachines"
 | where subscriptionId == "60cadc08-fdaf-435e-8033-9d125ef789b9" or subscriptionId == "b3804abf-ec73-4789-ba07-07ae2eb49b2a"
 | extend ComputerName = tolower(name)
+| join kind=leftouter (
+    desktopvirtualizationresources
+    | extend SessionHostName = tolower(tostring(split(name, "/")[1]))
+    | extend ComputerName1 = tostring(split(SessionHostName, ".")[0])
+) on $left.ComputerName == $right.ComputerName1
+| where isnull(ComputerName1)
+| project ComputerName
+
+
+resources
+| where type == "microsoft.compute/virtualmachines"
+| where subscriptionId == "60cadc08-fdaf-435e-8033-9d125ef789b9" or subscriptionId == "b3804abf-ec73-4789-ba07-07ae2eb49b2a"
+| extend ComputerName = tolower(name)
 | join kind=leftantisemi (
     desktopvirtualizationresources
     | extend SessionHostName = tolower(tostring(split(name, "/")[1]))
