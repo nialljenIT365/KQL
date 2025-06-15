@@ -1,3 +1,17 @@
+let vmComputers = resources
+| where type == "microsoft.compute/virtualmachines"
+| extend ComputerName = tolower(name)
+| project ComputerName;
+let avdComputers = desktopvirtualizationresources
+| extend SessionHostName = tolower(tostring(split(name, "/")[1]))
+| extend ComputerName = tostring(split(SessionHostName, ".")[0])
+| project ComputerName;
+vmComputers
+| join kind=leftanti (avdComputers) on ComputerName
+
+
+
+
 // Query - Virtual Machines
 let vmComputers = resources
 | where type == "microsoft.compute/virtualmachines"
