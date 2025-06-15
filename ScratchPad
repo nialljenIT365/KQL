@@ -1,3 +1,11 @@
+desktopvirtualizationresources
+| extend SessionHostPoolName = tolower(tostring(split(name, "/")[0]))
+| extend SessionHostName = tolower(tostring(split(name, "/")[1]))
+| extend ComputerName = tostring(split(SessionHostName, ".")[0])
+| project SessionHostPoolName, SessionHostName, ComputerName, ['id'], subscriptionId
+
+
+
 Resources
 | where type == "microsoft.desktopvirtualization/sessionhosts"
 | extend SessionHostPoolName = tolower(tostring(split(name, "/")[0]))
