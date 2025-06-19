@@ -1,3 +1,15 @@
+WVDConnections
+| where TimeGenerated > ago(30d)
+| where State == 'Connected'
+| where not(isempty(UserName)) and UserName != '<>'
+| extend UserName = trim(@'\\s', tolower(UserName))
+| summarize 
+    TotalConnections = dcount(CorrelationId),
+    UniqueUsers = dcount(UserName)
+| extend AvgConnectionsPerUserPerDay = TotalConnections / UniqueUsers / 30
+
+
+
 let paramRangeStart = todatetime('2024-01-01T00:00:00');  // Dynamic in Power BI
 let paramRangeEnd = todatetime('2024-12-31T23:59:59');    // Dynamic in Power BI
 
